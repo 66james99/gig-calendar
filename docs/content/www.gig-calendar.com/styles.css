@@ -44,6 +44,16 @@ body {
     text-align: center;
 }
 
+.logo {
+    max-width: 150px;
+    height: auto;
+    margin-bottom: 1rem;
+}
+
+.logo-dark {
+    display: none;
+}
+
 h1 {
     color: var(--heading-color);
     margin-top: 0;
@@ -81,4 +91,12 @@ footer {
     padding: 0.5rem;
     border-radius: 50%;
     color: var(--text-color);
+}
+
+[data-theme="dark"] .logo-light {
+    display: none;
+}
+
+[data-theme="dark"] .logo-dark {
+    display: inline-block;
 }
