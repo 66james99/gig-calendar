@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+
 	//"net/http"
 	"os"
 
@@ -90,9 +91,9 @@ func main() {
 		log.Fatalf("Unable to create Gmail client: %v", err)
 	}
 
-	label := "INBOX"
+	label := "Gig Calendar/ticket"
 
-	msgList, err := srv.Users.Messages.List("me").LabelIds(label).Do()
+	msgList, err := srv.Users.Messages.List("me").Q("label:\"" + label + "\"").Do()
 	if err != nil {
 		log.Fatalf("Unable to retrieve messages: %v", err)
 	}
