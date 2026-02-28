@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/images"
@@ -25,10 +26,13 @@ func parseArgs() (string, []string, error) {
 func parseFlags(source string, args []string) (interface{}, error) {
 	fs := flag.NewFlagSet(source, flag.ContinueOnError)
 	dryRun := fs.Bool("dryrun", false, "Indicates no changes should be made, only report what would have been changed")
+	verbose := fs.Bool("verbose", false, "Indicates if verbose output should be displayed")
+	debug := fs.Bool("debug", false, "Indicates if debug output should be displayed")
 	dateFromExif := fs.Bool("date_from_exif", false, "Indicates if date should be extracted from EXIF (images only)")
 	rootDir := fs.String("rootdir", "", "Path to the root of directories to be scanned for event meta information (images only)")
 	pattern := fs.String("pattern", "", "Pattern to extract performer, promoter and venue from directory path (images only)")
 	incParent := fs.Bool("include_parent", false, "Include the last directory in the root directory in the path use of metadata (images only)")
+	ignoreDirs := fs.String("ignore_dirs", "", "Comma separated list of strings to ignore in paths (images only)")
 
 	// Custom usage message
 	fs.Usage = func() {
@@ -48,8 +52,10 @@ func parseFlags(source string, args []string) (interface{}, error) {
 	}
 
 	base := metadata.BaseConfig{
-		Source: source,
-		DryRun: *dryRun,
+		Source:  source,
+		DryRun:  *dryRun,
+		Verbose: *verbose,
+		Debug:   *debug,
 	}
 
 	switch source {
@@ -57,12 +63,18 @@ func parseFlags(source string, args []string) (interface{}, error) {
 		if err := images.ValidatePattern(*pattern); err != nil {
 			return nil, fmt.Errorf("invalid --pattern value: %w", err)
 		}
+		var ignoreList []string
+		if *ignoreDirs != "" {
+			ignoreList = strings.Split(*ignoreDirs, ",")
+		}
+
 		return images.ImagesConfig{
 			BaseConfig:    base,
 			DateFromExif:  *dateFromExif,
 			RootDir:       *rootDir,
 			Pattern:       *pattern,
 			IncludeParent: *incParent,
+			IgnoreDirs:    ignoreList,
 		}, nil
 	case "tickets":
 		return metadata.TicketsConfig{BaseConfig: base}, nil
@@ -75,9 +87,9 @@ func parseFlags(source string, args []string) (interface{}, error) {
 
 func validateFlags(source string, fs *flag.FlagSet) error {
 	validFlagsBySource := map[string][]string{
-		"images":  {"dryrun", "date_from_exif", "rootdir", "pattern", "include_parent"},
-		"tickets": {"dryrun"},
-		"info":    {"dryrun"},
+		"images":  {"dryrun", "verbose", "debug", "date_from_exif", "rootdir", "pattern", "include_parent", "ignore_dirs"},
+		"tickets": {"dryrun", "verbose", "debug"},
+		"info":    {"dryrun", "verbose", "debug"},
 	}
 
 	// Source is already validated in parseArgs
@@ -114,8 +126,8 @@ func main() {
 	case images.ImagesConfig:
 		images.PrintCfg(cfg)
 	case metadata.TicketsConfig:
-		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
+		fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
 	case metadata.InfoConfig:
-		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
+		fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
 	}
 }
