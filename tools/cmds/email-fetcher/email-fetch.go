@@ -9,6 +9,7 @@ import (
 	//"net/http"
 	"os"
 
+	"strings"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -95,6 +96,10 @@ func main() {
 
 	msgList, err := srv.Users.Messages.List("me").Q("label:\"" + label + "\"").Do()
 	if err != nil {
+		if strings.Contains(err.Error(), "invalid_grant") {
+			log.Printf("Authentication error: The OAuth2 token is invalid or expired.")
+			log.Fatalf("Please delete the token file at '%s' and run the command again to re-authenticate.", tokenPath)
+		}
 		log.Fatalf("Unable to retrieve messages: %v", err)
 	}
 
