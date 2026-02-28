@@ -28,6 +28,7 @@ func parseFlags(source string, args []string) (interface{}, error) {
 	dateFromExif := fs.Bool("date_from_exif", false, "Indicates if date should be extracted from EXIF (images only)")
 	rootDir := fs.String("rootdir", "", "Path to the root of directories to be scanned for event meta information (images only)")
 	pattern := fs.String("pattern", "", "Pattern to extract performer, promoter and venue from directory path (images only)")
+	incParent := fs.Bool("include_parent", false, "Include the last directory in the root directory in the path use of metadata (images only)")
 
 	// Custom usage message
 	fs.Usage = func() {
@@ -58,6 +59,7 @@ func parseFlags(source string, args []string) (interface{}, error) {
 			DateFromExif: *dateFromExif,
 			RootDir:      *rootDir,
 			Pattern:      *pattern,
+			IncludeParent: *incParent,
 		}, nil
 	case "tickets":
 		return metadata.TicketsConfig{BaseConfig: base}, nil
@@ -70,7 +72,7 @@ func parseFlags(source string, args []string) (interface{}, error) {
 
 func validateFlags(source string, fs *flag.FlagSet) error {
 	validFlagsBySource := map[string][]string{
-		"images":  {"dryrun", "date_from_exif", "rootdir", "pattern"},
+		"images":  {"dryrun", "date_from_exif", "rootdir", "pattern", "include_parent"},
 		"tickets": {"dryrun"},
 		"info":    {"dryrun"},
 	}
@@ -107,10 +109,6 @@ func main() {
 
 	switch cfg := config.(type) {
 	case images.ImagesConfig:
-		/*
-			fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
-			fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern)
-		*/
 		images.PrintCfg(cfg)
 	case metadata.TicketsConfig:
 		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
