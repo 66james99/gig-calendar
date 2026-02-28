@@ -54,11 +54,14 @@ func parseFlags(source string, args []string) (interface{}, error) {
 
 	switch source {
 	case "images":
+		if err := images.ValidatePattern(*pattern); err != nil {
+			return nil, fmt.Errorf("invalid --pattern value: %w", err)
+		}
 		return images.ImagesConfig{
-			BaseConfig:   base,
-			DateFromExif: *dateFromExif,
-			RootDir:      *rootDir,
-			Pattern:      *pattern,
+			BaseConfig:    base,
+			DateFromExif:  *dateFromExif,
+			RootDir:       *rootDir,
+			Pattern:       *pattern,
 			IncludeParent: *incParent,
 		}, nil
 	case "tickets":

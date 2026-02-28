@@ -168,6 +168,12 @@ func TestParseFlags_Errors(t *testing.T) {
 			args:    []string{},
 			wantErr: "Error: invalid source 'invalid_source'",
 		},
+		{
+			name:    "Invalid pattern for images source",
+			source:  "images",
+			args:    []string{"--pattern=%y%m"},
+			wantErr: "invalid --pattern value: invalid pattern: placeholders must be separated",
+		},
 	}
 
 	for _, tt := range tests {

@@ -15,13 +15,55 @@ type LocationData struct {
 	Performers []string
 	Venue      string
 	Promoters  []string
+	Consistent bool
+}
+
+var knownPlaceholders = map[string]struct{}{
+	"%y": {}, "%m": {}, "%d": {}, "%M": {}, "%P": {}, "%V": {}, "%p": {},
+}
+
+var monthNames = map[string]int{
+	"january": 1, "february": 2, "march": 3, "april": 4, "may": 5, "june": 6,
+	"july": 7, "august": 8, "september": 9, "october": 10, "november": 11, "december": 12,
+}
+
+// ValidatePattern checks if a pattern string is valid.
+// A valid pattern only contains known placeholders, and placeholders must be separated by at least one character.
+func ValidatePattern(pattern string) error {
+	if pattern == "" {
+		return nil
+	}
+
+	lastWasPlaceholder := false
+	for i := 0; i < len(pattern); {
+		if pattern[i] == '%' {
+			if lastWasPlaceholder {
+				return fmt.Errorf("invalid pattern: placeholders must be separated")
+			}
+
+			if i+1 >= len(pattern) {
+				return fmt.Errorf("invalid pattern: trailing '%%'")
+			}
+			placeholder := pattern[i : i+2]
+			if _, ok := knownPlaceholders[placeholder]; !ok {
+				return fmt.Errorf("invalid pattern: unknown placeholder '%s'", placeholder)
+			}
+
+			lastWasPlaceholder = true
+			i += 2
+		} else {
+			lastWasPlaceholder = false
+			i++
+		}
+	}
+	return nil
 }
 
 // ParseLocation parses a location string based on the provided pattern.
 // Supported placeholders:
-// %y: numeric year
-// %m: numeric month
-// %d: numeric day of the month
+// %y: numeric year - must be exactly 4 digits
+// %m: numeric month - must be 1 or 2 digits, might have a leading 0
+// %d: numeric day of the month - must be 1 or 2 digists, might have a leading 0
 // %M: names of the months of the year
 // %P: comma separated list of performers names
 // %V: venue name (cannot contain '(' or ')')
@@ -60,6 +102,7 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 
 	for i, tok := range tokens {
 		if !tok.isPlaceholder {
+			// ... (literal handling remains the same)
 			// Consume literal from the location string
 			if !strings.HasPrefix(remainingLocation, tok.value) {
 				// This could be a separator for optional fields at the end.
@@ -91,6 +134,7 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 			continue
 		}
 
+		var value string
 		// Find the next literal to know where this placeholder's value ends
 		nextLiteral := ""
 		nextLiteralIdx := -1
@@ -102,7 +146,7 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 			}
 		}
 
-		var value string
+		// Fallback to separator-based parsing for variable fields (%P, %V, etc.)
 		if nextLiteral == "" {
 			// This is the last token, so it consumes the rest of the string
 			value = remainingLocation
@@ -158,8 +202,20 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 
 	// 3. Populate the LocationData struct from the captured values
 	var data LocationData
+	data.Consistent = true // Initialize
+	firstValues := make(map[string]string)
+
 	for _, captured := range capturedValues {
 		placeholder, val := captured[0], captured[1]
+
+		if existingVal, ok := firstValues[placeholder]; ok {
+			if existingVal != val {
+				data.Consistent = false
+			}
+		} else {
+			firstValues[placeholder] = val
+		}
+
 		switch placeholder {
 		case "%y":
 			data.Year, _ = strconv.Atoi(val)
@@ -172,6 +228,7 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 		case "%V":
 			data.Venue = strings.TrimSpace(val)
 		case "%P":
+			data.Performers = nil
 			if val == "" {
 				continue
 			}
@@ -180,6 +237,7 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 				data.Performers = append(data.Performers, strings.TrimSpace(p))
 			}
 		case "%p":
+			data.Promoters = nil
 			if val == "" {
 				continue
 			}
@@ -187,6 +245,20 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 			for _, p := range parts {
 				data.Promoters = append(data.Promoters, strings.TrimSpace(p))
 			}
+		}
+	}
+
+	// Validate MonthName and consistency with Month number
+	if data.MonthName != "" {
+		lowerName := strings.ToLower(data.MonthName)
+		if num, ok := monthNames[lowerName]; ok {
+			if _, hasMonthNum := firstValues["%m"]; hasMonthNum {
+				if data.Month != num {
+					data.Consistent = false
+				}
+			}
+		} else {
+			data.Consistent = false
 		}
 	}
 
