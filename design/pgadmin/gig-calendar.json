@@ -570,7 +570,8 @@
                                         "attnotnull": true,
                                         "colconstype": "n",
                                         "attidentity": "a",
-                                        "attoptions": []
+                                        "attoptions": [],
+                                        "adsrc": "now()"
                                     },
                                     {
                                         "name": "updated",
@@ -862,7 +863,8 @@
                                         "attnotnull": true,
                                         "colconstype": "n",
                                         "attidentity": "a",
-                                        "attoptions": []
+                                        "attoptions": [],
+                                        "adsrc": "now()"
                                     },
                                     {
                                         "name": "updated",
@@ -1156,7 +1158,8 @@
                                         "attnotnull": true,
                                         "colconstype": "n",
                                         "attidentity": "a",
-                                        "attoptions": []
+                                        "attoptions": [],
+                                        "adsrc": "now()"
                                     },
                                     {
                                         "name": "updated",
@@ -1184,6 +1187,39 @@
                                         "attlen": null,
                                         "attprecision": null,
                                         "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 5,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
@@ -1455,6 +1491,39 @@
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 3,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
                                     }
                                 ],
                                 "name": "event_promoters",
@@ -1624,7 +1693,8 @@
                                         "attnotnull": true,
                                         "colconstype": "n",
                                         "attidentity": "a",
-                                        "attoptions": []
+                                        "attoptions": [],
+                                        "adsrc": "now()"
                                     },
                                     {
                                         "name": "headliner",
@@ -1650,6 +1720,22 @@
                                         "attlen": null,
                                         "attprecision": null,
                                         "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
@@ -1824,6 +1910,23 @@
                                         "attidentity": "a",
                                         "attoptions": [],
                                         "cid": "c1623"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "cid": "c1624"
                                     }
                                 ],
                                 "name": "performer_alias",
@@ -1877,8 +1980,7 @@
                                                 "cid": "c1626"
                                             }
                                         ],
-                                        "include": [],
-                                        "cid": "c1624"
+                                        "include": []
                                     }
                                 ]
                             },
@@ -1970,10 +2072,11 @@
                                         "min_val_attlen": 0,
                                         "max_val_attlen": 6,
                                         "attprecision": null,
-                                        "attnotnull": true,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
-                                        "attoptions": []
+                                        "attoptions": [],
+                                        "adsrc": "now()"
                                     },
                                     {
                                         "name": "alias",
@@ -1985,6 +2088,39 @@
                                         "attlen": null,
                                         "attprecision": null,
                                         "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 5,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
@@ -2130,6 +2266,39 @@
                                         "attlen": null,
                                         "attprecision": null,
                                         "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 3,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
@@ -2335,6 +2504,72 @@
                                         "attlen": null,
                                         "attprecision": null,
                                         "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 3,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": []
+                                    },
+                                    {
+                                        "name": "created",
+                                        "is_primary_key": false,
+                                        "attnum": 3,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": true,
+                                        "colconstype": "n",
+                                        "attidentity": "a",
+                                        "attoptions": [],
+                                        "adsrc": "now()"
+                                    },
+                                    {
+                                        "name": "updated",
+                                        "is_primary_key": false,
+                                        "attnum": 4,
+                                        "cltype": "timestamp without time zone",
+                                        "geometry": null,
+                                        "srid": null,
+                                        "attlen": null,
+                                        "min_val_attlen": 0,
+                                        "max_val_attlen": 6,
+                                        "attprecision": null,
+                                        "attnotnull": false,
                                         "colconstype": "n",
                                         "attidentity": "a",
                                         "attoptions": []
