@@ -4,27 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"os"
+
+	"github.com/66james99/gig-calendar/internal/metadata"
+	"github.com/66james99/gig-calendar/internal/metadata/images"
 )
-
-type BaseConfig struct {
-	Source string
-	DryRun bool
-}
-
-type ImagesConfig struct {
-	BaseConfig
-	DateFromExif bool
-	RootDir      string
-	Pattern      string
-}
-
-type TicketsConfig struct {
-	BaseConfig
-}
-
-type InfoConfig struct {
-	BaseConfig
-}
 
 func parseArgs() (string, []string, error) {
 	if len(os.Args) < 2 {
@@ -63,23 +46,23 @@ func parseFlags(source string, args []string) (interface{}, error) {
 		return nil, err
 	}
 
-	base := BaseConfig{
+	base := metadata.BaseConfig{
 		Source: source,
 		DryRun: *dryRun,
 	}
 
 	switch source {
 	case "images":
-		return ImagesConfig{
+		return images.ImagesConfig{
 			BaseConfig:   base,
 			DateFromExif: *dateFromExif,
 			RootDir:      *rootDir,
 			Pattern:      *pattern,
 		}, nil
 	case "tickets":
-		return TicketsConfig{BaseConfig: base}, nil
+		return metadata.TicketsConfig{BaseConfig: base}, nil
 	case "info":
-		return InfoConfig{BaseConfig: base}, nil
+		return metadata.InfoConfig{BaseConfig: base}, nil
 	default:
 		return nil, fmt.Errorf("Error: invalid source '%s'", source)
 	}
@@ -123,12 +106,15 @@ func main() {
 	}
 
 	switch cfg := config.(type) {
-	case ImagesConfig:
+	case images.ImagesConfig:
+		/*
+			fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
+			fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern)
+		*/
+		images.PrintCfg(cfg)
+	case metadata.TicketsConfig:
 		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
-		fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern)
-	case TicketsConfig:
-		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
-	case InfoConfig:
+	case metadata.InfoConfig:
 		fmt.Printf("Source: %s\nDryrun: %v\n", cfg.Source, cfg.DryRun)
 	}
 }
