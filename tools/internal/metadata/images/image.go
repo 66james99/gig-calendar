@@ -35,7 +35,7 @@ func PrintCfg(cfg ImagesConfig) {
 	if err != nil {
 		fmt.Printf("Error scanning directories: %v\n", err)
 	} else {
-		var successCount, errorCount int
+		var successCount, errorCount, inconsistentCount int
 		fmt.Printf("Directories at depth %d:\n", depth)
 		for _, dir := range dirs {
 			if cfg.Pattern != "" {
@@ -47,6 +47,9 @@ func PrintCfg(cfg ImagesConfig) {
 					}
 				} else {
 					successCount++
+					if !data.Consistent {
+						inconsistentCount++
+					}
 					if cfg.Verbose && !cfg.Debug {
 						fmt.Printf("  Parsed Data: %+v\n", data)
 					}
@@ -54,11 +57,11 @@ func PrintCfg(cfg ImagesConfig) {
 			}
 		}
 
-		if cfg.Verbose || cfg.Debug {
-			fmt.Printf("\n--- Parsing Summary ---\n")
-			fmt.Printf("Successfully parsed: %d\n", successCount)
-			fmt.Printf("Failed to parse:     %d\n", errorCount)
-		}
+		fmt.Printf("\n--- Parsing Summary ---\n")
+		fmt.Printf("Successfully parsed: %d\n", successCount)
+		fmt.Printf("Inconsistent data:   %d\n", inconsistentCount)
+		fmt.Printf("Failed to parse:     %d\n", errorCount)
+
 	}
 }
 

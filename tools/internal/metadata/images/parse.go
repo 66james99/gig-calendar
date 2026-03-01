@@ -67,7 +67,7 @@ func ValidatePattern(pattern string) error {
 // %M: names of the months of the year
 // %P: comma separated list of performers names
 // %V: venue name (cannot contain '(' or ')')
-// %p: comma separated list of promoters names
+// %p: comma separated list of promoters names, allowed to be empty
 func ParseLocation(pattern, location string) (LocationData, error) {
 	type token struct {
 		isPlaceholder bool
