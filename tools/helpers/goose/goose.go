@@ -83,7 +83,7 @@ func main() {
 
 	// 3. Get configuration from environment
 	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
+	user := os.Getenv("DB_ADMIN_USER")
 	var dbname string
 	switch environment {
 	case "dev":
@@ -95,7 +95,7 @@ func main() {
 	}
 	sslmode := os.Getenv("DB_SSLMODE")
 	migrationsDir := os.Getenv("DB_MIGRATIONS_DIR")
-	passwordSecretID := os.Getenv("DB_PASSWORD_SECRET_ID")
+	passwordSecretID := os.Getenv("DB_ADMIN_PASSWORD_SECRET_ID")
 
 	// 4. Validate required environment variables
 	if host == "" || user == "" || passwordSecretID == "" {
