@@ -26,19 +26,20 @@ func TestFinder_Success(t *testing.T) {
 	}{
 		{
 			name: "Valid images source with all flags",
-			// args[0] is the program name
-			args:       []string{"finder", "images", "--rootdir=/tmp", "--pattern=*.jpg", "--date_from_exif", "--dryrun"},
-			wantOutput: "Source: images\nDryrun: true\nDateFromExif: true\nRootDir: /tmp\nPattern: *.jpg\n",
+			args: []string{"finder", "images", "--rootdir=/tmp", "--pattern=*.jpg", "--date_from_exif", "--dryrun", "--verbose", "--debug", "--include_parent", "--ignore_dirs=a,b"},
+			// This output is based on the assumption that images.PrintCfg prints all fields when set.
+			// The format for IgnoreDirs is a guess based on how Go's fmt prints slices.
+			wantOutput: "Source: images\nDryrun: true\nVerbose: true\nDebug: true\nDateFromExif: true\nRootDir: /tmp\nPattern: *.jpg\nInclude Parent: true\nIgnoreDirs: [a b]\n",
 		},
 		{
-			name:       "Valid tickets source with allowed flag",
-			args:       []string{"finder", "tickets", "--dryrun"},
-			wantOutput: "Source: tickets\nDryrun: true\n",
+			name:       "Valid tickets source with all allowed flags",
+			args:       []string{"finder", "tickets", "--dryrun", "--verbose", "--debug"},
+			wantOutput: "Source: tickets\nDryrun: true\nVerbose: true\nDebug: true\n",
 		},
 		{
-			name:       "Valid info source",
-			args:       []string{"finder", "info", "--dryrun"},
-			wantOutput: "Source: info\nDryrun: true\n",
+			name:       "Valid info source with all allowed flags",
+			args:       []string{"finder", "info", "--dryrun", "--verbose", "--debug"},
+			wantOutput: "Source: info\nDryrun: true\nVerbose: true\nDebug: true\n",
 		},
 	}
 
@@ -157,6 +158,12 @@ func TestParseFlags_Errors(t *testing.T) {
 			wantErr: "Error: flag --rootdir is not valid for source 'tickets'",
 		},
 		{
+			name:    "Invalid include_parent flag for source",
+			source:  "tickets",
+			args:    []string{"--include_parent"},
+			wantErr: "Error: flag --include_parent is not valid for source 'tickets'",
+		},
+		{
 			name:    "Unknown flag",
 			source:  "info",
 			args:    []string{"--unknown"},
@@ -221,6 +228,12 @@ func TestFinder_Failures(t *testing.T) {
 			args:     []string{"tickets", "--rootdir=/tmp"},
 			wantExit: 1,
 			wantOut:  "Error: flag --rootdir is not valid for source 'tickets'",
+		},
+		{
+			name:     "Invalid include_parent flag for tickets source",
+			args:     []string{"tickets", "--include_parent"},
+			wantExit: 1,
+			wantOut:  "Error: flag --include_parent is not valid for source 'tickets'",
 		},
 		{
 			name:     "Invalid source",

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/66james99/gig-calendar/internal/database"
@@ -72,8 +73,22 @@ func main() {
 		log.Fatalf("Invalid command '%s'. Must be 'up', 'down', or 'status'.", command)
 	}
 	// 2. Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, relying on system environment variables")
+	// Try loading from current directory first.
+	if err := godotenv.Load(); err == nil {
+		log.Println("Loaded .env file from current directory.")
+	} else {
+		// If it fails, try loading from the executable's directory.
+		exePath, exeErr := os.Executable()
+		if exeErr != nil {
+			log.Println("No .env file found in current directory and could not get executable path. Relying on system environment variables.")
+		} else {
+			envPath := filepath.Join(filepath.Dir(exePath), ".env")
+			if err := godotenv.Load(envPath); err != nil {
+				log.Println("No .env file found in current directory or executable path. Relying on system environment variables.")
+			} else {
+				log.Printf("Loaded .env file from executable path: %s", filepath.Dir(exePath))
+			}
+		}
 	}
 
 	credentialsPath := os.Getenv("DB_GSM_CREDENTIALS_PATH")
