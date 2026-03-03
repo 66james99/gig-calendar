@@ -1,49 +1,19 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"google.golang.org/api/option"
 )
-
-// getSecret fetches a secret from Google Cloud Secret Manager.
-// The name should be in the format `projects/*/secrets/*/versions/*`.
-func getSecret(name string, credentialsPath string) (string, error) {
-	ctx := context.Background()
-
-	jsonCredentials, err := os.ReadFile(credentialsPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read credentials file: %w", err)
-	}
-
-	client, err := secretmanager.NewClient(ctx, option.WithAuthCredentialsJSON(option.ServiceAccount, jsonCredentials))
-	if err != nil {
-		return "", fmt.Errorf("failed to create secretmanager client: %w", err)
-	}
-	defer client.Close()
-
-	req := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: name,
-	}
-
-	result, err := client.AccessSecretVersion(ctx, req)
-	if err != nil {
-		return "", fmt.Errorf("failed to access secret version: %w", err)
-	}
-
-	return string(result.Payload.Data), nil
-}
 
 func validateMigrationsDir(dir string) error {
 	info, err := os.Stat(dir)
@@ -94,9 +64,31 @@ func main() {
 	}
 	command := positionalArgs[0]
 	environment := positionalArgs[1]
+
+	// Validate command early to fail fast on invalid input.
+	switch command {
+	case "up", "down", "status":
+		// valid command
+	default:
+		log.Fatalf("Invalid command '%s'. Must be 'up', 'down', or 'status'.", command)
+	}
 	// 2. Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, relying on system environment variables")
+	// Try loading from current directory first.
+	if err := godotenv.Load(); err == nil {
+		log.Println("Loaded .env file from current directory.")
+	} else {
+		// If it fails, try loading from the executable's directory.
+		exePath, exeErr := os.Executable()
+		if exeErr != nil {
+			log.Println("No .env file found in current directory and could not get executable path. Relying on system environment variables.")
+		} else {
+			envPath := filepath.Join(filepath.Dir(exePath), ".env")
+			if err := godotenv.Load(envPath); err != nil {
+				log.Println("No .env file found in current directory or executable path. Relying on system environment variables.")
+			} else {
+				log.Printf("Loaded .env file from executable path: %s", filepath.Dir(exePath))
+			}
+		}
 	}
 
 	credentialsPath := os.Getenv("DB_GSM_CREDENTIALS_PATH")
@@ -106,7 +98,7 @@ func main() {
 
 	// 3. Get configuration from environment
 	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_USER")
+	user := os.Getenv("DB_ADMIN_USER")
 	var dbname string
 	switch environment {
 	case "dev":
@@ -118,7 +110,7 @@ func main() {
 	}
 	sslmode := os.Getenv("DB_SSLMODE")
 	migrationsDir := os.Getenv("DB_MIGRATIONS_DIR")
-	passwordSecretID := os.Getenv("DB_PASSWORD_SECRET_ID")
+	passwordSecretID := os.Getenv("DB_ADMIN_PASSWORD_SECRET_ID")
 
 	// 4. Validate required environment variables
 	if host == "" || user == "" || passwordSecretID == "" {
@@ -144,7 +136,7 @@ func main() {
 
 	// 5. Fetch database password from Google Secret Manager
 	log.Println("Fetching database password from Secret Manager...")
-	password, err := getSecret(passwordSecretID, credentialsPath)
+	password, err := database.GetSecret(passwordSecretID, credentialsPath)
 	if err != nil {
 		log.Fatalf("Failed to get secret from Secret Manager: %v", err)
 	}
