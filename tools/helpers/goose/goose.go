@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"flag"
 	"fmt"
@@ -9,41 +8,11 @@ import (
 	"os"
 	"strings"
 
-	secretmanager "cloud.google.com/go/secretmanager/apiv1"
-	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
+	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/pressly/goose/v3"
-	"google.golang.org/api/option"
 )
-
-// getSecret fetches a secret from Google Cloud Secret Manager.
-// The name should be in the format `projects/*/secrets/*/versions/*`.
-func getSecret(name string, credentialsPath string) (string, error) {
-	ctx := context.Background()
-
-	jsonCredentials, err := os.ReadFile(credentialsPath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read credentials file: %w", err)
-	}
-
-	client, err := secretmanager.NewClient(ctx, option.WithAuthCredentialsJSON(option.ServiceAccount, jsonCredentials))
-	if err != nil {
-		return "", fmt.Errorf("failed to create secretmanager client: %w", err)
-	}
-	defer client.Close()
-
-	req := &secretmanagerpb.AccessSecretVersionRequest{
-		Name: name,
-	}
-
-	result, err := client.AccessSecretVersion(ctx, req)
-	if err != nil {
-		return "", fmt.Errorf("failed to access secret version: %w", err)
-	}
-
-	return string(result.Payload.Data), nil
-}
 
 func validateMigrationsDir(dir string) error {
 	info, err := os.Stat(dir)
@@ -152,7 +121,7 @@ func main() {
 
 	// 5. Fetch database password from Google Secret Manager
 	log.Println("Fetching database password from Secret Manager...")
-	password, err := getSecret(passwordSecretID, credentialsPath)
+	password, err := database.GetSecret(passwordSecretID, credentialsPath)
 	if err != nil {
 		log.Fatalf("Failed to get secret from Secret Manager: %v", err)
 	}
