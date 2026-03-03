@@ -6,6 +6,7 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"cloud.google.com/go/secretmanager/apiv1/secretmanagerpb"
@@ -59,20 +60,91 @@ func TestGetSecret(t *testing.T) {
 	}
 
 	// 3. Dial the fake server
-	conn, err := grpc.Dial(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(listener.Addr().String(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
 
-	// 4. Call GetSecret injecting the connection to our fake server
-	secretName := "projects/my-project/secrets/my-secret/versions/1"
-	got, err := GetSecret(secretName, credsPath, option.WithGRPCConn(conn))
-	if err != nil {
-		t.Fatalf("GetSecret failed: %v", err)
+	tests := []struct {
+		name       string
+		secretName string
+		want       string
+		wantErrStr string
+	}{
+		{
+			name:       "secret found",
+			secretName: "projects/my-project/secrets/my-secret/versions/1",
+			want:       "super-secret-value",
+		},
+		{
+			name:       "secret does not exist",
+			secretName: "projects/my-project/secrets/non-existent-secret/versions/1",
+			wantErrStr: "failed to access secret version",
+		},
+		{
+			name:       "secret version does not exist",
+			secretName: "projects/my-project/secrets/my-secret/versions/latest",
+			wantErrStr: "failed to access secret version",
+		},
 	}
 
-	if got != "super-secret-value" {
-		t.Errorf("GetSecret = %q, want %q", got, "super-secret-value")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Call GetSecret injecting the connection to our fake server
+			got, err := GetSecret(tt.secretName, credsPath, option.WithGRPCConn(conn))
+
+			if tt.wantErrStr != "" {
+				if err == nil {
+					t.Fatalf("GetSecret() expected error, got nil")
+				}
+				if !strings.Contains(err.Error(), tt.wantErrStr) {
+					t.Errorf("GetSecret() error = %q, want to contain %q", err.Error(), tt.wantErrStr)
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("GetSecret() returned unexpected error: %v", err)
+			}
+			if got != tt.want {
+				t.Errorf("GetSecret() = %q, want %q", got, tt.want)
+			}
+		})
 	}
+}
+
+func TestGetSecret_InvalidCredentials(t *testing.T) {
+	t.Run("credentials file is not valid json", func(t *testing.T) {
+		tempDir := t.TempDir()
+		credsPath := filepath.Join(tempDir, "creds.json")
+		if err := os.WriteFile(credsPath, []byte("{not-json}"), 0644); err != nil {
+			t.Fatalf("failed to write dummy creds: %v", err)
+		}
+
+		_, err := GetSecret("any-secret", credsPath)
+		if err == nil {
+			t.Fatal("GetSecret() expected error for invalid JSON, got nil")
+		}
+
+		// The underlying google auth lib should fail to parse the credentials.
+		// We check for our wrapper error message.
+		if !strings.Contains(err.Error(), "failed to create secretmanager client") {
+			t.Errorf("GetSecret() error = %q, want to contain %q", err.Error(), "failed to create secretmanager client")
+		}
+	})
+
+	t.Run("credentials file not found", func(t *testing.T) {
+		tempDir := t.TempDir()
+		credsPath := filepath.Join(tempDir, "non-existent-creds.json")
+
+		_, err := GetSecret("any-secret", credsPath)
+		if err == nil {
+			t.Fatal("GetSecret() expected error for non-existent file, got nil")
+		}
+
+		if !strings.Contains(err.Error(), "failed to read credentials file") {
+			t.Errorf("GetSecret() error = %q, want to contain %q", err.Error(), "failed to read credentials file")
+		}
+	})
 }
