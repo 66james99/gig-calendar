@@ -94,6 +94,14 @@ func main() {
 	}
 	command := positionalArgs[0]
 	environment := positionalArgs[1]
+
+	// Validate command early to fail fast on invalid input.
+	switch command {
+	case "up", "down", "status":
+		// valid command
+	default:
+		log.Fatalf("Invalid command '%s'. Must be 'up', 'down', or 'status'.", command)
+	}
 	// 2. Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, relying on system environment variables")
