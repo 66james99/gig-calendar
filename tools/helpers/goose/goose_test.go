@@ -98,13 +98,13 @@ func TestGooseHelper_Failures(t *testing.T) {
 	// A base environment that should pass most validation checks,
 	// allowing us to test one failure at a time.
 	baseEnv := map[string]string{
-		"DB_GSM_CREDENTIALS_PATH": dummyCredsPath,
-		"DB_HOST":                 "localhost",
-		"DB_USER":                 "test",
-		"DB_PASSWORD_SECRET_ID":   "projects/proj/secrets/sec/versions/1",
-		"DB_NAME_DEV":             "test_db",
-		"DB_NAME":                 "prod_db",
-		"DB_MIGRATIONS_DIR":       migrationsDir,
+		"DB_GSM_CREDENTIALS_PATH":     dummyCredsPath,
+		"DB_HOST":                     "localhost",
+		"DB_ADMIN_USER":               "test",
+		"DB_ADMIN_PASSWORD_SECRET_ID": "projects/proj/secrets/sec/versions/1",
+		"DB_NAME_DEV":                 "test_db",
+		"DB_NAME":                     "prod_db",
+		"DB_MIGRATIONS_DIR":           migrationsDir,
 	}
 
 	tests := []struct {

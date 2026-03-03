@@ -102,7 +102,7 @@ func main() {
 
 	// 4. Validate required environment variables
 	if host == "" || user == "" || passwordSecretID == "" {
-		log.Fatal("Missing required environment variables. Please set DB_HOST, DB_USER, and DB_PASSWORD_SECRET_ID.")
+		log.Fatal("Missing required environment variables. Please set DB_HOST, DB_ADMIN_USER, and DB_ADMIN_PASSWORD_SECRET_ID.")
 	}
 	if dbname == "" {
 		if environment == "dev" {
