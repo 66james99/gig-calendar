@@ -1,8 +1,14 @@
 version: "2"
 sql:
-  - schema: "sql/schema"
+  - engine: "postgresql"
+    schema: "sql/schema"
     queries: "sql/queries"
-    engine: "postgresql"
     gen:
       go:
+        package: "database"
         out: "internal/database"
+        sql_package: "database/sql"
+        overrides:
+          - db_type: "text[]"
+            go_type: "github.com/lib/pq.StringArray"
+
