@@ -12,9 +12,8 @@ import (
 
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/joho/godotenv"
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
-	"github.com/lib/pq"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	_ "github.com/lib/pq" // init postgres driver
 )
 
@@ -59,7 +58,7 @@ func main() {
 
 	// --- Middleware ---
 	e.Use(middleware.RequestLoggerWithConfig(middleware.RequestLoggerConfig{
-		LogValuesFunc: func(c echo.Context, v middleware.RequestLoggerValues) error {
+		LogValuesFunc: func(c *echo.Context, v middleware.RequestLoggerValues) error {
 			log.Printf("remote_ip=%s, method=%s, uri=%s, status=%d, latency=%s",
 				v.RemoteIP, v.Method, v.URI, v.Status, v.Latency)
 			return nil
@@ -86,7 +85,9 @@ func main() {
 
 	// Start the server.
 	log.Println("Starting server on :8080")
-	e.Logger.Fatal(e.Start(":8080"))
+	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
+		log.Fatal(err)
+	}
 }
 
 // connectDB handles the logic of connecting to the database, reusing logic from your goose tool.
@@ -104,7 +105,7 @@ func connectDB(isDev bool) (*sql.DB, error) {
 		dbname = os.Getenv("DB_NAME_DEV")
 	} else {
 		log.Println("Running in production mode")
-		dbname = os.Getenv("DB_NAME_PROD")
+		dbname = os.Getenv("DB_NAME")
 	}
 	sslmode := os.Getenv("DB_SSLMODE")
 	passwordSecretID := os.Getenv("DB_APP_PASSWORD_SECRET_ID")
@@ -124,7 +125,7 @@ func connectDB(isDev bool) (*sql.DB, error) {
 			if isDev {
 				missing = append(missing, "DB_NAME_DEV")
 			} else {
-				missing = append(missing, "DB_NAME_PROD")
+				missing = append(missing, "DB_NAME")
 			}
 		}
 		return nil, fmt.Errorf("missing required DB environment variables: %s", strings.Join(missing, ", "))
@@ -152,7 +153,8 @@ func connectDB(isDev bool) (*sql.DB, error) {
 
 // --- API Handlers ---
 
-func (a *api) createImageLocation(c echo.Context) error {
+
+func (a *api) createImageLocation(c *echo.Context) error {
 	var payload imageLocationPayload
 	if err := c.Bind(&payload); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
@@ -163,7 +165,7 @@ func (a *api) createImageLocation(c echo.Context) error {
 		Pattern:       payload.Pattern,
 		DateFromExif:  payload.DateFromExif,
 		IncludeParent: payload.IncludeParent,
-		IgnoreDirs:    pq.StringArray(payload.IgnoreDirs),
+		IgnoreDirs:    payload.IgnoreDirs,
 		Active:        payload.Active,
 	}
 
@@ -176,7 +178,7 @@ func (a *api) createImageLocation(c echo.Context) error {
 	return c.JSON(http.StatusCreated, newLocation)
 }
 
-func (a *api) listImageLocations(c echo.Context) error {
+func (a *api) listImageLocations(c *echo.Context) error {
 	locations, err := a.queries.ListImageLocations(c.Request().Context())
 	if err != nil {
 		log.Printf("Error listing image locations: %v", err)
@@ -185,7 +187,7 @@ func (a *api) listImageLocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, locations)
 }
 
-func (a *api) getImageLocation(c echo.Context) error {
+func (a *api) getImageLocation(c *echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID format"})
@@ -203,7 +205,7 @@ func (a *api) getImageLocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, location)
 }
 
-func (a *api) updateImageLocation(c echo.Context) error {
+func (a *api) updateImageLocation(c *echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID format"})
@@ -220,7 +222,7 @@ func (a *api) updateImageLocation(c echo.Context) error {
 		Pattern:       payload.Pattern,
 		DateFromExif:  payload.DateFromExif,
 		IncludeParent: payload.IncludeParent,
-		IgnoreDirs:    pq.StringArray(payload.IgnoreDirs),
+		IgnoreDirs:    payload.IgnoreDirs,
 		Active:        payload.Active,
 	}
 
@@ -236,7 +238,7 @@ func (a *api) updateImageLocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, updatedLocation)
 }
 
-func (a *api) deleteImageLocation(c echo.Context) error {
+func (a *api) deleteImageLocation(c *echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID format"})
