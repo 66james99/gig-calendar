@@ -1,0 +1,25 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "go",
+			"label": "go: build package",
+			"command": "build",
+			"args": [
+				"${fileDirname}"
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build",
+			"detail": "cd /home/james/projects/gig-calendar; go build ${fileDirname}"
+		},
+		{
+      "label": "tsc: watch",
+      "type": "shell",
+      "command": "npx tsc --watch",
+      "problemMatcher": "$tsc-watch"
+    }
+  
+	]
+}
