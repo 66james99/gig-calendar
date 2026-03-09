@@ -2,16 +2,17 @@
   "name": "admin.gig-calendar.com",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/image_location/app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ../../../docs/content/admin.gig-calendar.com/assests/js/app.js",
+    "start": "node ../../../docs/content/admin.gig-calendar.com/assets/js/app.js",
     "dev": "ts-node src/app.ts"
   },
   "keywords": [],
   "author": "James Hammick",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^25.4.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }

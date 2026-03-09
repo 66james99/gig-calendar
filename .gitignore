@@ -32,3 +32,8 @@ go.work.sum
 # .vscode/
 secrets/
 token*.json
+
+
+# JavaScript/TypeScript excludes
+package-lock.json
+node_modules/
