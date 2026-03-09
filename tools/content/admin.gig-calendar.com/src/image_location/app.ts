@@ -58,6 +58,7 @@ const dateFromExifCheckbox = document.getElementById('date_from_exif') as HTMLIn
 const includeParentCheckbox = document.getElementById('include_parent') as HTMLInputElement;
 const activeCheckbox = document.getElementById('active') as HTMLInputElement;
 const cancelEditButton = document.getElementById('cancel-edit') as HTMLButtonElement;
+const refreshButton = document.getElementById('refresh-button') as HTMLButtonElement;
 
 const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
 const filterRootInput = document.getElementById('filter-root') as HTMLInputElement;
@@ -259,20 +260,31 @@ async function refreshLocations() {
 }
 
 function init() {
-    form.addEventListener('submit', handleFormSubmit);
-    tableBody.addEventListener('click', handleTableClick);
-    cancelEditButton.addEventListener('click', resetForm);
+	form.addEventListener('submit', handleFormSubmit);
+	tableBody.addEventListener('click', handleTableClick);
+	cancelEditButton.addEventListener('click', resetForm);
+	refreshButton.addEventListener('click', refreshLocations);
 
-    // Add event listeners for filters
-    filterIdInput.addEventListener('input', handleFilterChange);
-    filterRootInput.addEventListener('input', handleFilterChange);
-    filterPatternInput.addEventListener('input', handleFilterChange);
-    filterDateFromExifSelect.addEventListener('change', handleFilterChange);
-    filterIncludeParentSelect.addEventListener('change', handleFilterChange);
-    filterIgnoreDirsInput.addEventListener('input', handleFilterChange);
-    filterActiveSelect.addEventListener('change', handleFilterChange);
+	// Add event listeners for filters
+	filterIdInput.addEventListener('input', handleFilterChange);
+	filterRootInput.addEventListener('input', handleFilterChange);
+	filterPatternInput.addEventListener('input', handleFilterChange);
+	filterDateFromExifSelect.addEventListener('change', handleFilterChange);
+	filterIncludeParentSelect.addEventListener('change', handleFilterChange);
+	filterIgnoreDirsInput.addEventListener('input', handleFilterChange);
+	filterActiveSelect.addEventListener('change', handleFilterChange);
 
-    refreshLocations();
+	// On initial load, fetch and render all data without filtering.
+	// This ensures a clean slate regardless of browser autofill on filter inputs.
+	(async () => {
+		try {
+			locationsCache = await fetchImageLocations();
+			renderTable(locationsCache);
+		} catch (error) {
+			alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			tableBody.innerHTML = '<tr><td colspan="8">Failed to load data. Is the backend server running?</td></tr>';
+		}
+	})();
 }
 
 // Start the app
