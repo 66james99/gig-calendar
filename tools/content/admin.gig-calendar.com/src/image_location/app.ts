@@ -62,6 +62,7 @@ let currentFilters: Filters = {
 
 const tableBody = document.querySelector('#locations-list tbody') as HTMLTableSectionElement;
 const tableHeader = document.querySelector('#locations-list thead') as HTMLTableSectionElement;
+const newButton = document.getElementById('new-button') as HTMLButtonElement;
 const refreshButton = document.getElementById('refresh-button') as HTMLButtonElement;
 
 const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
@@ -321,6 +322,21 @@ async function handleTableClick(event: Event) {
     }
 }
 
+function handleNewClick() {
+    // Check if a row is already in 'add' mode to prevent multiple new rows.
+    const existingAddRow = tableBody.querySelector('.add-btn');
+    if (existingAddRow) {
+        alert('Please save or cancel the current new row before adding another.');
+        existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    const newRow = tableBody.insertRow(0); // Insert a new row at the top of the table.
+    // Create an empty object for the new row. `renderEditRow` will handle defaults for a new entry.
+    const newLocationData: Partial<ImageLocation> = {};
+    renderEditRow(newRow, newLocationData, true); // Render the row in edit mode.
+}
+
 function handleSort(event: Event) {
     const target = event.target as HTMLElement;
     if (target.tagName !== 'TH' || !target.dataset.sort) {
@@ -372,6 +388,7 @@ async function refreshLocations() {
 function init() {
 	tableBody.addEventListener('click', handleTableClick);
 	tableHeader.addEventListener('click', handleSort);
+	newButton.addEventListener('click', handleNewClick);
 	refreshButton.addEventListener('click', refreshLocations);
 
 	// Add event listeners for filters
