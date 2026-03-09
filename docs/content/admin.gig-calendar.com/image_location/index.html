@@ -14,13 +14,15 @@
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
-                    <th>Root</th>
-                    <th>Pattern</th>
-                    <th>Date from EXIF</th>
-                    <th>Include Parent</th>
+                    <th data-sort="ID" class="sortable">ID</th>
+                    <th data-sort="Root" class="sortable">Root</th>
+                    <th data-sort="Pattern" class="sortable">Pattern</th>
+                    <th data-sort="DateFromExif" class="sortable">Date from EXIF</th>
+                    <th data-sort="IncludeParent" class="sortable">Include Parent</th>
                     <th>Ignore Dirs</th>
-                    <th>Active</th>
+                    <th data-sort="Active" class="sortable">Active</th>
+                    <th data-sort="Created" class="sortable">Created</th>
+                    <th data-sort="Updated" class="sortable">Updated</th>
                     <th>Actions</th>
                 </tr>
                 <tr id="filter-row">
@@ -49,7 +51,7 @@
                             <option value="false">No</option>
                         </select>
                     </td>
-                    <td></td> <!-- Empty for Actions column -->
+                    <td colspan="3"></td> <!-- Empty for Created, Updated, Actions -->
                 </tr>
             </thead>
             <tbody>

@@ -2,6 +2,10 @@
 const API_BASE_URL = 'http://localhost:8080';
 // --- State ---
 let locationsCache = [];
+let currentSort = {
+    column: 'ID',
+    direction: 'asc',
+};
 let currentFilters = {
     id: '',
     root: '',
@@ -13,6 +17,7 @@ let currentFilters = {
 };
 // --- DOM Elements ---
 const tableBody = document.querySelector('#locations-list tbody');
+const tableHeader = document.querySelector('#locations-list thead');
 const refreshButton = document.getElementById('refresh-button');
 const filterIdInput = document.getElementById('filter-id');
 const filterRootInput = document.getElementById('filter-root');
@@ -78,6 +83,8 @@ function renderDisplayRow(row, location) {
         <td>${location.IncludeParent}</td>
         <td>${(location.IgnoreDirs || []).join(', ')}</td>
         <td>${location.Active}</td>
+        <td>${new Date(location.Created).toLocaleString()}</td>
+        <td>${new Date(location.Updated).toLocaleString()}</td>
         <td>
             <button class="edit-btn">Edit</button>
             <button class="delete-btn">Delete</button>
@@ -95,6 +102,8 @@ function renderEditRow(row, location, isNew = false) {
         <td><input type="checkbox" class="edit-include_parent" ${location.IncludeParent ? 'checked' : ''}></td>
         <td><input type="text" class="edit-ignore_dirs" value="${ignoreDirs}"></td>
         <td><input type="checkbox" class="edit-active" ${location.Active || isNew ? 'checked' : ''}></td>
+        <td>${location.Created ? new Date(location.Created).toLocaleString() : '...'}</td>
+        <td>${location.Updated ? new Date(location.Updated).toLocaleString() : '...'}</td>
         <td>
             ${isNew ? `
                 <button class="add-btn">Add</button>
@@ -109,7 +118,7 @@ function renderEditRow(row, location, isNew = false) {
 function renderTable(locations) {
     tableBody.innerHTML = '';
     if (!locations || locations.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="8">No image locations found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10">No image locations found.</td></tr>';
         return;
     }
     locations.forEach(location => {
@@ -128,6 +137,42 @@ function applyFilters(locations) {
         const includeParentMatch = currentFilters.includeParent === '' || location.IncludeParent.toString() === currentFilters.includeParent;
         const activeMatch = currentFilters.active === '' || location.Active.toString() === currentFilters.active;
         return idMatch && rootMatch && patternMatch && ignoreDirsMatch && dateFromExifMatch && includeParentMatch && activeMatch;
+    });
+}
+function applySort(locations) {
+    const { column, direction } = currentSort;
+    const modifier = direction === 'asc' ? 1 : -1;
+    return [...locations].sort((a, b) => {
+        const valA = a[column];
+        const valB = b[column];
+        // ID is a number
+        if (column === 'ID') {
+            // The type assertion is safe because we control the column values.
+            return (valA - valB) * modifier;
+        }
+        // Booleans
+        if (typeof valA === 'boolean' && typeof valB === 'boolean') {
+            return (Number(valA) - Number(valB)) * modifier;
+        }
+        // Strings (including dates)
+        if (typeof valA === 'string' && typeof valB === 'string') {
+            return valA.localeCompare(valB) * modifier;
+        }
+        // Fallback for nulls or mixed types
+        if (valA < valB)
+            return -1 * modifier;
+        if (valA > valB)
+            return 1 * modifier;
+        return 0;
+    });
+}
+function updateSortIndicators() {
+    document.querySelectorAll('th.sortable').forEach(th => {
+        const htmlTh = th;
+        htmlTh.classList.remove('sorted-asc', 'sorted-desc');
+        if (htmlTh.dataset.sort === currentSort.column) {
+            htmlTh.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
     });
 }
 // --- Event Handlers ---
@@ -209,6 +254,22 @@ async function handleTableClick(event) {
         }
     }
 }
+function handleSort(event) {
+    const target = event.target;
+    if (target.tagName !== 'TH' || !target.dataset.sort) {
+        return;
+    }
+    const sortColumn = target.dataset.sort;
+    if (currentSort.column === sortColumn) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+    }
+    else {
+        currentSort.column = sortColumn;
+        currentSort.direction = 'asc';
+    }
+    // Re-apply filters and sorting, then render
+    handleFilterChange();
+}
 function handleFilterChange() {
     currentFilters = {
         id: filterIdInput.value,
@@ -220,22 +281,25 @@ function handleFilterChange() {
         active: filterActiveSelect.value,
     };
     const filteredLocations = applyFilters(locationsCache);
-    renderTable(filteredLocations);
+    const sortedLocations = applySort(filteredLocations);
+    renderTable(sortedLocations);
+    updateSortIndicators();
 }
 // --- Initialization ---
 async function refreshLocations() {
     try {
         locationsCache = await fetchImageLocations();
-        // Apply any existing filters and render the table
+        // Apply any existing filters and sorting, then render the table
         handleFilterChange();
     }
     catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        tableBody.innerHTML = '<tr><td colspan="8">Failed to load data. Is the backend server running?</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10">Failed to load data. Is the backend server running?</td></tr>';
     }
 }
 function init() {
     tableBody.addEventListener('click', handleTableClick);
+    tableHeader.addEventListener('click', handleSort);
     refreshButton.addEventListener('click', refreshLocations);
     // Add event listeners for filters
     filterIdInput.addEventListener('input', handleFilterChange);
@@ -250,11 +314,13 @@ function init() {
     (async () => {
         try {
             locationsCache = await fetchImageLocations();
-            renderTable(locationsCache);
+            const sortedLocations = applySort(locationsCache);
+            renderTable(sortedLocations);
+            updateSortIndicators();
         }
         catch (error) {
             alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            tableBody.innerHTML = '<tr><td colspan="8">Failed to load data. Is the backend server running?</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10">Failed to load data. Is the backend server running?</td></tr>';
         }
     })();
 }

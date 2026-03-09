@@ -21,6 +21,26 @@ th {
     background-color: #f4f4f4;
 }
 
+th.sortable {
+    cursor: pointer;
+}
+
+th.sortable::after {
+    content: ' \25B2\25BC'; /* up/down arrows */
+    color: #ccc;
+    font-size: 0.8em;
+}
+
+th.sorted-asc::after {
+    content: ' \25B2'; /* up arrow */
+    color: #333;
+}
+
+th.sorted-desc::after {
+    content: ' \25BC'; /* down arrow */
+    color: #333;
+}
+
 button {
     padding: 8px 15px;
     margin-right: 10px;
