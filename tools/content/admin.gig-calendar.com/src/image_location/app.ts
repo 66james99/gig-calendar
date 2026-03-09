@@ -138,9 +138,9 @@ function renderDisplayRow(row: HTMLTableRowElement, location: ImageLocation) {
         <td>${new Date(location.Created).toLocaleString()}</td>
         <td>${new Date(location.Updated).toLocaleString()}</td>
         <td>
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
-            <button class="duplicate-btn">Duplicate</button>
+            <button class="edit-btn" title="Edit">✏️</button>
+            <button class="delete-btn" title="Delete">🗑️</button>
+            <button class="duplicate-btn" title="Duplicate">📋</button>
         </td>
     `;
 }
@@ -159,11 +159,11 @@ function renderEditRow(row: HTMLTableRowElement, location: Partial<ImageLocation
         <td>${location.Updated ? new Date(location.Updated).toLocaleString() : '...'}</td>
         <td>
             ${isNew ? `
-                <button class="add-btn">Add</button>
-                <button class="cancel-add-btn">Cancel</button>
+                <button class="add-btn" title="Add">✅</button>
+                <button class="cancel-add-btn" title="Cancel">❌</button>
             ` : `
-                <button class="save-btn">Save</button>
-                <button class="cancel-btn">Cancel</button>
+                <button class="save-btn" title="Save">💾</button>
+                <button class="cancel-btn" title="Cancel">❌</button>
             `}
         </td>
     `;
