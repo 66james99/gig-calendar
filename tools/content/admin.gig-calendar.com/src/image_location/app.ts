@@ -49,15 +49,6 @@ let currentFilters: Filters = {
 // --- DOM Elements ---
 
 const tableBody = document.querySelector('#locations-list tbody') as HTMLTableSectionElement;
-const form = document.querySelector('#location-form') as HTMLFormElement;
-const locationIdInput = document.getElementById('location-id') as HTMLInputElement;
-const rootInput = document.getElementById('root') as HTMLInputElement;
-const patternInput = document.getElementById('pattern') as HTMLInputElement;
-const ignoreDirsInput = document.getElementById('ignore_dirs') as HTMLInputElement;
-const dateFromExifCheckbox = document.getElementById('date_from_exif') as HTMLInputElement;
-const includeParentCheckbox = document.getElementById('include_parent') as HTMLInputElement;
-const activeCheckbox = document.getElementById('active') as HTMLInputElement;
-const cancelEditButton = document.getElementById('cancel-edit') as HTMLButtonElement;
 const refreshButton = document.getElementById('refresh-button') as HTMLButtonElement;
 
 const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
@@ -121,6 +112,45 @@ async function deleteImageLocation(id: number): Promise<void> {
 
 // --- UI Functions ---
 
+function renderDisplayRow(row: HTMLTableRowElement, location: ImageLocation) {
+    row.innerHTML = `
+        <td>${location.ID}</td>
+        <td>${location.Root}</td>
+        <td>${location.Pattern}</td>
+        <td>${location.DateFromExif}</td>
+        <td>${location.IncludeParent}</td>
+        <td>${(location.IgnoreDirs || []).join(', ')}</td>
+        <td>${location.Active}</td>
+        <td>
+            <button class="edit-btn">Edit</button>
+            <button class="delete-btn">Delete</button>
+            <button class="duplicate-btn">Duplicate</button>
+        </td>
+    `;
+}
+
+function renderEditRow(row: HTMLTableRowElement, location: Partial<ImageLocation>, isNew: boolean = false) {
+    const ignoreDirs = (location.IgnoreDirs || []).join(',');
+    row.innerHTML = `
+        <td>${isNew ? 'NEW' : location.ID}</td>
+        <td><input type="text" class="edit-root" value="${location.Root || ''}"></td>
+        <td><input type="text" class="edit-pattern" value="${location.Pattern || ''}"></td>
+        <td><input type="checkbox" class="edit-date_from_exif" ${location.DateFromExif ? 'checked' : ''}></td>
+        <td><input type="checkbox" class="edit-include_parent" ${location.IncludeParent ? 'checked' : ''}></td>
+        <td><input type="text" class="edit-ignore_dirs" value="${ignoreDirs}"></td>
+        <td><input type="checkbox" class="edit-active" ${location.Active || isNew ? 'checked' : ''}></td>
+        <td>
+            ${isNew ? `
+                <button class="add-btn">Add</button>
+                <button class="cancel-add-btn">Cancel</button>
+            ` : `
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
+            `}
+        </td>
+    `;
+}
+
 function renderTable(locations: ImageLocation[]) {
     tableBody.innerHTML = '';
     if (!locations || locations.length === 0) {
@@ -130,38 +160,8 @@ function renderTable(locations: ImageLocation[]) {
     locations.forEach(location => {
         const row = tableBody.insertRow();
         row.dataset.id = location.ID.toString();
-        row.innerHTML = `
-            <td>${location.ID}</td>
-            <td>${location.Root}</td>
-            <td>${location.Pattern}</td>
-            <td>${location.DateFromExif}</td>
-            <td>${location.IncludeParent}</td>
-            <td>${(location.IgnoreDirs || []).join(', ')}</td>
-            <td>${location.Active}</td>
-            <td>
-                <button class="edit-btn">Edit</button>
-                <button class="delete-btn">Delete</button>
-            </td>
-        `;
+        renderDisplayRow(row, location);
     });
-}
-
-function populateForm(location: ImageLocation) {
-    locationIdInput.value = location.ID.toString();
-    rootInput.value = location.Root;
-    patternInput.value = location.Pattern;
-    ignoreDirsInput.value = (location.IgnoreDirs || []).join(',');
-    dateFromExifCheckbox.checked = location.DateFromExif;
-    includeParentCheckbox.checked = location.IncludeParent;
-    activeCheckbox.checked = location.Active;
-    cancelEditButton.style.display = 'inline-block';
-}
-
-function resetForm() {
-    form.reset();
-    locationIdInput.value = '';
-    activeCheckbox.checked = true; // Default for new entries
-    cancelEditButton.style.display = 'none';
 }
 
 function applyFilters(locations: ImageLocation[]): ImageLocation[] {
@@ -181,40 +181,77 @@ function applyFilters(locations: ImageLocation[]): ImageLocation[] {
 
 // --- Event Handlers ---
 
-async function handleFormSubmit(event: Event) {
-    event.preventDefault();
-    const id = locationIdInput.value ? parseInt(locationIdInput.value, 10) : null;
-
-    const payload: ImageLocationPayload = {
-        root: rootInput.value,
-        pattern: patternInput.value,
-        date_from_exif: dateFromExifCheckbox.checked,
-        include_parent: includeParentCheckbox.checked,
-        ignore_dirs: ignoreDirsInput.value.split(',').map(s => s.trim()).filter(s => s),
-        active: activeCheckbox.checked,
-    };
-
-    try {
-        if (id) {
-            await updateImageLocation(id, payload);
-        } else {
-            await createImageLocation(payload);
-        }
-        resetForm();
-        await refreshLocations();
-    } catch (error) {
-        alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
-
 async function handleTableClick(event: Event) {
     const target = event.target as HTMLElement;
     const row = target.closest('tr');
-    if (!row || !row.dataset.id) return;
+    if (!row) return;
 
-    const id = parseInt(row.dataset.id, 10);
+    const id = row.dataset.id ? parseInt(row.dataset.id, 10) : null;
+    const location = id ? locationsCache.find(loc => loc.ID === id) : null;
 
-    if (target.classList.contains('delete-btn')) {
+    // --- Edit button ---
+    if (target.classList.contains('edit-btn') && location) {
+        renderEditRow(row, location);
+    }
+
+    // --- Cancel Edit button ---
+    else if (target.classList.contains('cancel-btn') && location) {
+        renderDisplayRow(row, location);
+    }
+
+    // --- Save button (for updating) ---
+    else if (target.classList.contains('save-btn') && id) {
+        const payload: ImageLocationPayload = {
+            root: (row.querySelector('.edit-root') as HTMLInputElement).value,
+            pattern: (row.querySelector('.edit-pattern') as HTMLInputElement).value,
+            date_from_exif: (row.querySelector('.edit-date_from_exif') as HTMLInputElement).checked,
+            include_parent: (row.querySelector('.edit-include_parent') as HTMLInputElement).checked,
+            ignore_dirs: (row.querySelector('.edit-ignore_dirs') as HTMLInputElement).value.split(',').map(s => s.trim()).filter(s => s),
+            active: (row.querySelector('.edit-active') as HTMLInputElement).checked,
+        };
+        try {
+            await updateImageLocation(id, payload);
+            await refreshLocations(); // Refresh all to see changes
+        } catch (error) {
+            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            if (location) renderDisplayRow(row, location); // Revert on failure
+        }
+    }
+
+    // --- Duplicate button ---
+    else if (target.classList.contains('duplicate-btn') && location) {
+        const newRow = document.createElement('tr');
+        // Create a copy for the new row, reset ID, keep other fields
+        const newLocationData = { ...location, ID: 0 };
+        renderEditRow(newRow, newLocationData, true);
+        row.after(newRow); // Inserts the new row right after the clicked row
+    }
+
+    // --- Cancel Add button ---
+    else if (target.classList.contains('cancel-add-btn')) {
+        row.remove();
+    }
+
+    // --- Add button (for creating) ---
+    else if (target.classList.contains('add-btn')) {
+        const payload: ImageLocationPayload = {
+            root: (row.querySelector('.edit-root') as HTMLInputElement).value,
+            pattern: (row.querySelector('.edit-pattern') as HTMLInputElement).value,
+            date_from_exif: (row.querySelector('.edit-date_from_exif') as HTMLInputElement).checked,
+            include_parent: (row.querySelector('.edit-include_parent') as HTMLInputElement).checked,
+            ignore_dirs: (row.querySelector('.edit-ignore_dirs') as HTMLInputElement).value.split(',').map(s => s.trim()).filter(s => s),
+            active: (row.querySelector('.edit-active') as HTMLInputElement).checked,
+        };
+        try {
+            await createImageLocation(payload);
+            await refreshLocations();
+        } catch (error) {
+            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+
+    // --- Delete button ---
+    else if (target.classList.contains('delete-btn') && id) {
         if (confirm(`Are you sure you want to delete location ${id}?`)) {
             try {
                 await deleteImageLocation(id);
@@ -222,12 +259,6 @@ async function handleTableClick(event: Event) {
             } catch (error) {
                 alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
-        }
-    } else if (target.classList.contains('edit-btn')) {
-        const location = locationsCache.find(loc => loc.ID === id);
-        if (location) {
-            populateForm(location);
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     }
 }
@@ -260,9 +291,7 @@ async function refreshLocations() {
 }
 
 function init() {
-	form.addEventListener('submit', handleFormSubmit);
 	tableBody.addEventListener('click', handleTableClick);
-	cancelEditButton.addEventListener('click', resetForm);
 	refreshButton.addEventListener('click', refreshLocations);
 
 	// Add event listeners for filters

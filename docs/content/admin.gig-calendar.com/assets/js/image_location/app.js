@@ -13,15 +13,7 @@ let currentFilters = {
 };
 // --- DOM Elements ---
 const tableBody = document.querySelector('#locations-list tbody');
-const form = document.querySelector('#location-form');
-const locationIdInput = document.getElementById('location-id');
-const rootInput = document.getElementById('root');
-const patternInput = document.getElementById('pattern');
-const ignoreDirsInput = document.getElementById('ignore_dirs');
-const dateFromExifCheckbox = document.getElementById('date_from_exif');
-const includeParentCheckbox = document.getElementById('include_parent');
-const activeCheckbox = document.getElementById('active');
-const cancelEditButton = document.getElementById('cancel-edit');
+const refreshButton = document.getElementById('refresh-button');
 const filterIdInput = document.getElementById('filter-id');
 const filterRootInput = document.getElementById('filter-root');
 const filterPatternInput = document.getElementById('filter-pattern');
@@ -77,6 +69,43 @@ async function deleteImageLocation(id) {
     }
 }
 // --- UI Functions ---
+function renderDisplayRow(row, location) {
+    row.innerHTML = `
+        <td>${location.ID}</td>
+        <td>${location.Root}</td>
+        <td>${location.Pattern}</td>
+        <td>${location.DateFromExif}</td>
+        <td>${location.IncludeParent}</td>
+        <td>${(location.IgnoreDirs || []).join(', ')}</td>
+        <td>${location.Active}</td>
+        <td>
+            <button class="edit-btn">Edit</button>
+            <button class="delete-btn">Delete</button>
+            <button class="duplicate-btn">Duplicate</button>
+        </td>
+    `;
+}
+function renderEditRow(row, location, isNew = false) {
+    const ignoreDirs = (location.IgnoreDirs || []).join(',');
+    row.innerHTML = `
+        <td>${isNew ? 'NEW' : location.ID}</td>
+        <td><input type="text" class="edit-root" value="${location.Root || ''}"></td>
+        <td><input type="text" class="edit-pattern" value="${location.Pattern || ''}"></td>
+        <td><input type="checkbox" class="edit-date_from_exif" ${location.DateFromExif ? 'checked' : ''}></td>
+        <td><input type="checkbox" class="edit-include_parent" ${location.IncludeParent ? 'checked' : ''}></td>
+        <td><input type="text" class="edit-ignore_dirs" value="${ignoreDirs}"></td>
+        <td><input type="checkbox" class="edit-active" ${location.Active || isNew ? 'checked' : ''}></td>
+        <td>
+            ${isNew ? `
+                <button class="add-btn">Add</button>
+                <button class="cancel-add-btn">Cancel</button>
+            ` : `
+                <button class="save-btn">Save</button>
+                <button class="cancel-btn">Cancel</button>
+            `}
+        </td>
+    `;
+}
 function renderTable(locations) {
     tableBody.innerHTML = '';
     if (!locations || locations.length === 0) {
@@ -86,36 +115,8 @@ function renderTable(locations) {
     locations.forEach(location => {
         const row = tableBody.insertRow();
         row.dataset.id = location.ID.toString();
-        row.innerHTML = `
-            <td>${location.ID}</td>
-            <td>${location.Root}</td>
-            <td>${location.Pattern}</td>
-            <td>${location.DateFromExif}</td>
-            <td>${location.IncludeParent}</td>
-            <td>${(location.IgnoreDirs || []).join(', ')}</td>
-            <td>${location.Active}</td>
-            <td>
-                <button class="edit-btn">Edit</button>
-                <button class="delete-btn">Delete</button>
-            </td>
-        `;
+        renderDisplayRow(row, location);
     });
-}
-function populateForm(location) {
-    locationIdInput.value = location.ID.toString();
-    rootInput.value = location.Root;
-    patternInput.value = location.Pattern;
-    ignoreDirsInput.value = (location.IgnoreDirs || []).join(',');
-    dateFromExifCheckbox.checked = location.DateFromExif;
-    includeParentCheckbox.checked = location.IncludeParent;
-    activeCheckbox.checked = location.Active;
-    cancelEditButton.style.display = 'inline-block';
-}
-function resetForm() {
-    form.reset();
-    locationIdInput.value = '';
-    activeCheckbox.checked = true; // Default for new entries
-    cancelEditButton.style.display = 'none';
 }
 function applyFilters(locations) {
     return locations.filter(location => {
@@ -130,38 +131,73 @@ function applyFilters(locations) {
     });
 }
 // --- Event Handlers ---
-async function handleFormSubmit(event) {
-    event.preventDefault();
-    const id = locationIdInput.value ? parseInt(locationIdInput.value, 10) : null;
-    const payload = {
-        root: rootInput.value,
-        pattern: patternInput.value,
-        date_from_exif: dateFromExifCheckbox.checked,
-        include_parent: includeParentCheckbox.checked,
-        ignore_dirs: ignoreDirsInput.value.split(',').map(s => s.trim()).filter(s => s),
-        active: activeCheckbox.checked,
-    };
-    try {
-        if (id) {
-            await updateImageLocation(id, payload);
-        }
-        else {
-            await createImageLocation(payload);
-        }
-        resetForm();
-        await refreshLocations();
-    }
-    catch (error) {
-        alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    }
-}
 async function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
-    if (!row || !row.dataset.id)
+    if (!row)
         return;
-    const id = parseInt(row.dataset.id, 10);
-    if (target.classList.contains('delete-btn')) {
+    const id = row.dataset.id ? parseInt(row.dataset.id, 10) : null;
+    const location = id ? locationsCache.find(loc => loc.ID === id) : null;
+    // --- Edit button ---
+    if (target.classList.contains('edit-btn') && location) {
+        renderEditRow(row, location);
+    }
+    // --- Cancel Edit button ---
+    else if (target.classList.contains('cancel-btn') && location) {
+        renderDisplayRow(row, location);
+    }
+    // --- Save button (for updating) ---
+    else if (target.classList.contains('save-btn') && id) {
+        const payload = {
+            root: row.querySelector('.edit-root').value,
+            pattern: row.querySelector('.edit-pattern').value,
+            date_from_exif: row.querySelector('.edit-date_from_exif').checked,
+            include_parent: row.querySelector('.edit-include_parent').checked,
+            ignore_dirs: row.querySelector('.edit-ignore_dirs').value.split(',').map(s => s.trim()).filter(s => s),
+            active: row.querySelector('.edit-active').checked,
+        };
+        try {
+            await updateImageLocation(id, payload);
+            await refreshLocations(); // Refresh all to see changes
+        }
+        catch (error) {
+            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            if (location)
+                renderDisplayRow(row, location); // Revert on failure
+        }
+    }
+    // --- Duplicate button ---
+    else if (target.classList.contains('duplicate-btn') && location) {
+        const newRow = document.createElement('tr');
+        // Create a copy for the new row, reset ID, keep other fields
+        const newLocationData = { ...location, ID: 0 };
+        renderEditRow(newRow, newLocationData, true);
+        row.after(newRow); // Inserts the new row right after the clicked row
+    }
+    // --- Cancel Add button ---
+    else if (target.classList.contains('cancel-add-btn')) {
+        row.remove();
+    }
+    // --- Add button (for creating) ---
+    else if (target.classList.contains('add-btn')) {
+        const payload = {
+            root: row.querySelector('.edit-root').value,
+            pattern: row.querySelector('.edit-pattern').value,
+            date_from_exif: row.querySelector('.edit-date_from_exif').checked,
+            include_parent: row.querySelector('.edit-include_parent').checked,
+            ignore_dirs: row.querySelector('.edit-ignore_dirs').value.split(',').map(s => s.trim()).filter(s => s),
+            active: row.querySelector('.edit-active').checked,
+        };
+        try {
+            await createImageLocation(payload);
+            await refreshLocations();
+        }
+        catch (error) {
+            alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+    }
+    // --- Delete button ---
+    else if (target.classList.contains('delete-btn') && id) {
         if (confirm(`Are you sure you want to delete location ${id}?`)) {
             try {
                 await deleteImageLocation(id);
@@ -170,13 +206,6 @@ async function handleTableClick(event) {
             catch (error) {
                 alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
-        }
-    }
-    else if (target.classList.contains('edit-btn')) {
-        const location = locationsCache.find(loc => loc.ID === id);
-        if (location) {
-            populateForm(location);
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
     }
 }
@@ -206,9 +235,8 @@ async function refreshLocations() {
     }
 }
 function init() {
-    form.addEventListener('submit', handleFormSubmit);
     tableBody.addEventListener('click', handleTableClick);
-    cancelEditButton.addEventListener('click', resetForm);
+    refreshButton.addEventListener('click', refreshLocations);
     // Add event listeners for filters
     filterIdInput.addEventListener('input', handleFilterChange);
     filterRootInput.addEventListener('input', handleFilterChange);
@@ -217,7 +245,18 @@ function init() {
     filterIncludeParentSelect.addEventListener('change', handleFilterChange);
     filterIgnoreDirsInput.addEventListener('input', handleFilterChange);
     filterActiveSelect.addEventListener('change', handleFilterChange);
-    refreshLocations();
+    // On initial load, fetch and render all data without filtering.
+    // This ensures a clean slate regardless of browser autofill on filter inputs.
+    (async () => {
+        try {
+            locationsCache = await fetchImageLocations();
+            renderTable(locationsCache);
+        }
+        catch (error) {
+            alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            tableBody.innerHTML = '<tr><td colspan="8">Failed to load data. Is the backend server running?</td></tr>';
+        }
+    })();
 }
 // Start the app
 init();

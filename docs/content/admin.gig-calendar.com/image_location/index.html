@@ -58,41 +58,6 @@
         </table>
     </div>
 
-    <hr>
-
-    <div id="form-container">
-        <h2>Add/Edit Image Location</h2>
-        <form id="location-form">
-            <input type="hidden" id="location-id">
-            <div>
-                <label for="root">Root:</label>
-                <input type="text" id="root" name="root" required>
-            </div>
-            <div>
-                <label for="pattern">Pattern:</label>
-                <input type="text" id="pattern" name="pattern" required>
-            </div>
-            <div>
-                <label for="ignore_dirs">Ignore Dirs (comma-separated):</label>
-                <input type="text" id="ignore_dirs" name="ignore_dirs">
-            </div>
-            <div>
-                <label for="date_from_exif">Date from EXIF:</label>
-                <input type="checkbox" id="date_from_exif" name="date_from_exif">
-            </div>
-            <div>
-                <label for="include_parent">Include Parent:</label>
-                <input type="checkbox" id="include_parent" name="include_parent">
-            </div>
-            <div>
-                <label for="active">Active:</label>
-                <input type="checkbox" id="active" name="active" checked>
-            </div>
-            <button type="submit">Save</button>
-            <button type="button" id="cancel-edit">Cancel</button>
-        </form>
-    </div>
-
     <script src="../assets/js/image_location/app.js"></script>
 </body>
 </html>
