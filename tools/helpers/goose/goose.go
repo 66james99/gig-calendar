@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
@@ -79,41 +78,11 @@ func main() {
 		log.Println("No .env file found in current directory, Relying on system environment variables.")
 	}
 
-	credentialsPath := os.Getenv("DB_GSM_CREDENTIALS_PATH")
-	if credentialsPath == "" {
-		log.Fatal("DB_GSM_CREDENTIALS_PATH not set in environment")
-	}
-
-	// 3. Get configuration from environment
-	host := os.Getenv("DB_HOST")
-	user := os.Getenv("DB_ADMIN_USER")
-	var dbname string
-	switch environment {
-	case "dev":
-		dbname = os.Getenv("DB_NAME_DEV")
-	case "prod":
-		dbname = os.Getenv("DB_NAME")
-	default:
+	if environment != "dev" && environment != "prod" {
 		log.Fatalf("Invalid environment '%s'. Must be 'dev' or 'prod'.", environment)
 	}
-	sslmode := os.Getenv("DB_SSLMODE")
-	migrationsDir := os.Getenv("DB_MIGRATIONS_DIR")
-	passwordSecretID := os.Getenv("DB_ADMIN_PASSWORD_SECRET_ID")
 
-	// 4. Validate required environment variables
-	if host == "" || user == "" || passwordSecretID == "" {
-		log.Fatal("Missing required environment variables. Please set DB_HOST, DB_ADMIN_USER, and DB_ADMIN_PASSWORD_SECRET_ID.")
-	}
-	if dbname == "" {
-		if environment == "dev" {
-			log.Fatal("DB_NAME_DEV not set for 'dev' environment.")
-		} else {
-			log.Fatal("DB_NAME not set for 'prod' environment.")
-		}
-	}
-	if sslmode == "" {
-		sslmode = "disable"
-	}
+	migrationsDir := os.Getenv("DB_MIGRATIONS_DIR")
 	if migrationsDir == "" {
 		migrationsDir = "migrations"
 	}
@@ -122,33 +91,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// 5. Fetch database password from Google Secret Manager
-	log.Println("Fetching database password from Secret Manager...")
-	password, err := database.GetSecret(passwordSecretID, credentialsPath)
+	db, err := database.Connect(database.ConnectParams{IsDev: environment == "dev", UserType: database.AdminUser})
 	if err != nil {
-		log.Fatalf("Failed to get secret from Secret Manager: %v", err)
-	}
-
-	// 6. Construct DSN and connect to the database
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=%s", host, user, password, dbname, sslmode)
-	db, err := sql.Open("postgres", dsn)
-	if err != nil {
-		log.Fatalf("Failed to open database connection: %v", err)
+		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
-
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Failed to ping database. Check connection details and network access: %v", err)
-	}
-	log.Println("Database connection successful.")
 
 	// 7. Run the goose migration command
 	if *dryRun {
 		log.Println("--dryrun enabled. Verifying configuration and connectivity without making changes.")
 
 		// Construct a redacted DSN to avoid printing the password.
-		redactedDSN := fmt.Sprintf("host=%s user=%s password=*** dbname=%s sslmode=%s", host, user, dbname, sslmode)
-		log.Printf("Command that would be run: goose -dir %s postgres \"%s\" %s", migrationsDir, redactedDSN, command)
+		log.Printf("Command that would be run: goose -dir %s postgres \"<DSN from env>\" %s", migrationsDir, command)
 		log.Println("--- Verifying with current migration status ---")
 
 		// Running goose.Status validates DB connectivity, credentials, and migrations table access.

@@ -130,14 +130,37 @@ func TestGooseHelper_Failures(t *testing.T) {
 			args:     []string{"status", "dev"},
 			env:      map[string]string{"DB_HOST": ""},
 			wantExit: 1,
-			wantOut:  "Missing required environment variables",
+			wantOut:  "missing required DB environment variables: DB_HOST",
+		},
+		{
+			name:     "Missing DB_ADMIN_USER",
+			args:     []string{"status", "dev"},
+			env:      map[string]string{"DB_ADMIN_USER": ""},
+			wantExit: 1,
+			wantOut:  "missing required DB environment variables: DB_ADMIN_USER",
+		},
+		{
+			name:     "Missing DB_ADMIN_PASSWORD_SECRET_ID",
+			args:     []string{"status", "dev"},
+			env:      map[string]string{"DB_ADMIN_PASSWORD_SECRET_ID": ""},
+			wantExit: 1,
+			wantOut:  "missing required DB environment variables: DB_ADMIN_PASSWORD_SECRET_ID",
 		},
 		{
 			name:     "Missing DB_NAME_DEV",
 			args:     []string{"status", "dev"},
 			env:      map[string]string{"DB_NAME_DEV": ""},
 			wantExit: 1,
-			wantOut:  "DB_NAME_DEV not set for 'dev' environment",
+			wantOut:  "missing required DB environment variables: DB_NAME_DEV",
+		},
+		{
+			name: "Missing DB_NAME for prod",
+			args: []string{"status", "prod"},
+			// baseEnv has DB_NAME, so we must unset it.
+			// An empty value in the `env` map for a test case will override the `baseEnv`.
+			env:      map[string]string{"DB_NAME": ""},
+			wantExit: 1,
+			wantOut:  "missing required DB environment variables: DB_NAME",
 		},
 		{
 			name:     "Missing migrations directory",
