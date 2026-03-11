@@ -74,6 +74,15 @@ async function deleteImageLocation(id) {
         }
     }
 }
+async function previewImageLocationScan(id) {
+    // Add ?debug=true to get detailed parse errors
+    const response = await fetch(`${API_BASE_URL}/image_locations/${id}/preview_scan?debug=true`);
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error || 'Failed to run preview scan');
+    }
+    return response.json();
+}
 // --- UI Functions ---
 function renderDisplayRow(row, location) {
     row.innerHTML = `
@@ -90,6 +99,7 @@ function renderDisplayRow(row, location) {
             <button class="edit-btn" title="Edit">✏️</button>
             <button class="delete-btn" title="Delete">🗑️</button>
             <button class="duplicate-btn" title="Duplicate">📋</button>
+            <button class="preview-btn" title="Preview Scan">🔬</button>
         </td>
     `;
 }
@@ -176,6 +186,59 @@ function updateSortIndicators() {
         }
     });
 }
+function showModal(title, content) {
+    // Remove existing modal first
+    const existingModal = document.getElementById('scan-result-modal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    const modal = document.createElement('div');
+    modal.id = 'scan-result-modal';
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: rgba(0,0,0,0.5); display: flex;
+        align-items: center; justify-content: center; z-index: 1000;
+    `;
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+        background-color: white; padding: 20px; border-radius: 5px;
+        max-width: 80%; max-height: 80%; overflow-y: auto;
+        min-width: 500px;
+    `;
+    const modalHeader = document.createElement('div');
+    modalHeader.style.cssText = `
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 10px;
+    `;
+    const modalTitle = document.createElement('h2');
+    modalTitle.textContent = title;
+    modalTitle.style.margin = '0';
+    const closeButton = document.createElement('button');
+    closeButton.textContent = '×';
+    closeButton.style.cssText = `
+        background: none; border: none; font-size: 1.5rem; cursor: pointer;
+    `;
+    modalHeader.appendChild(modalTitle);
+    modalHeader.appendChild(closeButton);
+    const modalBody = document.createElement('div');
+    if (typeof content === 'string') {
+        modalBody.innerHTML = content;
+    }
+    else {
+        modalBody.appendChild(content);
+    }
+    modalContent.appendChild(modalHeader);
+    modalContent.appendChild(modalBody);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    const closeModal = () => modal.remove();
+    closeButton.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+}
 // --- Event Handlers ---
 async function handleTableClick(event) {
     const target = event.target;
@@ -252,6 +315,32 @@ async function handleTableClick(event) {
             catch (error) {
                 alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             }
+        }
+    }
+    // --- Preview Scan button ---
+    else if (target.classList.contains('preview-btn') && id && location) {
+        showModal(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
+        try {
+            const result = await previewImageLocationScan(id);
+            const resultHtml = `
+                <h4>Summary</h4>
+                <ul>
+                    <li><strong>Successfully Parsed:</strong> ${result.success_count}</li>
+                    <li><strong>Inconsistent Data:</strong> ${result.inconsistent_count}</li>
+                    <li><strong>Failed to Parse:</strong> ${result.error_count}</li>
+                    <li><strong>Directories Found:</strong> ${result.directories.length}</li>
+                    <li><strong>Directories Ignored:</strong> ${result.ignored_count}</li>
+                </ul>
+                <h4>Directories Found (${result.directories.length})</h4>
+                <pre style="max-height: 200px; overflow-y: auto; background: #f4f4f4; padding: 10px; border-radius: 4px;">${result.directories.join('\n') || 'None'}</pre>
+                <h4>Parse Errors (${result.error_count > 0 ? result.error_count : (result.parse_errors || []).length})</h4>
+                <pre style="max-height: 200px; overflow-y: auto; background: #f4f4f4; padding: 10px; border-radius: 4px;">${(result.parse_errors || []).join('\n') || 'None'}</pre>
+            `;
+            showModal(`Preview Scan for ID: ${id}`, resultHtml);
+        }
+        catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            showModal(`Error Scanning ID: ${id}`, `<div style="color: red;">${message}</div>`);
         }
     }
 }

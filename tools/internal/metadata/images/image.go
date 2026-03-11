@@ -18,10 +18,20 @@ type ImagesConfig struct {
 	IgnoreDirs    []string
 }
 
-func PrintCfg(cfg ImagesConfig) {
+// ScanResult holds the outcome of a directory scan operation.
+type ScanResult struct {
+	Directories       []string `json:"directories"`
+	SuccessCount      int      `json:"success_count"`
+	InconsistentCount int      `json:"inconsistent_count"`
+	ErrorCount        int      `json:"error_count"`
+	IgnoredCount      int      `json:"ignored_count"`
+	ParseErrors       []string `json:"parse_errors,omitempty"` // Only populated in debug mode
+}
 
-	fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
-	fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
+// ExecuteScan performs the directory scanning and parsing based on the provided config.
+// It returns a structured result and does not print to standard output.
+func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
+	var result ScanResult
 
 	depth := 0
 	if cfg.Pattern != "" {
@@ -31,41 +41,56 @@ func PrintCfg(cfg ImagesConfig) {
 		depth--
 	}
 
-	dirs, err := GetDirsAtDepth(cfg, depth)
+	dirs, ignoredCount, err := GetDirsAtDepth(cfg, depth)
 	if err != nil {
-		fmt.Printf("Error scanning directories: %v\n", err)
-	} else {
-		var successCount, errorCount, inconsistentCount int
-		fmt.Printf("Directories at depth %d:\n", depth)
-		for _, dir := range dirs {
-			if cfg.Pattern != "" {
-				data, err := ParseLocation(cfg.Pattern, dir)
-				if err != nil {
-					errorCount++
-					if cfg.Debug {
-						fmt.Printf("  Error parsing location %s: %v\n", dir, err)
-					}
-				} else {
-					successCount++
-					if !data.Consistent {
-						inconsistentCount++
-					}
-					if cfg.Verbose && !cfg.Debug {
-						fmt.Printf("  Parsed Data: %+v\n", data)
-					}
+		return result, fmt.Errorf("error scanning directories: %w", err)
+	}
+	result.Directories = dirs
+	result.IgnoredCount = ignoredCount
+
+	for _, dir := range dirs {
+		if cfg.Pattern != "" {
+			data, err := ParseLocation(cfg.Pattern, dir)
+			if err != nil {
+				result.ErrorCount++
+				if cfg.Debug {
+					result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error parsing location %s: %v", dir, err))
+				}
+			} else {
+				result.SuccessCount++
+				if !data.Consistent {
+					result.InconsistentCount++
 				}
 			}
 		}
-
-		fmt.Printf("\n--- Parsing Summary ---\n")
-		fmt.Printf("Successfully parsed: %d\n", successCount)
-		fmt.Printf("Inconsistent data:   %d\n", inconsistentCount)
-		fmt.Printf("Failed to parse:     %d\n", errorCount)
-
 	}
+
+	return result, nil
 }
 
-func GetDirsAtDepth(cfg ImagesConfig, n int) ([]string, error) {
+func PrintCfg(cfg ImagesConfig) {
+	fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
+	fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
+
+	result, err := ExecuteScan(cfg)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	if cfg.Verbose || cfg.Debug {
+		fmt.Printf("Ignored %d directories matching ignore list\n", result.IgnoredCount)
+	}
+
+	fmt.Printf("\n--- Parsing Summary ---\n")
+	fmt.Printf("Successfully parsed: %d\n", result.SuccessCount)
+	fmt.Printf("Inconsistent data:   %d\n", result.InconsistentCount)
+	fmt.Printf("Failed to parse:     %d\n", result.ErrorCount)
+}
+
+// GetDirsAtDepth walks the directory tree from cfg.RootDir and returns a list of
+// directory paths at a specific depth `n`. It also returns the count of ignored directories.
+func GetDirsAtDepth(cfg ImagesConfig, n int) ([]string, int, error) {
 	var dirs []string
 	ignoredCount := 0
 
@@ -73,6 +98,7 @@ func GetDirsAtDepth(cfg ImagesConfig, n int) ([]string, error) {
 		if err != nil {
 			return err
 		}
+
 		if !d.IsDir() {
 			return nil
 		}
@@ -108,9 +134,5 @@ func GetDirsAtDepth(cfg ImagesConfig, n int) ([]string, error) {
 		return nil
 	})
 
-	if cfg.Verbose || cfg.Debug {
-		fmt.Printf("Ignored %d directories matching ignore list\n", ignoredCount)
-	}
-
-	return dirs, err
+	return dirs, ignoredCount, err
 }

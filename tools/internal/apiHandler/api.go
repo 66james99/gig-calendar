@@ -2,11 +2,15 @@ package apiHandler
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/66james99/gig-calendar/internal/database"
+	"github.com/66james99/gig-calendar/internal/metadata"
+	"github.com/66james99/gig-calendar/internal/metadata/images"
 	"github.com/labstack/echo/v5"
 )
 
@@ -131,4 +135,49 @@ func (a *API) DeleteImageLocation(c *echo.Context) error {
 	}
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+// PreviewImageLocationScan uses the logic from the 'finder' tool to show what
+// directories would be found and how they would be parsed for a given image_location config.
+func (a *API) PreviewImageLocationScan(c *echo.Context) error {
+	// 1. Get the ID from the URL parameter.
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid ID format"})
+	}
+
+	// 2. Fetch the image_location configuration from the database.
+	location, err := a.queries.GetImageLocation(c.Request().Context(), int32(id))
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return c.JSON(http.StatusNotFound, map[string]string{"error": "Image location not found"})
+		}
+		log.Printf("Error getting image location for scan preview: %v", err)
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve image location"})
+	}
+
+	// 3. Adapt the database model to the config struct used by the finder's logic.
+	config := images.ImagesConfig{
+		RootDir:       location.Root,
+		Pattern:       location.Pattern,
+		IncludeParent: location.IncludeParent,
+		IgnoreDirs:    location.IgnoreDirs,
+		BaseConfig: metadata.BaseConfig{
+			// Set debug to true to get detailed error messages from the scan
+			Debug: c.QueryParam("debug") == "true",
+		},
+	}
+
+	// 4. Execute the core logic from the finder tool.
+	scanResult, err := images.ExecuteScan(config)
+	if err != nil {
+		log.Printf("Error executing scan for location %d: %v", id, err)
+		if os.IsNotExist(err) {
+			return c.JSON(http.StatusBadRequest, map[string]string{"error": fmt.Sprintf("Root directory not found: %s", config.RootDir)})
+		}
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to execute scan"})
+	}
+
+	// 5. Return the results as JSON.
+	return c.JSON(http.StatusOK, scanResult)
 }
