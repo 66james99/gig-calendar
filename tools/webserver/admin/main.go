@@ -67,6 +67,13 @@ func main() {
 	e.DELETE("/image_locations/:id", handler.DeleteImageLocation)
 	e.GET("/image_locations/:id/preview_scan", handler.PreviewImageLocationScan)
 
+	// --- Venue Routes ---
+	e.POST("/venues", handler.CreateVenue)
+	e.GET("/venues", handler.ListVenues)
+	e.GET("/venues/:id", handler.GetVenue)
+	e.PUT("/venues/:id", handler.UpdateVenue)
+	e.DELETE("/venues/:id", handler.DeleteVenue)
+
 	// Start the server.
 	log.Println("Starting server on :8080")
 	if err := e.Start(":8080"); err != nil && err != http.ErrServerClosed {
