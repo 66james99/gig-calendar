@@ -1,12 +1,5 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.fetchImageLocations = fetchImageLocations;
-exports.createImageLocation = createImageLocation;
-exports.updateImageLocation = updateImageLocation;
-exports.deleteImageLocation = deleteImageLocation;
-exports.previewImageLocationScan = previewImageLocationScan;
 const API_BASE_URL = 'http://localhost:8080';
-async function fetchImageLocations() {
+export async function fetchImageLocations() {
     const response = await fetch(`${API_BASE_URL}/image_locations`);
     if (!response.ok) {
         throw new Error('Failed to fetch image locations');
@@ -14,7 +7,7 @@ async function fetchImageLocations() {
     const data = await response.json();
     return data || [];
 }
-async function createImageLocation(payload) {
+export async function createImageLocation(payload) {
     const response = await fetch(`${API_BASE_URL}/image_locations`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -26,7 +19,7 @@ async function createImageLocation(payload) {
     }
     return response.json();
 }
-async function updateImageLocation(id, payload) {
+export async function updateImageLocation(id, payload) {
     const response = await fetch(`${API_BASE_URL}/image_locations/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -38,7 +31,7 @@ async function updateImageLocation(id, payload) {
     }
     return response.json();
 }
-async function deleteImageLocation(id) {
+export async function deleteImageLocation(id) {
     const response = await fetch(`${API_BASE_URL}/image_locations/${id}`, {
         method: 'DELETE',
     });
@@ -52,7 +45,7 @@ async function deleteImageLocation(id) {
         }
     }
 }
-async function previewImageLocationScan(id) {
+export async function previewImageLocationScan(id) {
     // Add ?debug=true to get detailed parse errors
     const response = await fetch(`${API_BASE_URL}/image_locations/${id}/preview_scan?debug=true`);
     if (!response.ok) {

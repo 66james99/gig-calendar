@@ -1,26 +1,20 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.handleTableClick = handleTableClick;
-exports.handleNewClick = handleNewClick;
-exports.handleSort = handleSort;
-exports.handleFilterChange = handleFilterChange;
-const app_js_1 = require("./app.js");
-const api_js_1 = require("./api.js");
-const ui_js_1 = require("./ui.js");
-async function handleTableClick(event) {
+import { locationsCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterRootInput, filterPatternInput, filterDateFromExifSelect, filterIncludeParentSelect, filterIgnoreDirsInput, filterActiveSelect, applyFilters, applySort, refreshLocations, } from './app.js';
+import { createImageLocation, deleteImageLocation, previewImageLocationScan, updateImageLocation } from './api.js';
+import { renderDisplayRow, renderEditRow, renderTable, showModal, updateSortIndicators } from './ui.js';
+export async function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
     if (!row)
         return;
     const id = row.dataset.id ? parseInt(row.dataset.id, 10) : null;
-    const location = id ? app_js_1.locationsCache.find(loc => loc.ID === id) : null;
+    const location = id ? locationsCache.find(loc => loc.ID === id) : null;
     // --- Edit button ---
     if (target.classList.contains('edit-btn') && location) {
-        (0, ui_js_1.renderEditRow)(row, location);
+        renderEditRow(row, location);
     }
     // --- Cancel Edit button ---
     else if (target.classList.contains('cancel-btn') && location) {
-        (0, ui_js_1.renderDisplayRow)(row, location);
+        renderDisplayRow(row, location);
     }
     // --- Save button (for updating) ---
     else if (target.classList.contains('save-btn') && id) {
@@ -33,13 +27,13 @@ async function handleTableClick(event) {
             active: row.querySelector('.edit-active').checked,
         };
         try {
-            await (0, api_js_1.updateImageLocation)(id, payload);
-            await (0, app_js_1.refreshLocations)(); // Refresh all to see changes
+            await updateImageLocation(id, payload);
+            await refreshLocations(); // Refresh all to see changes
         }
         catch (error) {
             alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
             if (location)
-                (0, ui_js_1.renderDisplayRow)(row, location); // Revert on failure
+                renderDisplayRow(row, location); // Revert on failure
         }
     }
     // --- Duplicate button ---
@@ -47,7 +41,7 @@ async function handleTableClick(event) {
         const newRow = document.createElement('tr');
         // Create a copy for the new row, reset ID, keep other fields
         const newLocationData = { ...location, ID: 0 };
-        (0, ui_js_1.renderEditRow)(newRow, newLocationData, true);
+        renderEditRow(newRow, newLocationData, true);
         row.after(newRow); // Inserts the new row right after the clicked row
     }
     // --- Cancel Add button ---
@@ -65,8 +59,8 @@ async function handleTableClick(event) {
             active: row.querySelector('.edit-active').checked,
         };
         try {
-            await (0, api_js_1.createImageLocation)(payload);
-            await (0, app_js_1.refreshLocations)();
+            await createImageLocation(payload);
+            await refreshLocations();
         }
         catch (error) {
             alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -76,8 +70,8 @@ async function handleTableClick(event) {
     else if (target.classList.contains('delete-btn') && id) {
         if (confirm(`Are you sure you want to delete location ${id}?`)) {
             try {
-                await (0, api_js_1.deleteImageLocation)(id);
-                await (0, app_js_1.refreshLocations)();
+                await deleteImageLocation(id);
+                await refreshLocations();
             }
             catch (error) {
                 alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -86,9 +80,9 @@ async function handleTableClick(event) {
     }
     // --- Preview Scan button ---
     else if (target.classList.contains('preview-btn') && id && location) {
-        (0, ui_js_1.showModal)(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
+        showModal(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
         try {
-            const result = await (0, api_js_1.previewImageLocationScan)(id);
+            const result = await previewImageLocationScan(id);
             const resultHtml = `
                 <h4>Summary</h4>
                 <ul>
@@ -103,52 +97,52 @@ async function handleTableClick(event) {
                 <h4>Parse Errors (${result.error_count > 0 ? result.error_count : (result.parse_errors || []).length})</h4>
                 <pre style="max-height: 200px; overflow-y: auto; background: #f4f4f4; padding: 10px; border-radius: 4px;">${(result.parse_errors || []).join('\n') || 'None'}</pre>
             `;
-            (0, ui_js_1.showModal)(`Preview Scan for ID: ${id}`, resultHtml);
+            showModal(`Preview Scan for ID: ${id}`, resultHtml);
         }
         catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
-            (0, ui_js_1.showModal)(`Error Scanning ID: ${id}`, `<div style="color: red;">${message}</div>`);
+            showModal(`Error Scanning ID: ${id}`, `<div style="color: red;">${message}</div>`);
         }
     }
 }
-function handleNewClick() {
+export function handleNewClick() {
     // Check if a row is already in 'add' mode to prevent multiple new rows.
-    const existingAddRow = app_js_1.tableBody.querySelector('.add-btn');
+    const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
         alert('Please save or cancel the current new row before adding another.');
         existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
-    const newRow = app_js_1.tableBody.insertRow(0); // Insert a new row at the top of the table.
+    const newRow = tableBody.insertRow(0); // Insert a new row at the top of the table.
     const newLocationData = {};
-    (0, ui_js_1.renderEditRow)(newRow, newLocationData, true); // Render the row in edit mode.
+    renderEditRow(newRow, newLocationData, true); // Render the row in edit mode.
 }
-function handleSort(event) {
+export function handleSort(event) {
     const target = event.target;
     if (target.tagName !== 'TH' || !target.dataset.sort)
         return;
     const sortColumn = target.dataset.sort;
-    if (app_js_1.currentSort.column === sortColumn) {
-        (0, app_js_1.setCurrentSort)({ ...app_js_1.currentSort, direction: app_js_1.currentSort.direction === 'asc' ? 'desc' : 'asc' });
+    if (currentSort.column === sortColumn) {
+        setCurrentSort({ ...currentSort, direction: currentSort.direction === 'asc' ? 'desc' : 'asc' });
     }
     else {
-        (0, app_js_1.setCurrentSort)({ column: sortColumn, direction: 'asc' });
+        setCurrentSort({ column: sortColumn, direction: 'asc' });
     }
     handleFilterChange();
 }
-function handleFilterChange() {
-    (0, app_js_1.setCurrentFilters)({
-        id: app_js_1.filterIdInput.value,
-        root: app_js_1.filterRootInput.value,
-        pattern: app_js_1.filterPatternInput.value,
-        dateFromExif: app_js_1.filterDateFromExifSelect.value,
-        includeParent: app_js_1.filterIncludeParentSelect.value,
-        ignoreDirs: app_js_1.filterIgnoreDirsInput.value,
-        active: app_js_1.filterActiveSelect.value,
+export function handleFilterChange() {
+    setCurrentFilters({
+        id: filterIdInput.value,
+        root: filterRootInput.value,
+        pattern: filterPatternInput.value,
+        dateFromExif: filterDateFromExifSelect.value,
+        includeParent: filterIncludeParentSelect.value,
+        ignoreDirs: filterIgnoreDirsInput.value,
+        active: filterActiveSelect.value,
     });
-    const filteredLocations = (0, app_js_1.applyFilters)(app_js_1.locationsCache);
-    const sortedLocations = (0, app_js_1.applySort)(filteredLocations);
-    (0, ui_js_1.renderTable)(app_js_1.tableBody, sortedLocations);
-    (0, ui_js_1.updateSortIndicators)(app_js_1.currentSort);
+    const filteredLocations = applyFilters(locationsCache);
+    const sortedLocations = applySort(filteredLocations);
+    renderTable(tableBody, sortedLocations);
+    updateSortIndicators(currentSort);
 }
 //# sourceMappingURL=event.js.map

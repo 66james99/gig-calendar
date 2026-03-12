@@ -1,11 +1,4 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-exports.renderDisplayRow = renderDisplayRow;
-exports.renderEditRow = renderEditRow;
-exports.renderTable = renderTable;
-exports.updateSortIndicators = updateSortIndicators;
-exports.showModal = showModal;
-function renderDisplayRow(row, location) {
+export function renderDisplayRow(row, location) {
     row.innerHTML = `
         <td>${location.ID}</td>
         <td>${location.Root}</td>
@@ -24,7 +17,7 @@ function renderDisplayRow(row, location) {
         </td>
     `;
 }
-function renderEditRow(row, location, isNew = false) {
+export function renderEditRow(row, location, isNew = false) {
     const ignoreDirs = (location.IgnoreDirs || []).join(',');
     row.innerHTML = `
         <td>${isNew ? 'NEW' : location.ID}</td>
@@ -47,7 +40,7 @@ function renderEditRow(row, location, isNew = false) {
         </td>
     `;
 }
-function renderTable(tableBody, locations) {
+export function renderTable(tableBody, locations) {
     tableBody.innerHTML = '';
     if (!locations || locations.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="10">No image locations found.</td></tr>';
@@ -59,7 +52,7 @@ function renderTable(tableBody, locations) {
         renderDisplayRow(row, location);
     });
 }
-function updateSortIndicators(currentSort) {
+export function updateSortIndicators(currentSort) {
     document.querySelectorAll('th.sortable').forEach(th => {
         const htmlTh = th;
         htmlTh.classList.remove('sorted-asc', 'sorted-desc');
@@ -68,7 +61,7 @@ function updateSortIndicators(currentSort) {
         }
     });
 }
-function showModal(title, content) {
+export function showModal(title, content) {
     // Remove existing modal first
     const existingModal = document.getElementById('scan-result-modal');
     if (existingModal) {
