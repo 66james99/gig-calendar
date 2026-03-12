@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venues Admin</title>
+    <!-- Reuse existing styles or create specific ones -->
+    <link rel="stylesheet" href="../image_location/style.css">
+</head>
+<body>
+    <h1>Venues</h1>
+    <button id="new-button" type="button">New</button>
+    <button id="refresh-button" type="button">Refresh Table</button>
+
+    <div id="venues-list">
+        <table>
+            <thead>
+                <tr>
+                    <th data-sort="ID" class="sortable">ID</th>
+                    <th data-sort="Name" class="sortable">Name</th>
+                    <th data-sort="Uuid" class="sortable">UUID</th>
+                    <th data-sort="Created" class="sortable">Created</th>
+                    <th data-sort="Updated" class="sortable">Updated</th>
+                    <th>Actions</th>
+                </tr>
+                <tr id="filter-row">
+                    <td><input type="text" id="filter-id" placeholder="Filter ID..."></td>
+                    <td><input type="text" id="filter-name" placeholder="Filter Name..."></td>
+                    <td><input type="text" id="filter-uuid" placeholder="Filter UUID..."></td>
+                    <td colspan="3"></td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Rows will be inserted here by TypeScript -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module" src="../assets/js/venue/app.js"></script>
+</body>
+</html>

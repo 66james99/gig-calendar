@@ -75,7 +75,7 @@ func main() {
 	e.DELETE("/venues/:id", handler.DeleteVenue)
 
 	// Serve static frontend files.
-	e.Static("/", "../../../docs/content/admin.gig-calendar.com")
+	e.Static("/", "../docs/content/admin.gig-calendar.com")
 
 	// Start the server.
 	log.Println("Starting server on :8080")

@@ -1,0 +1,64 @@
+body {
+    font-family: sans-serif;
+    margin: 2em;
+    background-color: #fdfdfd;
+    color: #333;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1em;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f4f4f4;
+}
+
+th.sortable {
+    cursor: pointer;
+}
+
+th.sortable::after {
+    content: ' \25B2\25BC'; /* up/down arrows */
+    color: #ccc;
+    font-size: 0.8em;
+}
+
+th.sorted-asc::after {
+    content: ' \25B2'; /* up arrow */
+    color: #333;
+}
+
+th.sorted-desc::after {
+    content: ' \25BC'; /* down arrow */
+    color: #333;
+}
+
+button {
+    padding: 8px 15px;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+#filter-row input, #filter-row select {
+    width: 95%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+td input[type="text"] {
+    width: 95%;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+td input[type="checkbox"] {
+    vertical-align: middle;
+}
