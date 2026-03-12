@@ -137,7 +137,7 @@ func main() {
 
 		if cfg.Verbose {
 			for _, s := range result.Successes {
-				fmt.Printf("Parsed: %s -> Date: %04d-%02d-%02d, Venue: %s, Performers: %v, Promoters: %v\n", s.Directory, s.Year, s.Month, s.Day, s.Venue, s.Performers, s.Promoters)
+				fmt.Printf("Parsed: %s ->\n Date: %04d-%02d-%02d\n Venue: %s\n Performers: %v\n Promoters: %v\n\n", s.Directory, s.Year, s.Month, s.Day, s.Venue, s.Performers, s.Promoters)
 			}
 		}
 
