@@ -124,7 +124,29 @@ func main() {
 
 	switch cfg := config.(type) {
 	case images.ImagesConfig:
-		images.PrintCfg(cfg)
+		fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
+		fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
+
+		result, err := images.ExecuteScan(cfg)
+		if err != nil {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+
+		if cfg.Verbose || cfg.Debug {
+			fmt.Printf("Ignored %d directories matching ignore list\n", result.IgnoredCount)
+		}
+
+		if cfg.Verbose {
+			for _, s := range result.Successes {
+				fmt.Printf("Parsed: %s -> Date: %04d-%02d-%02d, Venue: %s, Performers: %v, Promoters: %v\n", s.Directory, s.Year, s.Month, s.Day, s.Venue, s.Performers, s.Promoters)
+			}
+		}
+
+		fmt.Printf("\n--- Parsing Summary ---\n")
+		fmt.Printf("Successfully parsed: %d\n", result.SuccessCount)
+		fmt.Printf("Inconsistent data:   %d\n", result.InconsistentCount)
+		fmt.Printf("Failed to parse:     %d\n", result.ErrorCount)
 	case metadata.TicketsConfig:
 		fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
 	case metadata.InfoConfig:

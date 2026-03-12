@@ -18,9 +18,22 @@ type ImagesConfig struct {
 	IgnoreDirs    []string
 }
 
+// ParsedResult holds the parsed data for a single directory.
+type ParsedResult struct {
+	Directory  string   `json:"directory"`
+	Year       int      `json:"year,omitempty"`
+	Month      int      `json:"month,omitempty"`
+	Day        int      `json:"day,omitempty"`
+	Performers []string `json:"performers,omitempty"`
+	Venue      string   `json:"venue,omitempty"`
+	Promoters  []string `json:"promoters,omitempty"`
+	Consistent bool     `json:"consistent"`
+}
+
 // ScanResult holds the outcome of a directory scan operation.
 type ScanResult struct {
 	Directories       []string `json:"directories"`
+	Successes         []ParsedResult `json:"successes,omitempty"`
 	SuccessCount      int      `json:"success_count"`
 	InconsistentCount int      `json:"inconsistent_count"`
 	ErrorCount        int      `json:"error_count"`
@@ -61,6 +74,17 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 				if !data.Consistent {
 					result.InconsistentCount++
 				}
+				parsed := ParsedResult{
+					Directory:  dir,
+					Year:       data.Year,
+					Month:      data.Month,
+					Day:        data.Day,
+					Performers: data.Performers,
+					Venue:      data.Venue,
+					Promoters:  data.Promoters,
+					Consistent: data.Consistent,
+				}
+				result.Successes = append(result.Successes, parsed)
 			}
 		}
 	}
