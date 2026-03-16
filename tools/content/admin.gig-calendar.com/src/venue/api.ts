@@ -1,6 +1,6 @@
 import type { Venue, VenuePayload } from './types.js';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 export async function fetchVenues(): Promise<Venue[]> {
     const response = await fetch(`${API_BASE_URL}/venues`);

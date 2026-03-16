@@ -1,6 +1,6 @@
 import type { ImageLocation, ImageLocationPayload, ScanResult } from './types.js';
 
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 export async function fetchImageLocations(): Promise<ImageLocation[]> {
     const response = await fetch(`${API_BASE_URL}/image_locations`);

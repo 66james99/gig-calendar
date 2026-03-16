@@ -59,20 +59,25 @@ func main() {
 		AllowMethods: []string{http.MethodGet, http.MethodPut, http.MethodPost, http.MethodDelete, http.MethodOptions},
 	}))
 
+	const apiVersion = "v1"
+	const apiPrefix = "/api/" + apiVersion
+
+	apiGroup := e.Group(apiPrefix)
+
 	// --- Routes ---
-	e.POST("/image_locations", handler.CreateImageLocation)
-	e.GET("/image_locations", handler.ListImageLocations)
-	e.GET("/image_locations/:id", handler.GetImageLocation)
-	e.PUT("/image_locations/:id", handler.UpdateImageLocation)
-	e.DELETE("/image_locations/:id", handler.DeleteImageLocation)
-	e.GET("/image_locations/:id/preview_scan", handler.PreviewImageLocationScan)
+	apiGroup.POST("/image_locations", handler.CreateImageLocation)
+	apiGroup.GET("/image_locations", handler.ListImageLocations)
+	apiGroup.GET("/image_locations/:id", handler.GetImageLocation)
+	apiGroup.PUT("/image_locations/:id", handler.UpdateImageLocation)
+	apiGroup.DELETE("/image_locations/:id", handler.DeleteImageLocation)
+	apiGroup.GET("/image_locations/:id/preview_scan", handler.PreviewImageLocationScan)
 
 	// --- Venue Routes ---
-	e.POST("/venues", handler.CreateVenue)
-	e.GET("/venues", handler.ListVenues)
-	e.GET("/venues/:id", handler.GetVenue)
-	e.PUT("/venues/:id", handler.UpdateVenue)
-	e.DELETE("/venues/:id", handler.DeleteVenue)
+	apiGroup.POST("/venues", handler.CreateVenue)
+	apiGroup.GET("/venues", handler.ListVenues)
+	apiGroup.GET("/venues/:id", handler.GetVenue)
+	apiGroup.PUT("/venues/:id", handler.UpdateVenue)
+	apiGroup.DELETE("/venues/:id", handler.DeleteVenue)
 
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
