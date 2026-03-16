@@ -6,8 +6,11 @@ import (
 	"os"
 	"strings"
 
+	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/images"
+	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func parseArgs() (string, []string, error) {
@@ -124,9 +127,19 @@ func main() {
 
 	switch cfg := config.(type) {
 	case images.ImagesConfig:
+		if err := godotenv.Load(); err != nil && cfg.Debug {
+			fmt.Println("Notice: No .env file found")
+		}
+
+		db, err := database.Connect(database.ConnectParams{IsDev: true, UserType: database.AppUser})
+		if err == nil {
+			defer db.Close()
+			cfg.Queries = database.New(db)
+		}
+
 		if cfg.Debug {
-		fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
-		fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
+			fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
+			fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
 		}
 
 		result, err := images.ExecuteScan(cfg)
@@ -137,7 +150,7 @@ func main() {
 
 		if cfg.Verbose {
 			for _, s := range result.Successes {
-				fmt.Printf("Parsed Location: \"%s\" ->\n Date: %04d-%02d-%02d\n Venue: %s\n Performers: %v\n Promoters: %v\n\n", s.Directory, s.Year, s.Month, s.Day, s.Venue, s.Performers, s.Promoters)
+				fmt.Printf("Parsed Location: \"%s\" ->\n Date: %04d-%02d-%02d\n Venue: %s (Match: %s, Conf: %d%%)\n Performers: %v\n Promoters: %v\n\n", s.Directory, s.Year, s.Month, s.Day, s.Venue, s.VenueMatch, s.VenueConfidence, s.Performers, s.Promoters)
 			}
 		}
 

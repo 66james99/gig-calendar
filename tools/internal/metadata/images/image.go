@@ -1,12 +1,15 @@
 package images
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
+	"github.com/66james99/gig-calendar/internal/metadata/venue"
 )
 
 type ImagesConfig struct {
@@ -16,35 +19,42 @@ type ImagesConfig struct {
 	Pattern       string
 	IncludeParent bool
 	IgnoreDirs    []string
+	Queries       *database.Queries
 }
 
 // ParsedResult holds the parsed data for a single directory.
 type ParsedResult struct {
-	Directory  string   `json:"directory"`
-	Year       int      `json:"year,omitempty"`
-	Month      int      `json:"month,omitempty"`
-	Day        int      `json:"day,omitempty"`
-	Performers []string `json:"performers,omitempty"`
-	Venue      string   `json:"venue,omitempty"`
-	Promoters  []string `json:"promoters,omitempty"`
-	Consistent bool     `json:"consistent"`
+	Directory       string   `json:"directory"`
+	Year            int      `json:"year,omitempty"`
+	Month           int      `json:"month,omitempty"`
+	Day             int      `json:"day,omitempty"`
+	Performers      []string `json:"performers,omitempty"`
+	Venue           string   `json:"venue,omitempty"`
+	VenueMatch      string   `json:"venue_match,omitempty"`
+	VenueConfidence int      `json:"venue_confidence,omitempty"`
+	Promoters       []string `json:"promoters,omitempty"`
+	Consistent      bool     `json:"consistent"`
 }
 
 // ScanResult holds the outcome of a directory scan operation.
 type ScanResult struct {
-	Directories       []string `json:"directories"`
+	Directories       []string       `json:"directories"`
 	Successes         []ParsedResult `json:"successes,omitempty"`
-	SuccessCount      int      `json:"success_count"`
-	InconsistentCount int      `json:"inconsistent_count"`
-	ErrorCount        int      `json:"error_count"`
-	IgnoredCount      int      `json:"ignored_count"`
-	ParseErrors       []string `json:"parse_errors,omitempty"` // Only populated in debug mode
+	SuccessCount      int            `json:"success_count"`
+	InconsistentCount int            `json:"inconsistent_count"`
+	ErrorCount        int            `json:"error_count"`
+	IgnoredCount      int            `json:"ignored_count"`
+	ParseErrors       []string       `json:"parse_errors,omitempty"` // Only populated in debug mode
 }
 
 // ExecuteScan performs the directory scanning and parsing based on the provided config.
 // It returns a structured result and does not print to standard output.
 func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 	var result ScanResult
+
+	if cfg.Pattern == "" {
+		return result, fmt.Errorf("empty pattern not allowed")
+	}
 
 	depth := 0
 	if cfg.Pattern != "" {
@@ -83,6 +93,16 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 					Venue:      data.Venue,
 					Promoters:  data.Promoters,
 					Consistent: data.Consistent,
+				}
+
+				if cfg.Queries != nil && parsed.Venue != "" {
+					match, err := venue.VenueMatch(context.Background(), cfg.Queries, parsed.Venue)
+					if err == nil {
+						parsed.VenueMatch = match.Match
+						parsed.VenueConfidence = match.Confidence
+					} else if cfg.Debug {
+						result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching venue '%s': %v", parsed.Venue, err))
+					}
 				}
 				result.Successes = append(result.Successes, parsed)
 			}
