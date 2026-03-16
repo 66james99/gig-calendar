@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performers Admin</title>
+    <!-- Reuse existing styles or create specific ones -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <h1>Performers</h1>
+    <button id="new-performer-button" type="button">New</button>
+    <button id="refresh-performers-button" type="button">Refresh Table</button>
+
+    <div id="performers-list-container">
+        <table id="performers-list">
+            <thead>
+                <tr>
+                    <th data-col="ID" class="sortable">ID</th>
+                    <th data-col="Name" class="sortable">Name</th>
+                    <th data-col="Uuid" class="sortable">UUID</th>
+                    <th data-col="Created" class="sortable">Created</th>
+                    <th data-col="Updated" class="sortable">Updated</th>
+                    <th>Actions</th>
+                </tr>
+                <tr id="filter-row">
+                    <td><input type="text" id="filter-performer-id" placeholder="Filter ID..."></td>
+                    <td><input type="text" id="filter-performer-name" placeholder="Filter Name..."></td>
+                    <td><input type="text" id="filter-performer-uuid" placeholder="Filter UUID..."></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Performers will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module" src="../assets/js/performer/app.js"></script>
+</body>
+</html>

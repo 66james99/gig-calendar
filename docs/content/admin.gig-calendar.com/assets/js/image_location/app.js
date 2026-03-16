@@ -30,6 +30,7 @@ export const tableBody = document.querySelector('#locations-list tbody');
 export const tableHeader = document.querySelector('#locations-list thead');
 export const newButton = document.getElementById('new-button');
 export const refreshButton = document.getElementById('refresh-button');
+export const debugCheckbox = document.getElementById('debug-mode');
 export const filterIdInput = document.getElementById('filter-id');
 export const filterRootInput = document.getElementById('filter-root');
 export const filterPatternInput = document.getElementById('filter-pattern');

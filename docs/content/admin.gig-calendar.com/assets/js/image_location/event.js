@@ -1,4 +1,4 @@
-import { locationsCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterRootInput, filterPatternInput, filterDateFromExifSelect, filterIncludeParentSelect, filterIgnoreDirsInput, filterActiveSelect, applyFilters, applySort, refreshLocations, } from './app.js';
+import { locationsCache, currentSort, debugCheckbox, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterRootInput, filterPatternInput, filterDateFromExifSelect, filterIncludeParentSelect, filterIgnoreDirsInput, filterActiveSelect, applyFilters, applySort, refreshLocations, } from './app.js';
 import { createImageLocation, deleteImageLocation, previewImageLocationScan, updateImageLocation } from './api.js';
 import { renderDisplayRow, renderEditRow, renderTable, showModal, updateSortIndicators } from './ui.js';
 export async function handleTableClick(event) {
@@ -82,7 +82,7 @@ export async function handleTableClick(event) {
     else if (target.classList.contains('preview-btn') && id && location) {
         showModal(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
         try {
-            const result = await previewImageLocationScan(id);
+            const result = await previewImageLocationScan(id, debugCheckbox.checked);
             const content = createPreviewContent(result);
             showModal(`Preview Scan for ID: ${id}`, content);
         }

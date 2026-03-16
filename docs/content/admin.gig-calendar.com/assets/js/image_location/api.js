@@ -45,9 +45,8 @@ export async function deleteImageLocation(id) {
         }
     }
 }
-export async function previewImageLocationScan(id) {
-    // Add ?debug=true to get detailed parse errors
-    const response = await fetch(`${API_BASE_URL}/image_locations/${id}/preview_scan?debug=true`);
+export async function previewImageLocationScan(id, debug) {
+    const response = await fetch(`${API_BASE_URL}/image_locations/${id}/preview_scan?debug=${debug}`);
     if (!response.ok) {
         const err = await response.json();
         throw new Error(err.error || 'Failed to run preview scan');
