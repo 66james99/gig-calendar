@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Aliases Admin</title>
+    <!-- Reuse existing styles or create specific ones -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <h1>Venue Aliases</h1>
+    <button id="new-alias-button" type="button">New</button>
+    <button id="refresh-aliases-button" type="button">Refresh Table</button>
+
+    <div id="venue-aliases-list-container">
+        <table id="venue-aliases-list">
+            <thead>
+                <tr>
+                    <th data-col="ID" class="sortable">ID</th>
+                    <th data-col="Venue" class="sortable">Venue</th>
+                    <th data-col="Alias" class="sortable">Alias</th>
+                    <th data-col="Created" class="sortable">Created</th>
+                    <th data-col="Updated" class="sortable">Updated</th>
+                    <th>Actions</th>
+                </tr>
+                <tr id="filter-row">
+                    <td><input type="text" id="filter-alias-id" placeholder="Filter ID..."></td>
+                    <td><input type="text" id="filter-alias-venue" placeholder="Filter Venue..."></td>
+                    <td><input type="text" id="filter-alias-alias" placeholder="Filter Alias..."></td>
+                    <td><input type="text" id="filter-alias-created" placeholder="Filter Created..."></td>
+                    <td><input type="text" id="filter-alias-updated" placeholder="Filter Updated..."></td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Venue aliases will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <script type="module" src="../assets/js/venue_alias/app.js"></script>
+</body>
+</html>

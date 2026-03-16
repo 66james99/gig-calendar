@@ -9,6 +9,58 @@ import (
 	"context"
 )
 
+const createVenueAlias = `-- name: CreateVenueAlias :one
+INSERT INTO venue_alias (venue, alias)
+VALUES ($1, $2)
+RETURNING id, venue, created, updated, alias
+`
+
+type CreateVenueAliasParams struct {
+	Venue int32
+	Alias string
+}
+
+func (q *Queries) CreateVenueAlias(ctx context.Context, arg CreateVenueAliasParams) (VenueAlias, error) {
+	row := q.db.QueryRowContext(ctx, createVenueAlias, arg.Venue, arg.Alias)
+	var i VenueAlias
+	err := row.Scan(
+		&i.ID,
+		&i.Venue,
+		&i.Created,
+		&i.Updated,
+		&i.Alias,
+	)
+	return i, err
+}
+
+const deleteVenueAlias = `-- name: DeleteVenueAlias :exec
+DELETE FROM venue_alias
+WHERE id = $1
+`
+
+func (q *Queries) DeleteVenueAlias(ctx context.Context, id int32) error {
+	_, err := q.db.ExecContext(ctx, deleteVenueAlias, id)
+	return err
+}
+
+const getVenueAlias = `-- name: GetVenueAlias :one
+SELECT id, venue, created, updated, alias FROM venue_alias
+WHERE id = $1
+`
+
+func (q *Queries) GetVenueAlias(ctx context.Context, id int32) (VenueAlias, error) {
+	row := q.db.QueryRowContext(ctx, getVenueAlias, id)
+	var i VenueAlias
+	err := row.Scan(
+		&i.ID,
+		&i.Venue,
+		&i.Created,
+		&i.Updated,
+		&i.Alias,
+	)
+	return i, err
+}
+
 const listVenueAliases = `-- name: ListVenueAliases :many
 SELECT id, venue, created, updated, alias FROM venue_alias
 ORDER BY alias
@@ -41,4 +93,30 @@ func (q *Queries) ListVenueAliases(ctx context.Context) ([]VenueAlias, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const updateVenueAlias = `-- name: UpdateVenueAlias :one
+UPDATE venue_alias
+SET venue = $1, alias = $2, updated = NOW()
+WHERE id = $3
+RETURNING id, venue, created, updated, alias
+`
+
+type UpdateVenueAliasParams struct {
+	Venue int32
+	Alias string
+	ID    int32
+}
+
+func (q *Queries) UpdateVenueAlias(ctx context.Context, arg UpdateVenueAliasParams) (VenueAlias, error) {
+	row := q.db.QueryRowContext(ctx, updateVenueAlias, arg.Venue, arg.Alias, arg.ID)
+	var i VenueAlias
+	err := row.Scan(
+		&i.ID,
+		&i.Venue,
+		&i.Created,
+		&i.Updated,
+		&i.Alias,
+	)
+	return i, err
 }
