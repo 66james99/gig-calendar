@@ -54,4 +54,3 @@ export async function previewImageLocationScan(id) {
     }
     return response.json();
 }
-//# sourceMappingURL=api.js.map

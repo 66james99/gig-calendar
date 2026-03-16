@@ -103,4 +103,3 @@ export function handleFilterChange() {
     renderTable(tableBody, sortedVenues);
     updateSortIndicators(currentSort);
 }
-//# sourceMappingURL=event.js.map

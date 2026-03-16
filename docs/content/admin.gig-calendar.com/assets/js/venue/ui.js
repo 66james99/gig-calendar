@@ -51,4 +51,3 @@ export function updateSortIndicators(currentSort) {
         }
     });
 }
-//# sourceMappingURL=ui.js.map

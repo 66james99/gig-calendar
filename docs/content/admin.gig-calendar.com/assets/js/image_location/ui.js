@@ -114,4 +114,3 @@ export function showModal(title, content) {
         }
     });
 }
-//# sourceMappingURL=ui.js.map

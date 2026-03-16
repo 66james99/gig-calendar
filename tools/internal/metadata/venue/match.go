@@ -18,7 +18,8 @@ type VenueMatchResult struct {
 // It returns a confidence score:
 // 100: Exact match in venue table
 // 75:  Match in venue_alias table
-// 50:  Fuzzy match
+// 50:  Fuzzy match against venue table
+// 25:  Fuzzy match against venue_alias table
 // 0:   No match
 func VenueMatch(ctx context.Context, q *database.Queries, rawVenue string) (VenueMatchResult, error) {
 	normalized := metadata.Normalize(rawVenue)

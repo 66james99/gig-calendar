@@ -19,8 +19,22 @@ export interface ImageLocationPayload {
     active: boolean;
 }
 
+export interface ParsedResult {
+    directory: string;
+    year?: number;
+    month?: number;
+    day?: number;
+    performers?: string[];
+    venue?: string;
+    venue_match?: string;
+    venue_confidence?: number;
+    promoters?: string[];
+    consistent: boolean;
+}
+
 export interface ScanResult {
     directories: string[];
+    successes?: ParsedResult[];
     success_count: number;
     inconsistent_count: number;
     error_count: number;

@@ -45,4 +45,3 @@ export async function deleteVenue(id) {
         }
     }
 }
-//# sourceMappingURL=api.js.map

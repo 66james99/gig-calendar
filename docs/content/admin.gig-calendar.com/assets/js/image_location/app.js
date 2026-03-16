@@ -119,4 +119,3 @@ function init() {
 }
 // Start the app
 init();
-//# sourceMappingURL=app.js.map
