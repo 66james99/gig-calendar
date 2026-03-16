@@ -7,6 +7,7 @@ import {
     tableBody,
     filterIdInput,
     filterPerformerInput,
+    filterUuidInput,
     filterAliasInput,
     filterCreatedInput,
     filterUpdatedInput,
@@ -120,6 +121,7 @@ export function handleFilterChange() {
     setCurrentFilters({
         id: filterIdInput.value,
         performer: filterPerformerInput.value,
+        uuid: filterUuidInput.value,
         alias: filterAliasInput.value,
         created: filterCreatedInput.value,
         updated: filterUpdatedInput.value,

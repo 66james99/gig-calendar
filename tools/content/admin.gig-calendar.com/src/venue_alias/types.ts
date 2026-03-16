@@ -1,6 +1,7 @@
 export interface VenueAlias {
     ID: number;
     Venue: number; // Corresponds to the Venue ID
+    Uuid: string;
     Alias: string;
     Created: string;
     Updated: string;
@@ -11,11 +12,12 @@ export interface VenueAliasPayload {
     alias: string;
 }
 
-export type VenueAliasSortableColumn = 'ID' | 'Venue' | 'Alias' | 'Created' | 'Updated';
+export type VenueAliasSortableColumn = 'ID' | 'Venue' | 'Uuid' | 'Alias' | 'Created' | 'Updated';
 
 export interface Filters {
     id: string;
     venue: string;
+    uuid: string;
     alias: string;
     created: string;
     updated: string;

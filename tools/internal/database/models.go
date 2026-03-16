@@ -84,6 +84,7 @@ type PerformerAlias struct {
 	Updated   time.Time
 	Performer int32
 	Alias     string
+	Uuid      uuid.UUID
 }
 
 type Promoter struct {
@@ -92,6 +93,15 @@ type Promoter struct {
 	Created time.Time
 	Updated time.Time
 	Name    string
+}
+
+type PromoterAlias struct {
+	ID       int32
+	Promoter int32
+	Alias    string
+	Created  time.Time
+	Updated  time.Time
+	Uuid     uuid.UUID
 }
 
 type SourceImage struct {
@@ -117,4 +127,5 @@ type VenueAlias struct {
 	Created time.Time
 	Updated time.Time
 	Alias   string
+	Uuid    uuid.UUID
 }

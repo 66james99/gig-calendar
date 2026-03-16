@@ -11,6 +11,7 @@ export let currentSort = {
 export let currentFilters = {
     id: '',
     performer: '',
+    uuid: '',
     alias: '',
     created: '',
     updated: '',
@@ -34,6 +35,7 @@ export const newButton = document.getElementById('new-alias-button');
 export const refreshButton = document.getElementById('refresh-aliases-button');
 export const filterIdInput = document.getElementById('filter-alias-id');
 export const filterPerformerInput = document.getElementById('filter-alias-performer');
+export const filterUuidInput = document.getElementById('filter-alias-uuid');
 export const filterAliasInput = document.getElementById('filter-alias-alias');
 export const filterCreatedInput = document.getElementById('filter-alias-created');
 export const filterUpdatedInput = document.getElementById('filter-alias-updated');
@@ -43,10 +45,11 @@ export function applyFilters(aliases) {
         const idMatch = alias.ID.toString().includes(currentFilters.id);
         const performerName = performersCache.find(p => p.ID === alias.Performer)?.Name || '';
         const performerMatch = performerName.toLowerCase().includes(currentFilters.performer.toLowerCase());
+        const uuidMatch = alias.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase());
         const aliasMatch = alias.Alias.toLowerCase().includes(currentFilters.alias.toLowerCase());
         const createdMatch = alias.Created.includes(currentFilters.created);
         const updatedMatch = alias.Updated.includes(currentFilters.updated);
-        return idMatch && performerMatch && aliasMatch && createdMatch && updatedMatch;
+        return idMatch && performerMatch && uuidMatch && aliasMatch && createdMatch && updatedMatch;
     });
 }
 export function sortAliases(aliases) {
@@ -66,7 +69,7 @@ export async function refreshAliases() {
     catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="6">Failed to load data. Is the backend server running?</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="7">Failed to load data. Is the backend server running?</td></tr>';
         }
     }
 }
@@ -84,6 +87,8 @@ function init() {
         filterIdInput.addEventListener('input', handleFilterChange);
     if (filterPerformerInput)
         filterPerformerInput.addEventListener('input', handleFilterChange);
+    if (filterUuidInput)
+        filterUuidInput.addEventListener('input', handleFilterChange);
     if (filterAliasInput)
         filterAliasInput.addEventListener('input', handleFilterChange);
     if (filterCreatedInput)

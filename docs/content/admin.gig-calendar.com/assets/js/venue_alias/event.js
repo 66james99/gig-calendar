@@ -1,4 +1,4 @@
-import { aliasesCache, venuesCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterVenueInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, sortAliases, refreshAliases, } from './app.js';
+import { aliasesCache, venuesCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterVenueInput, filterUuidInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, sortAliases, refreshAliases, } from './app.js';
 import { createVenueAlias, deleteVenueAlias, updateVenueAlias } from './api.js';
 import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
 import { updateSortIndicators } from '../shared/ui.js';
@@ -101,6 +101,7 @@ export function handleFilterChange() {
     setCurrentFilters({
         id: filterIdInput.value, // Assuming filterIdInput exists for aliases
         venue: filterVenueInput.value,
+        uuid: filterUuidInput.value,
         alias: filterAliasInput.value,
         created: filterCreatedInput.value,
         updated: filterUpdatedInput.value,

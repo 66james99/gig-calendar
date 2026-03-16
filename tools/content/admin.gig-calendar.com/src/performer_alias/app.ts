@@ -14,6 +14,7 @@ export let currentSort: SortState<PerformerAliasSortableColumn> = {
 export let currentFilters: Filters = {
     id: '',
     performer: '',
+    uuid: '',
     alias: '',
     created: '',
     updated: '',
@@ -41,6 +42,7 @@ export const refreshButton = document.getElementById('refresh-aliases-button') a
 
 export const filterIdInput = document.getElementById('filter-alias-id') as HTMLInputElement;
 export const filterPerformerInput = document.getElementById('filter-alias-performer') as HTMLInputElement;
+export const filterUuidInput = document.getElementById('filter-alias-uuid') as HTMLInputElement;
 export const filterAliasInput = document.getElementById('filter-alias-alias') as HTMLInputElement;
 export const filterCreatedInput = document.getElementById('filter-alias-created') as HTMLInputElement;
 export const filterUpdatedInput = document.getElementById('filter-alias-updated') as HTMLInputElement;
@@ -52,11 +54,12 @@ export function applyFilters(aliases: PerformerAlias[]): PerformerAlias[] {
         const idMatch = alias.ID.toString().includes(currentFilters.id);
         const performerName = performersCache.find(p => p.ID === alias.Performer)?.Name || '';
         const performerMatch = performerName.toLowerCase().includes(currentFilters.performer.toLowerCase());
+        const uuidMatch = alias.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase());
         const aliasMatch = alias.Alias.toLowerCase().includes(currentFilters.alias.toLowerCase());
         const createdMatch = alias.Created.includes(currentFilters.created);
         const updatedMatch = alias.Updated.includes(currentFilters.updated);
 
-        return idMatch && performerMatch && aliasMatch && createdMatch && updatedMatch;
+        return idMatch && performerMatch && uuidMatch && aliasMatch && createdMatch && updatedMatch;
     });
 }
 
@@ -78,7 +81,7 @@ export async function refreshAliases() {
     } catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         if (tableBody) {
-             tableBody.innerHTML = '<tr><td colspan="6">Failed to load data. Is the backend server running?</td></tr>';
+             tableBody.innerHTML = '<tr><td colspan="7">Failed to load data. Is the backend server running?</td></tr>';
         }
     }
 }
@@ -92,6 +95,7 @@ function init() {
     // Add event listeners for filters
     if (filterIdInput) filterIdInput.addEventListener('input', handleFilterChange);
     if (filterPerformerInput) filterPerformerInput.addEventListener('input', handleFilterChange);
+    if (filterUuidInput) filterUuidInput.addEventListener('input', handleFilterChange);
     if (filterAliasInput) filterAliasInput.addEventListener('input', handleFilterChange);
     if (filterCreatedInput) filterCreatedInput.addEventListener('input', handleFilterChange);
     if (filterUpdatedInput) filterUpdatedInput.addEventListener('input', handleFilterChange);

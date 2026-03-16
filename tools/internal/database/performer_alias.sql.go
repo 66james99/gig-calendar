@@ -8,12 +8,14 @@ package database
 import (
 	"context"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const createPerformerAlias = `-- name: CreatePerformerAlias :one
 INSERT INTO performer_alias (performer, alias)
 VALUES ($1, $2)
-RETURNING id, performer, created, updated, alias
+RETURNING id, uuid, performer, created, updated, alias
 `
 
 type CreatePerformerAliasParams struct {
@@ -23,6 +25,7 @@ type CreatePerformerAliasParams struct {
 
 type CreatePerformerAliasRow struct {
 	ID        int32
+	Uuid      uuid.UUID
 	Performer int32
 	Created   time.Time
 	Updated   time.Time
@@ -34,6 +37,7 @@ func (q *Queries) CreatePerformerAlias(ctx context.Context, arg CreatePerformerA
 	var i CreatePerformerAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Performer,
 		&i.Created,
 		&i.Updated,
@@ -53,12 +57,13 @@ func (q *Queries) DeletePerformerAlias(ctx context.Context, id int32) error {
 }
 
 const getPerformerAlias = `-- name: GetPerformerAlias :one
-SELECT id, performer, created, updated, alias FROM performer_alias
+SELECT id, uuid, performer, created, updated, alias FROM performer_alias
 WHERE id = $1
 `
 
 type GetPerformerAliasRow struct {
 	ID        int32
+	Uuid      uuid.UUID
 	Performer int32
 	Created   time.Time
 	Updated   time.Time
@@ -70,6 +75,7 @@ func (q *Queries) GetPerformerAlias(ctx context.Context, id int32) (GetPerformer
 	var i GetPerformerAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Performer,
 		&i.Created,
 		&i.Updated,
@@ -79,12 +85,13 @@ func (q *Queries) GetPerformerAlias(ctx context.Context, id int32) (GetPerformer
 }
 
 const listPerformerAliases = `-- name: ListPerformerAliases :many
-SELECT id, performer, created, updated, alias FROM performer_alias
+SELECT id, uuid, performer, created, updated, alias FROM performer_alias
 ORDER BY alias
 `
 
 type ListPerformerAliasesRow struct {
 	ID        int32
+	Uuid      uuid.UUID
 	Performer int32
 	Created   time.Time
 	Updated   time.Time
@@ -102,6 +109,7 @@ func (q *Queries) ListPerformerAliases(ctx context.Context) ([]ListPerformerAlia
 		var i ListPerformerAliasesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Performer,
 			&i.Created,
 			&i.Updated,
@@ -124,7 +132,7 @@ const updatePerformerAlias = `-- name: UpdatePerformerAlias :one
 UPDATE performer_alias
 SET performer = $1, alias = $2, updated = NOW()
 WHERE id = $3
-RETURNING id, performer, created, updated, alias
+RETURNING id, uuid, performer, created, updated, alias
 `
 
 type UpdatePerformerAliasParams struct {
@@ -135,6 +143,7 @@ type UpdatePerformerAliasParams struct {
 
 type UpdatePerformerAliasRow struct {
 	ID        int32
+	Uuid      uuid.UUID
 	Performer int32
 	Created   time.Time
 	Updated   time.Time
@@ -146,6 +155,7 @@ func (q *Queries) UpdatePerformerAlias(ctx context.Context, arg UpdatePerformerA
 	var i UpdatePerformerAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Performer,
 		&i.Created,
 		&i.Updated,

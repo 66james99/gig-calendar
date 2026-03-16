@@ -1,7 +1,7 @@
 export function renderTable(tbody, aliases, performers) {
     tbody.innerHTML = ''; // Clear existing rows
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No performer aliases found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No performer aliases found.</td></tr>';
         return;
     }
     aliases.forEach(alias => renderDisplayRow(tbody, alias, performers));
@@ -15,6 +15,7 @@ export function renderDisplayRow(tbody, alias, performers) {
     row.innerHTML = `
         <td>${alias.ID}</td>
         <td>${getPerformerName(alias.Performer, performers)}</td>
+        <td>${alias.Uuid}</td>
         <td>${alias.Alias}</td>
         <td>${new Date(alias.Created).toLocaleString()}</td>
         <td>${new Date(alias.Updated).toLocaleString()}</td>
@@ -43,6 +44,7 @@ export function renderEditRow(tbody, alias, isNew, performers) {
                 ${performerOptions}
             </select>
         </td>
+        <td>${alias.Uuid || 'N/A'}</td>
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" style="width: 100%;"></td>
         <td>${alias.Created ? new Date(alias.Created).toLocaleString() : 'N/A'}</td>
         <td>${alias.Updated ? new Date(alias.Updated).toLocaleString() : 'N/A'}</td>

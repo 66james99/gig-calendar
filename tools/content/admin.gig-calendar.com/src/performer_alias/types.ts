@@ -1,6 +1,7 @@
 export interface PerformerAlias {
     ID: number;
     Performer: number;
+    Uuid: string;
     Alias: string;
     Created: string;
     Updated: string;
@@ -11,11 +12,12 @@ export interface PerformerAliasPayload {
     alias: string;
 }
 
-export type PerformerAliasSortableColumn = 'ID' | 'Performer' | 'Alias' | 'Created' | 'Updated';
+export type PerformerAliasSortableColumn = 'ID' | 'Performer' | 'Uuid' | 'Alias' | 'Created' | 'Updated';
 
 export interface Filters {
     id: string;
     performer: string;
+    uuid: string;
     alias: string;
     created: string;
     updated: string;

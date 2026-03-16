@@ -1,4 +1,4 @@
-import { aliasesCache, performersCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterPerformerInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, sortAliases, refreshAliases, } from './app.js';
+import { aliasesCache, performersCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterPerformerInput, filterUuidInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, sortAliases, refreshAliases, } from './app.js';
 import { createPerformerAlias, deletePerformerAlias, updatePerformerAlias } from './api.js';
 import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
 import { updateSortIndicators } from '../shared/ui.js';
@@ -97,6 +97,7 @@ export function handleFilterChange() {
     setCurrentFilters({
         id: filterIdInput.value,
         performer: filterPerformerInput.value,
+        uuid: filterUuidInput.value,
         alias: filterAliasInput.value,
         created: filterCreatedInput.value,
         updated: filterUpdatedInput.value,

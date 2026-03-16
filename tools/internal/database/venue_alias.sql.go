@@ -7,12 +7,15 @@ package database
 
 import (
 	"context"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 const createVenueAlias = `-- name: CreateVenueAlias :one
 INSERT INTO venue_alias (venue, alias)
 VALUES ($1, $2)
-RETURNING id, venue, created, updated, alias
+RETURNING id, uuid, venue, created, updated, alias
 `
 
 type CreateVenueAliasParams struct {
@@ -20,11 +23,21 @@ type CreateVenueAliasParams struct {
 	Alias string
 }
 
-func (q *Queries) CreateVenueAlias(ctx context.Context, arg CreateVenueAliasParams) (VenueAlias, error) {
+type CreateVenueAliasRow struct {
+	ID      int32
+	Uuid    uuid.UUID
+	Venue   int32
+	Created time.Time
+	Updated time.Time
+	Alias   string
+}
+
+func (q *Queries) CreateVenueAlias(ctx context.Context, arg CreateVenueAliasParams) (CreateVenueAliasRow, error) {
 	row := q.db.QueryRowContext(ctx, createVenueAlias, arg.Venue, arg.Alias)
-	var i VenueAlias
+	var i CreateVenueAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Venue,
 		&i.Created,
 		&i.Updated,
@@ -44,15 +57,25 @@ func (q *Queries) DeleteVenueAlias(ctx context.Context, id int32) error {
 }
 
 const getVenueAlias = `-- name: GetVenueAlias :one
-SELECT id, venue, created, updated, alias FROM venue_alias
+SELECT id, uuid, venue, created, updated, alias FROM venue_alias
 WHERE id = $1
 `
 
-func (q *Queries) GetVenueAlias(ctx context.Context, id int32) (VenueAlias, error) {
+type GetVenueAliasRow struct {
+	ID      int32
+	Uuid    uuid.UUID
+	Venue   int32
+	Created time.Time
+	Updated time.Time
+	Alias   string
+}
+
+func (q *Queries) GetVenueAlias(ctx context.Context, id int32) (GetVenueAliasRow, error) {
 	row := q.db.QueryRowContext(ctx, getVenueAlias, id)
-	var i VenueAlias
+	var i GetVenueAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Venue,
 		&i.Created,
 		&i.Updated,
@@ -62,21 +85,31 @@ func (q *Queries) GetVenueAlias(ctx context.Context, id int32) (VenueAlias, erro
 }
 
 const listVenueAliases = `-- name: ListVenueAliases :many
-SELECT id, venue, created, updated, alias FROM venue_alias
+SELECT id, uuid, venue, created, updated, alias FROM venue_alias
 ORDER BY alias
 `
 
-func (q *Queries) ListVenueAliases(ctx context.Context) ([]VenueAlias, error) {
+type ListVenueAliasesRow struct {
+	ID      int32
+	Uuid    uuid.UUID
+	Venue   int32
+	Created time.Time
+	Updated time.Time
+	Alias   string
+}
+
+func (q *Queries) ListVenueAliases(ctx context.Context) ([]ListVenueAliasesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listVenueAliases)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []VenueAlias
+	var items []ListVenueAliasesRow
 	for rows.Next() {
-		var i VenueAlias
+		var i ListVenueAliasesRow
 		if err := rows.Scan(
 			&i.ID,
+			&i.Uuid,
 			&i.Venue,
 			&i.Created,
 			&i.Updated,
@@ -99,7 +132,7 @@ const updateVenueAlias = `-- name: UpdateVenueAlias :one
 UPDATE venue_alias
 SET venue = $1, alias = $2, updated = NOW()
 WHERE id = $3
-RETURNING id, venue, created, updated, alias
+RETURNING id, uuid, venue, created, updated, alias
 `
 
 type UpdateVenueAliasParams struct {
@@ -108,11 +141,21 @@ type UpdateVenueAliasParams struct {
 	ID    int32
 }
 
-func (q *Queries) UpdateVenueAlias(ctx context.Context, arg UpdateVenueAliasParams) (VenueAlias, error) {
+type UpdateVenueAliasRow struct {
+	ID      int32
+	Uuid    uuid.UUID
+	Venue   int32
+	Created time.Time
+	Updated time.Time
+	Alias   string
+}
+
+func (q *Queries) UpdateVenueAlias(ctx context.Context, arg UpdateVenueAliasParams) (UpdateVenueAliasRow, error) {
 	row := q.db.QueryRowContext(ctx, updateVenueAlias, arg.Venue, arg.Alias, arg.ID)
-	var i VenueAlias
+	var i UpdateVenueAliasRow
 	err := row.Scan(
 		&i.ID,
+		&i.Uuid,
 		&i.Venue,
 		&i.Created,
 		&i.Updated,
