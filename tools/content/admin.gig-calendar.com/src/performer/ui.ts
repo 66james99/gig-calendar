@@ -1,4 +1,4 @@
-import type { Performer, SortState } from './types.js';
+import type { Performer } from './types.js';
 
 export function renderTable(tbody: HTMLTableSectionElement, performers: Performer[]) {
     tbody.innerHTML = ''; // Clear existing rows
@@ -48,46 +48,4 @@ export function renderEditRow(tbody: HTMLTableSectionElement, performer: Partial
             <button class="${isNew ? 'cancel-add-btn' : 'cancel-btn'}">Cancel</button>
         </td>
     `;
-}
-
-export function updateSortIndicators(currentSort: SortState) {
-    document.querySelectorAll('#performers-list th[data-col]').forEach(th => {
-        const htmlTh = th as HTMLElement;
-        htmlTh.innerHTML = htmlTh.textContent?.replace(/ ↑| ↓/, '') || ''; // Clear existing indicators
-        if (htmlTh.dataset.col === currentSort.column) {
-            htmlTh.innerHTML += currentSort.direction === 'asc' ? ' ↑' : ' ↓';
-        }
-    });
-}
-
-export function showModal(title: string, content: string | HTMLElement) {
-    const modal = document.getElementById('modal') as HTMLElement;
-    const modalTitle = document.getElementById('modal-title') as HTMLElement;
-    const modalBody = document.getElementById('modal-body') as HTMLElement;
-    const closeModalBtn = document.getElementById('close-modal-btn') as HTMLButtonElement;
-
-    if (!modal || !modalTitle || !modalBody || !closeModalBtn) {
-        console.error("Modal elements not found");
-        return;
-    }
-
-    modalTitle.textContent = title;
-    if (typeof content === 'string') {
-        modalBody.innerHTML = content;
-    } else {
-        modalBody.innerHTML = '';
-        modalBody.appendChild(content);
-    }
-    modal.style.display = 'block';
-
-    closeModalBtn.onclick = () => {
-        modal.style.display = 'none';
-    };
-
-    // Close when clicking outside
-    window.onclick = (event) => {
-        if (event.target === modal) {
-            modal.style.display = 'none';
-        }
-    };
 }

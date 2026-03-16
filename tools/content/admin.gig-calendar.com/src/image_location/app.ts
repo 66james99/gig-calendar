@@ -1,12 +1,14 @@
 import { fetchImageLocations } from './api.js';
 import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
-import { renderTable, updateSortIndicators } from './ui.js';
-import type { Filters, ImageLocation, SortState } from './types.js';
+import { renderTable } from './ui.js';
+import { applySort } from '../shared/table-utils.js';
+import type { SortState } from '../shared/types.js';
+import type { Filters, ImageLocation, ImageLocationSortableColumn } from './types.js';
 
 
 // --- State ---
 export let locationsCache: ImageLocation[] = [];
-export let currentSort: SortState = {
+export let currentSort: SortState<ImageLocationSortableColumn> = {
     column: 'ID',
     direction: 'asc',
 };
@@ -23,7 +25,7 @@ export let currentFilters: Filters = {
 export function setLocationsCache(newCache: ImageLocation[]) {
     locationsCache = newCache;
 }
-export function setCurrentSort(newSort: SortState) {
+export function setCurrentSort(newSort: SortState<ImageLocationSortableColumn>) {
     currentSort = newSort;
 }
 export function setCurrentFilters(newFilters: Filters) {
@@ -64,37 +66,6 @@ export function applyFilters(locations: ImageLocation[]): ImageLocation[] {
     });
 }
 
-export function applySort(locations: ImageLocation[]): ImageLocation[] {
-    const { column, direction } = currentSort;
-    const modifier = direction === 'asc' ? 1 : -1;
-
-    return [...locations].sort((a, b) => {
-        const valA = a[column];
-        const valB = b[column];
-
-        // ID is a number
-        if (column === 'ID') {
-            // The type assertion is safe because we control the column values.
-            return (valA as number - (valB as number)) * modifier;
-        }
-
-        // Booleans
-        if (typeof valA === 'boolean' && typeof valB === 'boolean') {
-            return (Number(valA) - Number(valB)) * modifier;
-        }
-
-        // Strings (including dates)
-        if (typeof valA === 'string' && typeof valB === 'string') {
-            return valA.localeCompare(valB) * modifier;
-        }
-
-        // Fallback for nulls or mixed types
-        if (valA < valB) return -1 * modifier;
-        if (valA > valB) return 1 * modifier;
-        return 0;
-    });
-}
-
 // --- Initialization ---
 
 export async function refreshLocations() {
@@ -123,19 +94,7 @@ function init() {
 	filterIgnoreDirsInput.addEventListener('input', handleFilterChange);
 	filterActiveSelect.addEventListener('change', handleFilterChange);
 
-	// On initial load, fetch and render all data without filtering.
-	// This ensures a clean slate regardless of browser autofill on filter inputs.
-	(async () => {
-		try {
-			setLocationsCache(await fetchImageLocations());
-			const sortedLocations = applySort(locationsCache);
-			renderTable(tableBody, sortedLocations);
-			updateSortIndicators(currentSort);
-		} catch (error) {
-			alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-			tableBody.innerHTML = '<tr><td colspan="10">Failed to load data. Is the backend server running?</td></tr>';
-		}
-	})();
+	refreshLocations();
 }
 
 // Start the app

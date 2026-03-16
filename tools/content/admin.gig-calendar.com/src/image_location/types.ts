@@ -42,12 +42,7 @@ export interface ScanResult {
     parse_errors?: string[];
 }
 
-export type SortableColumn = 'ID' | 'Root' | 'Pattern' | 'DateFromExif' | 'IncludeParent' | 'Active' | 'Created' | 'Updated';
-
-export interface SortState {
-    column: SortableColumn;
-    direction: 'asc' | 'desc';
-}
+export type ImageLocationSortableColumn = 'ID' | 'Root' | 'Pattern' | 'DateFromExif' | 'IncludeParent' | 'Active' | 'Created' | 'Updated';
 
 export interface Filters {
     id: string;

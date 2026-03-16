@@ -16,15 +16,15 @@
         <table>
             <thead>
                 <tr>
-                    <th data-sort="ID" class="sortable">ID</th>
-                    <th data-sort="Root" class="sortable">Root</th>
-                    <th data-sort="Pattern" class="sortable">Pattern</th>
-                    <th data-sort="DateFromExif" class="sortable">Date from EXIF</th>
-                    <th data-sort="IncludeParent" class="sortable">Include Parent</th>
+                    <th data-col="ID" class="sortable">ID</th>
+                    <th data-col="Root" class="sortable">Root</th>
+                    <th data-col="Pattern" class="sortable">Pattern</th>
+                    <th data-col="DateFromExif" class="sortable">Date from EXIF</th>
+                    <th data-col="IncludeParent" class="sortable">Include Parent</th>
                     <th>Ignore Dirs</th>
-                    <th data-sort="Active" class="sortable">Active</th>
-                    <th data-sort="Created" class="sortable">Created</th>
-                    <th data-sort="Updated" class="sortable">Updated</th>
+                    <th data-col="Active" class="sortable">Active</th>
+                    <th data-col="Created" class="sortable">Created</th>
+                    <th data-col="Updated" class="sortable">Updated</th>
                     <th>Actions</th>
                 </tr>
                 <tr id="filter-row">
@@ -61,6 +61,8 @@
             </tbody>
         </table>
     </div>
+
+    <div id="preview-container"></div>
 
     <script type="module" src="../assets/js/image_location/app.js"></script>
 </body>

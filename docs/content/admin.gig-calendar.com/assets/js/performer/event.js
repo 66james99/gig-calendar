@@ -1,6 +1,8 @@
-import { performersCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterNameInput, filterUuidInput, applyFilters, applySort, refreshPerformers, } from './app.js';
+import { performersCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterNameInput, filterUuidInput, applyFilters, refreshPerformers, } from './app.js';
 import { createPerformer, deletePerformer, updatePerformer } from './api.js';
-import { renderDisplayRow, renderEditRow, renderTable, updateSortIndicators } from './ui.js';
+import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
+import { updateSortIndicators } from '../shared/ui.js';
+import { applySort } from '../shared/table-utils.js';
 export async function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
@@ -91,7 +93,7 @@ export function handleSort(event) {
 export function handleFilterChange() {
     setCurrentFilters({ id: filterIdInput.value, name: filterNameInput.value, uuid: filterUuidInput.value });
     const filteredPerformers = applyFilters(performersCache);
-    const sortedPerformers = applySort(filteredPerformers);
+    const sortedPerformers = applySort(filteredPerformers, currentSort);
     renderTable(tableBody, sortedPerformers);
-    updateSortIndicators(currentSort);
+    updateSortIndicators('performers-list', currentSort);
 }

@@ -100,6 +100,13 @@ func main() {
 	apiGroup.PUT("/performers/:id", handler.UpdatePerformer)
 	apiGroup.DELETE("/performers/:id", handler.DeletePerformer)
 
+	// --- Performer Aliases Routes ---
+	apiGroup.POST("/performer_aliases", handler.CreatePerformerAlias)
+	apiGroup.GET("/performer_aliases", handler.ListPerformerAliases)
+	apiGroup.GET("/performer_aliases/:id", handler.GetPerformerAlias)
+	apiGroup.PUT("/performer_aliases/:id", handler.UpdatePerformerAlias)
+	apiGroup.DELETE("/performer_aliases/:id", handler.DeletePerformerAlias)
+
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
 	

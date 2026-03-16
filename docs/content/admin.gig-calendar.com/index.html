@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gig Calendar Admin</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            min-height: 100vh;
+        }
+        .nav-container {
+            max-width: 400px;
+            width: 100%;
+        }
+        .nav-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 2em;
+        }
+        .nav-list li {
+            margin: 1em 0;
+        }
+        .nav-list a {
+            display: block;
+            padding: 1em;
+            text-decoration: none;
+            color: #007bff;
+            border: 1px solid #007bff;
+            border-radius: 5px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .nav-list a:hover {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <main class="nav-container">
+        <h1>Admin Dashboard</h1>
+        <nav>
+            <ul class="nav-list">
+                <li><a href="/image_location/">Image Locations</a></li>
+                <li><a href="/venue/">Venues</a></li>
+                <li><a href="/venue_alias/">Venue Aliases</a></li>
+                <li><a href="/promoter/">Promoters</a></li>
+                <li><a href="/performer/">Performers</a></li>
+                <li><a href="/performer_alias/">Performer Aliases</a></li>
+            </ul>
+        </nav>
+    </main>
+</body>
+</html>

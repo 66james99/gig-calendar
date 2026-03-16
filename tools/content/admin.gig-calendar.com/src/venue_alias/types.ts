@@ -11,12 +11,7 @@ export interface VenueAliasPayload {
     alias: string;
 }
 
-export type SortableColumn = 'ID' | 'Venue' | 'Alias' | 'Created' | 'Updated';
-
-export interface SortState {
-    column: SortableColumn;
-    direction: 'asc' | 'desc';
-}
+export type VenueAliasSortableColumn = 'ID' | 'Venue' | 'Alias' | 'Created' | 'Updated';
 
 export interface Filters {
     id: string;

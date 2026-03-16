@@ -1,11 +1,28 @@
-import { locationsCache, currentSort, debugCheckbox, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterRootInput, filterPatternInput, filterDateFromExifSelect, filterIncludeParentSelect, filterIgnoreDirsInput, filterActiveSelect, applyFilters, applySort, refreshLocations, } from './app.js';
+import { locationsCache, currentSort, debugCheckbox, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterRootInput, filterPatternInput, filterDateFromExifSelect, filterIncludeParentSelect, filterIgnoreDirsInput, filterActiveSelect, applyFilters, refreshLocations, } from './app.js';
 import { createImageLocation, deleteImageLocation, previewImageLocationScan, updateImageLocation } from './api.js';
-import { renderDisplayRow, renderEditRow, renderTable, showModal, updateSortIndicators } from './ui.js';
+import { renderDisplayRow, renderEditRow, renderTable, } from './ui.js';
+import { updateSortIndicators } from '../shared/ui.js';
+import { applySort } from '../shared/table-utils.js';
+let highlightedRow = null;
+function clearPreview() {
+    if (highlightedRow) {
+        highlightedRow.classList.remove('highlighted');
+        highlightedRow = null;
+    }
+    const previewContainer = document.getElementById('preview-container');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+    }
+}
 export async function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
     if (!row)
         return;
+    // Clear preview for any action other than the preview button itself.
+    if (!target.classList.contains('preview-btn')) {
+        clearPreview();
+    }
     const id = row.dataset.id ? parseInt(row.dataset.id, 10) : null;
     const location = id ? locationsCache.find(loc => loc.ID === id) : null;
     // --- Edit button ---
@@ -80,15 +97,27 @@ export async function handleTableClick(event) {
     }
     // --- Preview Scan button ---
     else if (target.classList.contains('preview-btn') && id && location) {
-        showModal(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
+        clearPreview();
+        row.classList.add('highlighted');
+        highlightedRow = row;
+        const previewContainer = document.getElementById('preview-container');
+        if (!previewContainer)
+            return;
+        previewContainer.innerHTML = '<div>Loading...</div>';
         try {
-            const result = await previewImageLocationScan(id, debugCheckbox.checked);
-            const content = createPreviewContent(result);
-            showModal(`Preview Scan for ID: ${id}`, content);
+            const isDebug = debugCheckbox.checked;
+            const result = await previewImageLocationScan(id, isDebug);
+            const content = createPreviewContent(result, isDebug);
+            const previewTitle = document.createElement('h2');
+            previewTitle.textContent = `Preview Scan for ID: ${id}`;
+            previewTitle.style.marginTop = '2em';
+            previewContainer.innerHTML = '';
+            previewContainer.appendChild(previewTitle);
+            previewContainer.appendChild(content);
         }
         catch (error) {
             const message = error instanceof Error ? error.message : 'Unknown error';
-            showModal(`Error Scanning ID: ${id}`, `<div style="color: red;">${message}</div>`);
+            previewContainer.innerHTML = `<div style="color: red;">Error Scanning ID: ${id}: ${message}</div>`;
         }
     }
 }
@@ -106,9 +135,9 @@ export function handleNewClick() {
 }
 export function handleSort(event) {
     const target = event.target;
-    if (target.tagName !== 'TH' || !target.dataset.sort)
+    if (target.tagName !== 'TH' || !target.dataset.col)
         return;
-    const sortColumn = target.dataset.sort;
+    const sortColumn = target.dataset.col;
     if (currentSort.column === sortColumn) {
         setCurrentSort({ ...currentSort, direction: currentSort.direction === 'asc' ? 'desc' : 'asc' });
     }
@@ -118,6 +147,7 @@ export function handleSort(event) {
     handleFilterChange();
 }
 export function handleFilterChange() {
+    clearPreview();
     setCurrentFilters({
         id: filterIdInput.value,
         root: filterRootInput.value,
@@ -128,11 +158,11 @@ export function handleFilterChange() {
         active: filterActiveSelect.value,
     });
     const filteredLocations = applyFilters(locationsCache);
-    const sortedLocations = applySort(filteredLocations);
+    const sortedLocations = applySort(filteredLocations, currentSort);
     renderTable(tableBody, sortedLocations);
-    updateSortIndicators(currentSort);
+    updateSortIndicators('locations-list', currentSort);
 }
-function createPreviewContent(result) {
+function createPreviewContent(result, isDebug) {
     const container = document.createElement('div');
     // Summary
     const summaryHtml = `
@@ -143,7 +173,7 @@ function createPreviewContent(result) {
             <li><strong>Failed:</strong> ${result.error_count}</li>
             <li><strong>Ignored:</strong> ${result.ignored_count}</li>
         </ul>
-        ${result.error_count > 0 || (result.parse_errors && result.parse_errors.length > 0) ? `
+        ${isDebug && result.error_count > 0 ? `
             <details>
                 <summary style="cursor: pointer; color: red;">Show Parse Errors (${result.error_count})</summary>
                 <pre style="max-height: 100px; overflow-y: auto; background: #fff0f0; padding: 10px; font-size: 0.8em;">${(result.parse_errors || []).join('\n')}</pre>

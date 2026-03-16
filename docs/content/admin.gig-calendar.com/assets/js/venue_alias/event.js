@@ -1,6 +1,7 @@
-import { aliasesCache, venuesCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterVenueInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, applySort, refreshAliases, } from './app.js';
+import { aliasesCache, venuesCache, currentSort, setCurrentSort, setCurrentFilters, tableBody, filterIdInput, filterVenueInput, filterAliasInput, filterCreatedInput, filterUpdatedInput, applyFilters, sortAliases, refreshAliases, } from './app.js';
 import { createVenueAlias, deleteVenueAlias, updateVenueAlias } from './api.js';
-import { renderDisplayRow, renderEditRow, renderTable, updateSortIndicators } from './ui.js';
+import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
+import { updateSortIndicators } from '../shared/ui.js';
 export async function handleTableClick(event) {
     const target = event.target;
     const row = target.closest('tr');
@@ -105,7 +106,7 @@ export function handleFilterChange() {
         updated: filterUpdatedInput.value,
     });
     const filteredAliases = applyFilters(aliasesCache);
-    const sortedAliases = applySort(filteredAliases);
+    const sortedAliases = sortAliases(filteredAliases);
     renderTable(tableBody, sortedAliases, venuesCache);
-    updateSortIndicators(currentSort);
+    updateSortIndicators('venue-aliases-list', currentSort);
 }

@@ -1,6 +1,5 @@
 import { fetchImageLocations } from './api.js';
 import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
-import { renderTable, updateSortIndicators } from './ui.js';
 // --- State ---
 export let locationsCache = [];
 export let currentSort = {
@@ -51,33 +50,6 @@ export function applyFilters(locations) {
         return idMatch && rootMatch && patternMatch && ignoreDirsMatch && dateFromExifMatch && includeParentMatch && activeMatch;
     });
 }
-export function applySort(locations) {
-    const { column, direction } = currentSort;
-    const modifier = direction === 'asc' ? 1 : -1;
-    return [...locations].sort((a, b) => {
-        const valA = a[column];
-        const valB = b[column];
-        // ID is a number
-        if (column === 'ID') {
-            // The type assertion is safe because we control the column values.
-            return (valA - valB) * modifier;
-        }
-        // Booleans
-        if (typeof valA === 'boolean' && typeof valB === 'boolean') {
-            return (Number(valA) - Number(valB)) * modifier;
-        }
-        // Strings (including dates)
-        if (typeof valA === 'string' && typeof valB === 'string') {
-            return valA.localeCompare(valB) * modifier;
-        }
-        // Fallback for nulls or mixed types
-        if (valA < valB)
-            return -1 * modifier;
-        if (valA > valB)
-            return 1 * modifier;
-        return 0;
-    });
-}
 // --- Initialization ---
 export async function refreshLocations() {
     try {
@@ -103,20 +75,7 @@ function init() {
     filterIncludeParentSelect.addEventListener('change', handleFilterChange);
     filterIgnoreDirsInput.addEventListener('input', handleFilterChange);
     filterActiveSelect.addEventListener('change', handleFilterChange);
-    // On initial load, fetch and render all data without filtering.
-    // This ensures a clean slate regardless of browser autofill on filter inputs.
-    (async () => {
-        try {
-            setLocationsCache(await fetchImageLocations());
-            const sortedLocations = applySort(locationsCache);
-            renderTable(tableBody, sortedLocations);
-            updateSortIndicators(currentSort);
-        }
-        catch (error) {
-            alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            tableBody.innerHTML = '<tr><td colspan="10">Failed to load data. Is the backend server running?</td></tr>';
-        }
-    })();
+    refreshLocations();
 }
 // Start the app
 init();

@@ -1,11 +1,13 @@
 import { fetchVenueAliases, fetchVenues } from './api.js';
 import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
-import type { Filters, VenueAlias, SortState, Venue } from './types.js';
+import { applySort, type SorterMap } from '../shared/table-utils.js';
+import type { SortState } from '../shared/types.js';
+import type { Filters, VenueAlias, VenueAliasSortableColumn, Venue } from './types.js';
 
 // --- State ---
 export let aliasesCache: VenueAlias[] = [];
 export let venuesCache: Venue[] = []; // Cache for venue names
-export let currentSort: SortState = {
+export let currentSort: SortState<VenueAliasSortableColumn> = {
     column: 'ID',
     direction: 'asc',
 };
@@ -23,7 +25,7 @@ export function setAliasesCache(newCache: VenueAlias[]) {
 export function setVenuesCache(newCache: Venue[]) {
     venuesCache = newCache;
 }
-export function setCurrentSort(newSort: SortState) {
+export function setCurrentSort(newSort: SortState<VenueAliasSortableColumn>) {
     currentSort = newSort;
 }
 export function setCurrentFilters(newFilters: Filters) {
@@ -58,29 +60,11 @@ export function applyFilters(aliases: VenueAlias[]): VenueAlias[] {
     });
 }
 
-export function applySort(aliases: VenueAlias[]): VenueAlias[] {
-    const { column, direction } = currentSort;
-    const modifier = direction === 'asc' ? 1 : -1;
-
-    return [...aliases].sort((a, b) => {
-        let valA: string | number = '';
-        let valB: string | number = '';
-
-        if (column === 'ID' || column === 'Venue') {
-            valA = a[column];
-            valB = b[column];
-        } else if (column === 'Alias') {
-            valA = a.Alias.toLowerCase();
-            valB = b.Alias.toLowerCase();
-        } else if (column === 'Created' || column === 'Updated') {
-            valA = a[column];
-            valB = b[column];
-        }
-
-        if (valA < valB) return -1 * modifier;
-        if (valA > valB) return 1 * modifier;
-        return 0;
-    });
+export function sortAliases(aliases: VenueAlias[]): VenueAlias[] {
+    const sorters: SorterMap<VenueAlias> = {
+        Venue: (a) => venuesCache.find(v => v.ID === a.Venue)?.Name || ''
+    };
+    return applySort(aliases, currentSort, sorters);
 }
 
 // --- Initialization ---

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performer Aliases Admin</title>
+    <!-- Reuse existing styles or create specific ones -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <h1>Performer Aliases</h1>
+    <button id="new-alias-button" type="button">New</button>
+    <button id="refresh-aliases-button" type="button">Refresh Table</button>
+
+    <div id="performer-aliases-list-container">
+        <table id="performer-aliases-list">
+            <thead>
+                <tr>
+                    <th data-col="ID" class="sortable">ID</th>
+                    <th data-col="Performer" class="sortable">Performer</th>
+                    <th data-col="Alias" class="sortable">Alias</th>
+                    <th data-col="Created" class="sortable">Created</th>
+                    <th data-col="Updated" class="sortable">Updated</th>
+                    <th>Actions</th>
+                </tr>
+                <tr id="filter-row">
+                    <td><input type="text" id="filter-alias-id" placeholder="Filter ID..."></td>
+                    <td><input type="text" id="filter-alias-performer" placeholder="Filter Performer..."></td>
+                    <td><input type="text" id="filter-alias-alias" placeholder="Filter Alias..."></td>
+                    <td><input type="text" id="filter-alias-created" placeholder="Filter Created..."></td>
+                    <td><input type="text" id="filter-alias-updated" placeholder="Filter Updated..."></td>
+                    <td></td>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Performer aliases will be loaded here -->
+            </tbody>
+        </table>
+    </div>
+
+    <!-- The Modal -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="close-modal-btn">&times;</span>
+            <h2 id="modal-title"></h2>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script type="module" src="../assets/js/performer_alias/app.js"></script>
+</body>
+</html>

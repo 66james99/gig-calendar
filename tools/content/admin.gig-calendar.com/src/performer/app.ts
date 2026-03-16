@@ -1,10 +1,12 @@
 import { fetchPerformers } from './api.js';
 import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
-import type { Filters, Performer, SortState } from './types.js';
+import { applySort } from '../shared/table-utils.js';
+import type { SortState } from '../shared/types.js';
+import type { Filters, Performer, PerformerSortableColumn } from './types.js';
 
 // --- State ---
 export let performersCache: Performer[] = [];
-export let currentSort: SortState = {
+export let currentSort: SortState<PerformerSortableColumn> = {
     column: 'Name',
     direction: 'asc',
 };
@@ -17,7 +19,7 @@ export let currentFilters: Filters = {
 export function setPerformersCache(newCache: Performer[]) {
     performersCache = newCache;
 }
-export function setCurrentSort(newSort: SortState) {
+export function setCurrentSort(newSort: SortState<PerformerSortableColumn>) {
     currentSort = newSort;
 }
 export function setCurrentFilters(newFilters: Filters) {
@@ -44,31 +46,6 @@ export function applyFilters(performers: Performer[]): Performer[] {
         const uuidMatch = performer.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase());
 
         return idMatch && nameMatch && uuidMatch;
-    });
-}
-
-export function applySort(performers: Performer[]): Performer[] {
-    const { column, direction } = currentSort;
-    const modifier = direction === 'asc' ? 1 : -1;
-
-    return [...performers].sort((a, b) => {
-        let valA: string | number = '';
-        let valB: string | number = '';
-
-        if (column === 'ID') {
-            valA = a.ID;
-            valB = b.ID;
-        } else if (column === 'Name' || column === 'Uuid') {
-            valA = a[column].toLowerCase();
-            valB = b[column].toLowerCase();
-        } else if (column === 'Created' || column === 'Updated') {
-            valA = a[column];
-            valB = b[column];
-        }
-
-        if (valA < valB) return -1 * modifier;
-        if (valA > valB) return 1 * modifier;
-        return 0;
     });
 }
 

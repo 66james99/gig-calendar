@@ -1,12 +1,12 @@
 import {
     aliasesCache,
-    venuesCache,
+    performersCache,
     currentSort,
     setCurrentSort,
     setCurrentFilters,
     tableBody,
     filterIdInput,
-    filterVenueInput,
+    filterPerformerInput,
     filterAliasInput,
     filterCreatedInput,
     filterUpdatedInput,
@@ -14,10 +14,10 @@ import {
     sortAliases,
     refreshAliases,
 } from './app.js';
-import { createVenueAlias, deleteVenueAlias, updateVenueAlias } from './api.js';
+import { createPerformerAlias, deletePerformerAlias, updatePerformerAlias } from './api.js';
 import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
-import { showModal, updateSortIndicators } from '../shared/ui.js';
-import type { VenueAlias, VenueAliasPayload, VenueAliasSortableColumn } from './types.js';
+import { updateSortIndicators } from '../shared/ui.js';
+import type { PerformerAlias, PerformerAliasPayload, PerformerAliasSortableColumn } from './types.js';
 
 export async function handleTableClick(event: Event) {
     const target = event.target as HTMLElement;
@@ -29,26 +29,26 @@ export async function handleTableClick(event: Event) {
 
     // --- Edit button ---
     if (target.classList.contains('edit-btn') && alias) {
-        renderEditRow(tableBody, alias, false, venuesCache);
+        renderEditRow(tableBody, alias, false, performersCache);
     }
 
     // --- Cancel Edit button ---
     else if (target.classList.contains('cancel-btn') && alias) {
-        renderDisplayRow(tableBody, alias, venuesCache);
+        renderDisplayRow(tableBody, alias, performersCache);
     }
 
     // --- Save button (for updating) ---
     else if (target.classList.contains('save-btn') && id) {
-        const payload: VenueAliasPayload = {
-            venue_id: parseInt((row.querySelector('.edit-venue_id') as HTMLSelectElement).value, 10),
+        const payload: PerformerAliasPayload = {
+            performer_id: parseInt((row.querySelector('.edit-performer_id') as HTMLSelectElement).value, 10),
             alias: (row.querySelector('.edit-alias') as HTMLInputElement).value,
         };
         try {
-            await updateVenueAlias(id, payload);
+            await updatePerformerAlias(id, payload);
             await refreshAliases(); // Refresh all to see changes
         } catch (error) {
             alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
-            if (alias) renderDisplayRow(tableBody, alias, venuesCache); // Revert on failure
+            if (alias) renderDisplayRow(tableBody, alias, performersCache); // Revert on failure
         }
     }
 
@@ -57,7 +57,7 @@ export async function handleTableClick(event: Event) {
         const newRow = document.createElement('tr');
         // Create a copy for the new row, reset ID, keep other fields
         const newAliasData = { ...alias, ID: 0 };
-        renderEditRow(tableBody, newAliasData, true, venuesCache);
+        renderEditRow(tableBody, newAliasData, true, performersCache);
         row.after(newRow); // Inserts the new row right after the clicked row
     }
 
@@ -68,12 +68,12 @@ export async function handleTableClick(event: Event) {
 
     // --- Add button (for creating) ---
     else if (target.classList.contains('add-btn')) {
-        const payload: VenueAliasPayload = {
-            venue_id: parseInt((row.querySelector('.edit-venue_id') as HTMLSelectElement).value, 10),
+        const payload: PerformerAliasPayload = {
+            performer_id: parseInt((row.querySelector('.edit-performer_id') as HTMLSelectElement).value, 10),
             alias: (row.querySelector('.edit-alias') as HTMLInputElement).value,
         };
         try {
-            await createVenueAlias(payload);
+            await createPerformerAlias(payload);
             await refreshAliases();
         } catch (error) {
             alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -82,9 +82,9 @@ export async function handleTableClick(event: Event) {
 
     // --- Delete button ---
     else if (target.classList.contains('delete-btn') && id) {
-        if (confirm(`Are you sure you want to delete venue alias ${id}?`)) {
+        if (confirm(`Are you sure you want to delete performer alias ${id}?`)) {
             try {
-                await deleteVenueAlias(id);
+                await deletePerformerAlias(id);
                 await refreshAliases();
             } catch (error) {
                 alert(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -103,35 +103,29 @@ export function handleNewClick() {
     }
 
     const newRow = tableBody.insertRow(0); // Insert a new row at the top of the table.
-    const newAliasData: Partial<VenueAlias> = {};
-    renderEditRow(tableBody, newAliasData, true, venuesCache); // Render the row in edit mode.
+    const newAliasData: Partial<PerformerAlias> = {};
+    renderEditRow(tableBody, newAliasData, true, performersCache); // Render the row in edit mode.
 }
 
 export function handleSort(event: Event) {
     const target = event.target as HTMLElement;
     if (target.tagName !== 'TH' || !target.dataset.col) return;
-
-    const sortColumn = target.dataset.col as VenueAliasSortableColumn;
-
-    if (currentSort.column === sortColumn) {
-        setCurrentSort({ ...currentSort, direction: currentSort.direction === 'asc' ? 'desc' : 'asc' });
-    } else {
-        setCurrentSort({ column: sortColumn, direction: 'asc' });
-    }
-
+    const sortColumn = target.dataset.col as PerformerAliasSortableColumn;
+    const direction = (currentSort.column === sortColumn && currentSort.direction === 'asc') ? 'desc' : 'asc';
+    setCurrentSort({ column: sortColumn, direction });
     handleFilterChange();
 }
 
 export function handleFilterChange() {
     setCurrentFilters({
-        id: filterIdInput.value, // Assuming filterIdInput exists for aliases
-        venue: filterVenueInput.value,
+        id: filterIdInput.value,
+        performer: filterPerformerInput.value,
         alias: filterAliasInput.value,
         created: filterCreatedInput.value,
         updated: filterUpdatedInput.value,
     });
     const filteredAliases = applyFilters(aliasesCache);
     const sortedAliases = sortAliases(filteredAliases);
-    renderTable(tableBody, sortedAliases, venuesCache);
-    updateSortIndicators('venue-aliases-list', currentSort);
+    renderTable(tableBody, sortedAliases, performersCache);
+    updateSortIndicators('performer-aliases-list', currentSort);
 }

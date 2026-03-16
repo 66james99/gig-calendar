@@ -1,12 +1,12 @@
-export function renderTable(tbody, aliases, venues) {
+export function renderTable(tbody, aliases, performers) {
     tbody.innerHTML = ''; // Clear existing rows
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No venue aliases found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No performer aliases found.</td></tr>';
         return;
     }
-    aliases.forEach(alias => renderDisplayRow(tbody, alias, venues));
+    aliases.forEach(alias => renderDisplayRow(tbody, alias, performers));
 }
-export function renderDisplayRow(tbody, alias, venues) {
+export function renderDisplayRow(tbody, alias, performers) {
     let row = tbody.querySelector(`tr[data-id="${alias.ID}"]`);
     if (!row) {
         row = tbody.insertRow();
@@ -14,7 +14,7 @@ export function renderDisplayRow(tbody, alias, venues) {
     }
     row.innerHTML = `
         <td>${alias.ID}</td>
-        <td>${getVenueName(alias.Venue, venues)}</td>
+        <td>${getPerformerName(alias.Performer, performers)}</td>
         <td>${alias.Alias}</td>
         <td>${new Date(alias.Created).toLocaleString()}</td>
         <td>${new Date(alias.Updated).toLocaleString()}</td>
@@ -24,7 +24,7 @@ export function renderDisplayRow(tbody, alias, venues) {
         </td>
     `;
 }
-export function renderEditRow(tbody, alias, isNew, venues) {
+export function renderEditRow(tbody, alias, isNew, performers) {
     let row = tbody.querySelector(`tr[data-id="${alias.ID}"]`);
     if (!row && isNew) {
         row = tbody.insertRow(0); // Insert at top for new entries
@@ -33,12 +33,14 @@ export function renderEditRow(tbody, alias, isNew, venues) {
     else if (!row) {
         return; // Should not happen for existing rows
     }
-    const venueOptions = venues.map(v => `<option value="${v.ID}" ${alias.Venue === v.ID ? 'selected' : ''}>${v.Name}</option>`).join('');
+    // Sort performers alphabetically for the dropdown
+    const sortedPerformers = [...performers].sort((a, b) => a.Name.localeCompare(b.Name));
+    const performerOptions = sortedPerformers.map(p => `<option value="${p.ID}" ${alias.Performer === p.ID ? 'selected' : ''}>${p.Name}</option>`).join('');
     row.innerHTML = `
         <td>${alias.ID || 'New'}</td>
         <td>
-            <select class="edit-venue_id" style="width: 100%;">
-                ${venueOptions}
+            <select class="edit-performer_id" style="width: 100%;">
+                ${performerOptions}
             </select>
         </td>
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" style="width: 100%;"></td>
@@ -50,7 +52,7 @@ export function renderEditRow(tbody, alias, isNew, venues) {
         </td>
     `;
 }
-function getVenueName(venueID, venues) {
-    const venue = venues.find(v => v.ID === venueID);
-    return venue ? venue.Name : `Unknown Venue (${venueID})`;
+function getPerformerName(performerID, performers) {
+    const performer = performers.find(p => p.ID === performerID);
+    return performer ? performer.Name : `Unknown Performer (${performerID})`;
 }

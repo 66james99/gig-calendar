@@ -37,31 +37,6 @@ export function applyFilters(performers) {
         return idMatch && nameMatch && uuidMatch;
     });
 }
-export function applySort(performers) {
-    const { column, direction } = currentSort;
-    const modifier = direction === 'asc' ? 1 : -1;
-    return [...performers].sort((a, b) => {
-        let valA = '';
-        let valB = '';
-        if (column === 'ID') {
-            valA = a.ID;
-            valB = b.ID;
-        }
-        else if (column === 'Name' || column === 'Uuid') {
-            valA = a[column].toLowerCase();
-            valB = b[column].toLowerCase();
-        }
-        else if (column === 'Created' || column === 'Updated') {
-            valA = a[column];
-            valB = b[column];
-        }
-        if (valA < valB)
-            return -1 * modifier;
-        if (valA > valB)
-            return 1 * modifier;
-        return 0;
-    });
-}
 // --- Initialization ---
 export async function refreshPerformers() {
     try {

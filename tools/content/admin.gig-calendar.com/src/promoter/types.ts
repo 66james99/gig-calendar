@@ -10,12 +10,7 @@ export interface PromoterPayload {
     name: string;
 }
 
-export type SortableColumn = 'ID' | 'Name' | 'Uuid' | 'Created' | 'Updated';
-
-export interface SortState {
-    column: SortableColumn;
-    direction: 'asc' | 'desc';
-}
+export type PromoterSortableColumn = 'ID' | 'Name' | 'Uuid' | 'Created' | 'Updated';
 
 export interface Filters {
     id: string;

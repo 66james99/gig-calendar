@@ -8,12 +8,13 @@ import {
     filterNameInput,
     filterUuidInput,
     applyFilters,
-    applySort,
     refreshPerformers,
 } from './app.js';
 import { createPerformer, deletePerformer, updatePerformer } from './api.js';
-import { renderDisplayRow, renderEditRow, renderTable, updateSortIndicators } from './ui.js';
-import type { Performer, PerformerPayload, SortableColumn } from './types.js';
+import { renderDisplayRow, renderEditRow, renderTable } from './ui.js';
+import { updateSortIndicators } from '../shared/ui.js';
+import { applySort } from '../shared/table-utils.js';
+import type { Performer, PerformerPayload, PerformerSortableColumn } from './types.js';
 
 export async function handleTableClick(event: Event) {
     const target = event.target as HTMLElement;
@@ -102,7 +103,7 @@ export function handleNewClick() {
 export function handleSort(event: Event) {
     const target = event.target as HTMLElement;
     if (target.tagName !== 'TH' || !target.dataset.col) return;
-    const sortColumn = target.dataset.col as SortableColumn;
+    const sortColumn = target.dataset.col as PerformerSortableColumn;
     const direction = (currentSort.column === sortColumn && currentSort.direction === 'asc') ? 'desc' : 'asc';
     setCurrentSort({ column: sortColumn, direction });
     handleFilterChange();
@@ -111,7 +112,7 @@ export function handleSort(event: Event) {
 export function handleFilterChange() {
     setCurrentFilters({ id: filterIdInput.value, name: filterNameInput.value, uuid: filterUuidInput.value });
     const filteredPerformers = applyFilters(performersCache);
-    const sortedPerformers = applySort(filteredPerformers);
+    const sortedPerformers = applySort(filteredPerformers, currentSort);
     renderTable(tableBody, sortedPerformers);
-    updateSortIndicators(currentSort);
+    updateSortIndicators('performers-list', currentSort);
 }
