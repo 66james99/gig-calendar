@@ -1,6 +1,7 @@
 import {
     locationsCache,
     currentSort,
+    debugCheckbox,
     setCurrentSort,
     setCurrentFilters,
     tableBody,
@@ -104,7 +105,7 @@ export async function handleTableClick(event: Event) {
     else if (target.classList.contains('preview-btn') && id && location) {
         showModal(`Preview Scan for ID: ${id}`, '<div>Loading...</div>');
         try {
-            const result = await previewImageLocationScan(id);
+            const result = await previewImageLocationScan(id, debugCheckbox.checked);
             const content = createPreviewContent(result);
             showModal(`Preview Scan for ID: ${id}`, content);
         } catch (error) {

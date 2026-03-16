@@ -36,6 +36,7 @@ export const tableBody = document.querySelector('#locations-list tbody') as HTML
 export const tableHeader = document.querySelector('#locations-list thead') as HTMLTableSectionElement;
 export const newButton = document.getElementById('new-button') as HTMLButtonElement;
 export const refreshButton = document.getElementById('refresh-button') as HTMLButtonElement;
+export const debugCheckbox = document.getElementById('debug-mode') as HTMLInputElement;
 
 export const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
 export const filterRootInput = document.getElementById('filter-root') as HTMLInputElement;
