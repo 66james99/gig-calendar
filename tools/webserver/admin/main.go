@@ -64,7 +64,7 @@ func main() {
 
 	apiGroup := e.Group(apiPrefix)
 
-	// --- Routes ---
+	// --- Image Locations Routes ---
 	apiGroup.POST("/image_locations", handler.CreateImageLocation)
 	apiGroup.GET("/image_locations", handler.ListImageLocations)
 	apiGroup.GET("/image_locations/:id", handler.GetImageLocation)
@@ -72,19 +72,33 @@ func main() {
 	apiGroup.DELETE("/image_locations/:id", handler.DeleteImageLocation)
 	apiGroup.GET("/image_locations/:id/preview_scan", handler.PreviewImageLocationScan)
 
-	// --- Venue Routes ---
+	// --- Venues Routes ---
 	apiGroup.POST("/venues", handler.CreateVenue)
 	apiGroup.GET("/venues", handler.ListVenues)
 	apiGroup.GET("/venues/:id", handler.GetVenue)
 	apiGroup.PUT("/venues/:id", handler.UpdateVenue)
 	apiGroup.DELETE("/venues/:id", handler.DeleteVenue)
 
-	// --- Venue Alias Routes ---
+	// --- Venue Aliases Routes ---
 	apiGroup.POST("/venue_aliases", handler.CreateVenueAlias)
 	apiGroup.GET("/venue_aliases", handler.ListVenueAliases)
 	apiGroup.GET("/venue_aliases/:id", handler.GetVenueAlias)
 	apiGroup.PUT("/venue_aliases/:id", handler.UpdateVenueAlias)
 	apiGroup.DELETE("/venue_aliases/:id", handler.DeleteVenueAlias)
+
+	// --- Promoters Routes ---
+	apiGroup.POST("/promoters", handler.CreatePromoter)
+	apiGroup.GET("/promoters", handler.ListPromoters)
+	apiGroup.GET("/promoters/:id", handler.GetPromoter)
+	apiGroup.PUT("/promoters/:id", handler.UpdatePromoter)
+	apiGroup.DELETE("/promoters/:id", handler.DeletePromoter)
+
+	// --- Performers Routes ---
+	apiGroup.POST("/performers", handler.CreatePerformer)
+	apiGroup.GET("/performers", handler.ListPerformers)
+	apiGroup.GET("/performers/:id", handler.GetPerformer)
+	apiGroup.PUT("/performers/:id", handler.UpdatePerformer)
+	apiGroup.DELETE("/performers/:id", handler.DeletePerformer)
 
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
