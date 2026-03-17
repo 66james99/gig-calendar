@@ -22,6 +22,19 @@ type ImagesConfig struct {
 	Queries       *database.Queries
 }
 
+type Performer struct {
+	Name string `json:"name"`
+	Match string `json:"match"`
+	Confidence int `json:"confidence"`
+}
+
+type Promoter struct {
+	Name string `json:"name"`
+	Match string `json:"match"`
+	Confidence int `json:"confidence"`
+}
+
+
 // ParsedResult holds the parsed data for a single directory.
 type ParsedResult struct {
 	Directory       string   `json:"directory"`

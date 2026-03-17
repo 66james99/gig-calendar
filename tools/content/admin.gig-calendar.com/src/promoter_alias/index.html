@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoter Aliases</title>
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <h1>Promoter Aliases</h1>
+
+    <div style="margin-bottom: 1em;">
+        <button id="new-btn">Add New</button>
+        <button id="refresh-btn">Refresh Table</button>
+    </div>
+
+    <div id="preview-container"></div>
+
+    <table id="promoter-aliases-list">
+        <thead>
+            <tr>
+                <th class="sortable" data-col="id">ID</th>
+                <th class="sortable" data-col="alias">Alias</th>
+                <th class="sortable" data-col="promoter">Promoter</th>
+                <th>Actions</th>
+            </tr>
+            <tr id="filter-row">
+                <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
+                <th><input type="text" id="filter-alias" placeholder="Filter Alias"></th>
+                <th><input type="text" id="filter-promoter" placeholder="Filter Promoter"></th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody id="aliases-list">
+        </tbody>
+    </table>
+
+    <script type="module" src="/assets/js/promoter_alias/app.js"></script>
+</body>
+</html>

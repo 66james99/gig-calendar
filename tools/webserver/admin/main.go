@@ -93,6 +93,13 @@ func main() {
 	apiGroup.PUT("/promoters/:id", handler.UpdatePromoter)
 	apiGroup.DELETE("/promoters/:id", handler.DeletePromoter)
 
+	// --- Promoter Aliases Routes ---
+	apiGroup.POST("/promoter_aliases", handler.CreatePromoterAlias)
+	apiGroup.GET("/promoter_aliases", handler.ListPromoterAliases)
+	apiGroup.GET("/promoter_aliases/:id", handler.GetPromoterAlias)
+	apiGroup.PUT("/promoter_aliases/:id", handler.UpdatePromoterAlias)
+	apiGroup.DELETE("/promoter_aliases/:id", handler.DeletePromoterAlias)
+
 	// --- Performers Routes ---
 	apiGroup.POST("/performers", handler.CreatePerformer)
 	apiGroup.GET("/performers", handler.ListPerformers)
@@ -109,7 +116,6 @@ func main() {
 
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
-	
 
 	// Start the server.
 	log.Println("Starting server on :8080")

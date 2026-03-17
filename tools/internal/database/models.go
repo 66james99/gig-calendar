@@ -47,6 +47,36 @@ type EventType struct {
 	Name    string
 }
 
+type Festival struct {
+	PromoterID  int32
+	StartDate   time.Time
+	EndDate     time.Time
+	Website     sql.NullString
+	Description sql.NullString
+}
+
+type FestivalAlias struct {
+	ID         int32
+	Uuid       uuid.UUID
+	FestivalID int32
+	Alias      string
+	Created    time.Time
+	Updated    time.Time
+}
+
+type FestivalPromoter struct {
+	FestivalID int32
+	PromoterID int32
+	Role       sql.NullString
+}
+
+type FestivalVenue struct {
+	FestivalID int32
+	VenueID    int32
+	StageOrder sql.NullInt32
+	IsPrimary  sql.NullBool
+}
+
 type ImageLocation struct {
 	ID            int32
 	Root          string
@@ -80,11 +110,11 @@ type Performer struct {
 
 type PerformerAlias struct {
 	ID        int32
-	Created   time.Time
-	Updated   time.Time
+	Uuid      uuid.UUID
 	Performer int32
 	Alias     string
-	Uuid      uuid.UUID
+	Created   time.Time
+	Updated   time.Time
 }
 
 type Promoter struct {
@@ -97,11 +127,11 @@ type Promoter struct {
 
 type PromoterAlias struct {
 	ID       int32
+	Uuid     uuid.UUID
 	Promoter int32
 	Alias    string
 	Created  time.Time
 	Updated  time.Time
-	Uuid     uuid.UUID
 }
 
 type SourceImage struct {
@@ -123,9 +153,9 @@ type Venue struct {
 
 type VenueAlias struct {
 	ID      int32
+	Uuid    uuid.UUID
 	Venue   int32
+	Alias   string
 	Created time.Time
 	Updated time.Time
-	Alias   string
-	Uuid    uuid.UUID
 }

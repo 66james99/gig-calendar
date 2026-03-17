@@ -9,9 +9,9 @@ import (
 
 // MatchResult holds the result of a venue matching operation.
 type VenueMatchResult struct {
-	Name       string
-	Match      string
-	Confidence int
+	Name string `json:"name"`
+	Match string `json:"match"`
+	Confidence int `json:"confidence"`
 }
 
 // Match checks for the existence of a venue in the database.
