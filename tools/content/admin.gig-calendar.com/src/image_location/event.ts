@@ -271,13 +271,13 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : '';
             const perfStr = (item.performers || []).join(', ');
-            const venueName = (item.venue_confidence && item.venue_confidence > 0) ? (item.venue_match || '') : (item.venue || '');
+            const venueName = (item.venue?.confidence && item.venue?.confidence > 0) ? (item.venue?.match || '') : (item.venue?.name || '');
             const promStr = (item.promoters || []).join(', ');
             const consistentMatch = filters.consistent === '' || item.consistent.toString() === filters.consistent;
 
             return dateStr.includes(filters.date) &&
                    perfStr.toLowerCase().includes(filters.performers.toLowerCase()) &&
-                   venueName.toLowerCase().includes(filters.venue.toLowerCase()) &&
+                   item.venue?.name.toLowerCase().includes(filters.venue.toLowerCase()) &&
                    promStr.toLowerCase().includes(filters.promoters.toLowerCase()) &&
                    consistentMatch;
         });
@@ -294,8 +294,8 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                 valA = (a.performers || []).join(', ').toLowerCase();
                 valB = (b.performers || []).join(', ').toLowerCase();
             } else if (sortCol === 'venue') {
-                valA = ((a.venue_confidence && a.venue_confidence > 0) ? (a.venue_match || '') : (a.venue || '')).toLowerCase();
-                valB = ((b.venue_confidence && b.venue_confidence > 0) ? (b.venue_match || '') : (b.venue || '')).toLowerCase();
+                valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
+                valB = ((b.venue?.confidence && b.venue?.confidence > 0) ? (b.venue?.match || '') : (b.venue?.name || '')).toLowerCase();
             } else if (sortCol === 'promoters') {
                 valA = (a.promoters || []).join(', ').toLowerCase();
                 valB = (b.promoters || []).join(', ').toLowerCase();
@@ -317,14 +317,14 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
 
         tbody.innerHTML = filtered.map(item => {
             const dateStr = (item.year && item.month && item.day) 
-                ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
-                : 'N/A';
-            const perfStr = (item.performers || []).join(', ');
+                ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`                
+                : 'N/A';            
+            const perfStr = (item.performers || []).join(', ')
             const promStr = (item.promoters || []).join(', ');
-            
-            const conf = item.venue_confidence || 0;
-            const displayVenue = (conf > 0 ? item.venue_match : item.venue) || '';
-            let color = 'red';
+
+            const conf = item.venue?.confidence || 0;
+            const displayVenue = (conf > 0 ? item.venue?.match : item.venue?.name) || '';
+            let color = 'red';            
             if (conf === 100) color = 'green';
             else if (conf === 75) color = 'blue';
             else if (conf === 50) color = 'orange';
@@ -333,7 +333,7 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
             const consistentIcon = item.consistent ? '✓' : '✗';
             const consistentColor = item.consistent ? 'green' : 'red';
 
-            const venueTooltip = (conf === 50 || conf === 25) ? `title="Original: ${item.venue}"` : '';
+            const venueTooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${item.venue?.name}"` : '';
 
             return `
                 <tr style="border-bottom: 1px solid #eee;">

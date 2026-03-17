@@ -19,15 +19,19 @@ export interface ImageLocationPayload {
     active: boolean;
 }
 
+export interface MatchedVenue {
+    name: string;
+    match: string;
+    confidence: number;
+}
+
 export interface ParsedResult {
     directory: string;
     year?: number;
     month?: number;
     day?: number;
     performers?: string[];
-    venue?: string;
-    venue_match?: string;
-    venue_confidence?: number;
+    venue?: MatchedVenue;
     promoters?: string[];
     consistent: boolean;
 }

@@ -264,3 +264,8 @@ func ParseLocation(pattern, location string) (LocationData, error) {
 
 	return data, nil
 }
+
+type VenueInfo interface {
+	GetName() string
+	GetConfidence() int
+}

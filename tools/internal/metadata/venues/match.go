@@ -1,4 +1,4 @@
-package venue
+package venues
 
 import (
 	"context"
@@ -35,7 +35,7 @@ func VenueMatch(ctx context.Context, q *database.Queries, rawVenue string) (Venu
 
 	for _, v := range venues {
 		if v.Name == normalized {
-			return VenueMatchResult{Name: v.Name, Match: v.Name, Confidence: 100}, nil
+			return VenueMatchResult{Name: rawVenue, Match: v.Name, Confidence: 100}, nil
 		}
 	}
 
@@ -53,7 +53,7 @@ func VenueMatch(ctx context.Context, q *database.Queries, rawVenue string) (Venu
 	for _, a := range aliases {
 		if a.Alias == normalized {
 			if name, ok := venueMap[a.Venue]; ok {
-				return VenueMatchResult{Name: name, Match: a.Alias, Confidence: 75}, nil
+				return VenueMatchResult{Name: rawVenue, Match: name, Confidence: 75}, nil
 			}
 		}
 	}
@@ -62,7 +62,7 @@ func VenueMatch(ctx context.Context, q *database.Queries, rawVenue string) (Venu
 	// We check against Venues using Levenshtein distance
 	for _, v := range venues {
 		if metadata.IsFuzzyMatch(v.Name, normalized) {
-			return VenueMatchResult{Name: v.Name, Match: v.Name, Confidence: 50}, nil
+			return VenueMatchResult{Name: rawVenue, Match: v.Name, Confidence: 50}, nil
 		}
 	}
 
@@ -70,10 +70,10 @@ func VenueMatch(ctx context.Context, q *database.Queries, rawVenue string) (Venu
 	for _, a := range aliases {
 		if metadata.IsFuzzyMatch(a.Alias, normalized) {
 			if name, ok := venueMap[a.Venue]; ok {
-				return VenueMatchResult{Name: name, Match: a.Alias, Confidence: 25}, nil
+				return VenueMatchResult{Name: rawVenue, Match: name, Confidence: 25}, nil
 			}
 		}
 	}
 
-	return VenueMatchResult{Confidence: 0}, nil
+	return VenueMatchResult{Name: rawVenue, Match: "", Confidence: 0}, nil
 }

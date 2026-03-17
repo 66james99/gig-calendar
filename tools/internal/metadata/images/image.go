@@ -9,8 +9,10 @@ import (
 
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
-	"github.com/66james99/gig-calendar/internal/metadata/venue"
+	"github.com/66james99/gig-calendar/internal/metadata/venues"
+	_ "github.com/66james99/gig-calendar/internal/metadata/performers"
 )
+
 
 type ImagesConfig struct {
 	metadata.BaseConfig
@@ -52,13 +54,26 @@ type ParsedResult struct {
 // ScanResult holds the outcome of a directory scan operation.
 type ScanResult struct {
 	Directories       []string       `json:"directories"`
-	Successes         []ParsedResult `json:"successes,omitempty"`
+	Successes         []MatchedResult `json:"successes,omitempty"`
 	SuccessCount      int            `json:"success_count"`
 	InconsistentCount int            `json:"inconsistent_count"`
 	ErrorCount        int            `json:"error_count"`
 	IgnoredCount      int            `json:"ignored_count"`
 	ParseErrors       []string       `json:"parse_errors,omitempty"` // Only populated in debug mode
 }
+
+// MatchedResult holds the outcome of matching Performers, Venue and Promoter against those existing in the DB
+type MatchedResult struct {
+	Directory       string   `json:"directory"`
+	Year            int      `json:"year,omitempty"`
+	Month           int      `json:"month,omitempty"`
+	Day             int      `json:"day,omitempty"`
+	Performers      []string `json:"performers,omitempty"`
+	Venue           venues.VenueMatchResult   `json:"venue,omitempty"`
+	Promoters       []string `json:"promoters,omitempty"`
+	Consistent      bool     `json:"consistent"`
+}
+
 
 // ExecuteScan performs the directory scanning and parsing based on the provided config.
 // It returns a structured result and does not print to standard output.
@@ -97,27 +112,25 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 				if !data.Consistent {
 					result.InconsistentCount++
 				}
-				parsed := ParsedResult{
+				matched := MatchedResult{
 					Directory:  dir,
 					Year:       data.Year,
 					Month:      data.Month,
 					Day:        data.Day,
 					Performers: data.Performers,
-					Venue:      data.Venue,
 					Promoters:  data.Promoters,
 					Consistent: data.Consistent,
 				}
 
-				if cfg.Queries != nil && parsed.Venue != "" {
-					match, err := venue.VenueMatch(context.Background(), cfg.Queries, parsed.Venue)
+				if cfg.Queries != nil && data.Venue != "" {
+					match, err := venues.VenueMatch(context.Background(), cfg.Queries, data.Venue)
 					if err == nil {
-						parsed.VenueMatch = match.Match
-						parsed.VenueConfidence = match.Confidence
+						matched.Venue = match
 					} else if cfg.Debug {
-						result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching venue '%s': %v", parsed.Venue, err))
+						result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching venue '%s': %v", data.Venue, err))
 					}
 				}
-				result.Successes = append(result.Successes, parsed)
+				result.Successes = append(result.Successes, matched)
 			}
 		}
 	}
