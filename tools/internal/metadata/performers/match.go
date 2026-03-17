@@ -53,7 +53,7 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	for _, a := range aliases {
 		if a.Alias == normalized {
 			if name, ok := performerMap[a.Performer]; ok {
-				return PerformerMatchResult{Name: name, Match: a.Alias, Confidence: 75}, nil
+				return PerformerMatchResult{Name: rawPerformer, Match: name, Confidence: 75}, nil
 			}
 		}
 	}
@@ -61,7 +61,7 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	// 3. Fuzzy match against Performers
 	for _, p := range performers {
 		if metadata.IsFuzzyMatch(p.Name, normalized) {
-			return PerformerMatchResult{Name: p.Name, Match: p.Name, Confidence: 50}, nil
+			return PerformerMatchResult{Name: rawPerformer, Match: p.Name, Confidence: 50}, nil
 		}
 	}
 
@@ -69,10 +69,10 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	for _, a := range aliases {
 		if metadata.IsFuzzyMatch(a.Alias, normalized) {
 			if name, ok := performerMap[a.Performer]; ok {
-				return PerformerMatchResult{Name: name, Match: a.Alias, Confidence: 25}, nil
+				return PerformerMatchResult{Name: rawPerformer, Match: name, Confidence: 25}, nil
 			}
 		}
 	}
 
-	return PerformerMatchResult{Confidence: 0}, nil
+	return PerformerMatchResult{Name: rawPerformer, Match: "", Confidence: 0}, nil
 }

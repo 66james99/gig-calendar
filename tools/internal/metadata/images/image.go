@@ -10,7 +10,7 @@ import (
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/venues"
-	_ "github.com/66james99/gig-calendar/internal/metadata/performers"
+	"github.com/66james99/gig-calendar/internal/metadata/performers"
 )
 
 
@@ -68,7 +68,7 @@ type MatchedResult struct {
 	Year            int      `json:"year,omitempty"`
 	Month           int      `json:"month,omitempty"`
 	Day             int      `json:"day,omitempty"`
-	Performers      []string `json:"performers,omitempty"`
+	Performers      []performers.PerformerMatchResult `json:"performers,omitempty"`
 	Venue           venues.VenueMatchResult   `json:"venue,omitempty"`
 	Promoters       []string `json:"promoters,omitempty"`
 	Consistent      bool     `json:"consistent"`
@@ -117,18 +117,31 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 					Year:       data.Year,
 					Month:      data.Month,
 					Day:        data.Day,
-					Performers: data.Performers,
+					// Performers: data.Performers,
 					Promoters:  data.Promoters,
 					Consistent: data.Consistent,
 				}
 
-				if cfg.Queries != nil && data.Venue != "" {
-					match, err := venues.VenueMatch(context.Background(), cfg.Queries, data.Venue)
-					if err == nil {
-						matched.Venue = match
-					} else if cfg.Debug {
-						result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching venue '%s': %v", data.Venue, err))
+				if cfg.Queries != nil {
+					if data.Venue != "" {
+						match, err := venues.VenueMatch(context.Background(), cfg.Queries, data.Venue)
+						if err == nil {
+							matched.Venue = match
+						} else if cfg.Debug {
+							result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching venue '%s': %v", data.Venue, err))
+						}
 					}
+					if len(data.Performers) > 0 {
+						for _, p := range data.Performers {
+							match, err := performers.PerformerMatch(context.Background(), cfg.Queries, p)
+							if err == nil {
+								matched.Performers = append(matched.Performers, match)
+								} else if cfg.Debug {
+								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
+							}
+						}	
+					}
+
 				}
 				result.Successes = append(result.Successes, matched)
 			}
