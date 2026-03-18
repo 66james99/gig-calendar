@@ -36,7 +36,7 @@ func (a *API) CreateFestival(c *echo.Context) error {
 
 	params := database.CreateFestivalParams{
 		Name:        payload.Name,
-		PromoterID:  payload.PromoterID,
+		Promoter:    payload.PromoterID,
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
 		Description: sql.NullString{String: "", Valid: false},
@@ -95,7 +95,7 @@ func (a *API) UpdateFestival(c *echo.Context) error {
 	params := database.UpdateFestivalParams{
 		ID:          int32(id),
 		Name:        payload.Name,
-		PromoterID:  payload.PromoterID,
+		Promoter:    payload.PromoterID,
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
 		Description: sql.NullString{String: "", Valid: false},

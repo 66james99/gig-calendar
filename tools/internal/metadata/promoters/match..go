@@ -9,7 +9,7 @@ import (
 )
 
 // MatchResult holds the result of a promoter matching operation.
-type promoterMatchResult struct {
+type PromoterMatchResult struct {
 	Name       string `json:"name"`
 	Match      string `json:"match"`
 	Confidence int    `json:"confidence"`
@@ -25,40 +25,40 @@ type promoterMatchResult struct {
 // 25:  Fuzzy match against promoter_alias table
 // 0:   No match
 // Setting Promoter or Festival to true depending on which the match was with
-func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string) (promoterMatchResult, error) {
+func PromoterMatch(ctx context.Context, q *database.Queries, rawpromoter string) (PromoterMatchResult, error) {
 	normalized := metadata.Normalize(rawpromoter)
 	if normalized == "" {
-		return promoterMatchResult{Confidence: 0, Promoter: false, Festival: false}, nil
+		return PromoterMatchResult{Confidence: 0, Promoter: false, Festival: false}, nil
 	}
 
 	// 1a. Exact match in promoter table
 	promoters, err := q.ListPromoters(ctx)
 	if err != nil {
-		return promoterMatchResult{}, err
+		return PromoterMatchResult{}, err
 	}
 
 	for _, v := range promoters {
 		if v.Name == normalized {
-			return promoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 100, Promoter: true, Festival: false}, nil
+			return PromoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 100, Promoter: true, Festival: false}, nil
 		}
 	}
 
 	// 1b. Exact match in festival table
 	festivals, err := q.ListFestivals(ctx)
 	if err != nil {
-		return promoterMatchResult{}, err
+		return PromoterMatchResult{}, err
 	}
 
 	for _, v := range festivals {
 		if v.Name == normalized {
-			return promoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 100, Promoter: false, Festival: true}, nil
+			return PromoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 100, Promoter: false, Festival: true}, nil
 		}
 	}
 
 	// 2. Match in promoter Alias table
 	aliases, err := q.ListPromoterAliases(ctx)
 	if err != nil {
-		return promoterMatchResult{}, err
+		return PromoterMatchResult{}, err
 	}
 
 	promoterMap := make(map[int32]string)
@@ -69,14 +69,14 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	for _, a := range aliases {
 		if a.Alias == normalized {
 			if name, ok := promoterMap[a.Promoter]; ok {
-				return promoterMatchResult{Name: rawpromoter, Match: name, Confidence: 75, Promoter: true, Festival: false}, nil
+				return PromoterMatchResult{Name: rawpromoter, Match: name, Confidence: 75, Promoter: true, Festival: false}, nil
 			}
 		}
 	}
 	// 2b. Match in festival Alias table
 	festivalAliases, err := q.ListFestivalAliases(ctx)
 	if err != nil {
-		return promoterMatchResult{}, err
+		return PromoterMatchResult{}, err
 	}
 
 	festivalMap := make(map[int32]string)
@@ -87,7 +87,7 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	for _, a := range festivalAliases {
 		if a.Alias == normalized {
 			if name, ok := festivalMap[a.Festival]; ok {
-				return promoterMatchResult{Name: rawpromoter, Match: name, Confidence: 75, Promoter: false, Festival: true}, nil
+				return PromoterMatchResult{Name: rawpromoter, Match: name, Confidence: 75, Promoter: false, Festival: true}, nil
 			}
 		}
 	}
@@ -97,7 +97,7 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	// We check against promoters using Levenshtein distance
 	for _, v := range promoters {
 		if metadata.IsFuzzyMatch(v.Name, normalized) {
-			return promoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 50, Promoter: true, Festival: false}, nil
+			return PromoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 50, Promoter: true, Festival: false}, nil
 		}
 	}
 
@@ -105,7 +105,7 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	// We check against festivals using Levenshtein distance
 	for _, v := range festivals {
 		if metadata.IsFuzzyMatch(v.Name, normalized) {
-			return promoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 50, Promoter: false, Festival: true}, nil
+			return PromoterMatchResult{Name: rawpromoter, Match: v.Name, Confidence: 50, Promoter: false, Festival: true}, nil
 		}
 	}
 
@@ -113,7 +113,7 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	for _, a := range aliases {
 		if metadata.IsFuzzyMatch(a.Alias, normalized) {
 			if name, ok := promoterMap[a.Promoter]; ok {
-				return promoterMatchResult{Name: rawpromoter, Match: name, Confidence: 25, Promoter: true, Festival: false}, nil
+				return PromoterMatchResult{Name: rawpromoter, Match: name, Confidence: 25, Promoter: true, Festival: false}, nil
 			}
 		}
 	}
@@ -122,10 +122,10 @@ func promoterMatch(ctx context.Context, q *database.Queries, rawpromoter string)
 	for _, a := range festivalAliases {
 		if metadata.IsFuzzyMatch(a.Alias, normalized) {
 			if name, ok := festivalMap[a.Festival]; ok {
-				return promoterMatchResult{Name: rawpromoter, Match: name, Confidence: 25, Promoter: false, Festival: true}, nil
+				return PromoterMatchResult{Name: rawpromoter, Match: name, Confidence: 25, Promoter: false, Festival: true}, nil
 			}
 		}
 	}
 
-	return promoterMatchResult{Name: rawpromoter, Match: "", Confidence: 0, Promoter: false, Festival: false}, nil
+	return PromoterMatchResult{Name: rawpromoter, Match: "", Confidence: 0, Promoter: false, Festival: false}, nil
 }

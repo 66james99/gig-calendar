@@ -12,7 +12,7 @@ function getFestivalName(id, festivals, promoters) {
     const fest = festivals.find(f => f.ID === id);
     if (!fest)
         return `Unknown (${id})`;
-    const promoter = promoters.find(p => p.ID === fest.PromoterID)?.Name || 'Unknown Promoter';
+    const promoter = promoters.find(p => p.ID === fest.Promoter)?.Name || 'Unknown Promoter';
     const date = fest.StartDate ? fest.StartDate.split('T')[0] : '';
     // Display format: Promoter Name (Date) or Description if available
     return fest.Description ? `${fest.Description} (${date})` : `${promoter} Festival (${date})`;
@@ -24,7 +24,7 @@ export function renderDisplayRow(tbody, alias, festivals, promoters) {
         row.dataset.id = alias.ID.toString();
         tbody.appendChild(row);
     }
-    const displayName = getFestivalName(alias.FestivalID, festivals, promoters);
+    const displayName = getFestivalName(alias.Festival, festivals, promoters);
     row.innerHTML = `
         <td>${alias.ID}</td>
         <td>${displayName}</td>
@@ -55,13 +55,13 @@ export function renderEditRow(tbody, alias, isNew, festivals, promoters) {
         return;
     const festivalOptions = festivals.map(f => {
         const name = getFestivalName(f.ID, festivals, promoters);
-        return `<option value="${f.ID}" ${f.ID === alias.FestivalID ? 'selected' : ''}>${name}</option>`;
+        return `<option value="${f.ID}" ${f.ID === alias.Festival ? 'selected' : ''}>${name}</option>`;
     }).join('');
     row.innerHTML = `
         <td>${alias.ID || 'New'}</td>
         <td>
             <select class="edit-festival">
-                <option value="" disabled ${!alias.FestivalID ? 'selected' : ''}>Select Festival</option>
+                <option value="" disabled ${!alias.Festival ? 'selected' : ''}>Select Festival</option>
                 ${festivalOptions}
             </select>
         </td>

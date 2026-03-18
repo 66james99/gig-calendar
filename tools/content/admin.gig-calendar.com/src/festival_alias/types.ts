@@ -1,6 +1,6 @@
 export interface FestivalAlias {
     ID: number;
-    FestivalID: number;
+    Festival: number;
     Alias: string;
     Uuid: string;
     Created: string;
@@ -9,7 +9,7 @@ export interface FestivalAlias {
 
 export interface Festival {
     ID: number;
-    PromoterID: number;
+    Promoter: number;
     Description: string;
     StartDate: string;
 }
@@ -24,5 +24,5 @@ export interface FestivalAliasPayload {
     alias: string;
 }
 
-export type FestivalAliasSortableColumn = 'ID' | 'FestivalID' | 'Alias' | 'Uuid' | 'Created' | 'Updated';
+export type FestivalAliasSortableColumn = 'ID' | 'Festival' | 'Alias' | 'Uuid' | 'Created' | 'Updated';
 export type SortDirection = 'asc' | 'desc';

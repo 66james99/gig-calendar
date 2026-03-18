@@ -1,7 +1,7 @@
 export interface Festival {
     ID: number;
     Name: string;
-    PromoterID: number;
+    Promoter: number;
     StartDate: string;
     EndDate: string;
     Description: string;
@@ -21,5 +21,5 @@ export interface FestivalPayload {
     description: string;
 }
 
-export type FestivalSortableColumn = 'ID' | 'Name' | 'PromoterID' | 'StartDate' | 'EndDate' | 'Description' | 'Uuid';
+export type FestivalSortableColumn = 'ID' | 'Name' | 'Promoter' | 'StartDate' | 'EndDate' | 'Description' | 'Uuid';
 export type SortDirection = 'asc' | 'desc';

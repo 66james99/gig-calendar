@@ -14,19 +14,19 @@ import (
 const createFestival = `-- name: CreateFestival :one
 INSERT INTO festival (
     name,
-    promoter_id,
+    promoter,
     start_date,
     end_date,
     description
 ) VALUES (
     $1, $2, $3, $4, $5
 )
-RETURNING id, uuid, name, promoter_id, start_date, end_date, description
+RETURNING id, uuid, name, promoter, start_date, end_date, description
 `
 
 type CreateFestivalParams struct {
 	Name        string
-	PromoterID  int32
+	Promoter    int32
 	StartDate   time.Time
 	EndDate     time.Time
 	Description sql.NullString
@@ -35,7 +35,7 @@ type CreateFestivalParams struct {
 func (q *Queries) CreateFestival(ctx context.Context, arg CreateFestivalParams) (Festival, error) {
 	row := q.db.QueryRowContext(ctx, createFestival,
 		arg.Name,
-		arg.PromoterID,
+		arg.Promoter,
 		arg.StartDate,
 		arg.EndDate,
 		arg.Description,
@@ -45,7 +45,7 @@ func (q *Queries) CreateFestival(ctx context.Context, arg CreateFestivalParams) 
 		&i.ID,
 		&i.Uuid,
 		&i.Name,
-		&i.PromoterID,
+		&i.Promoter,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
@@ -55,26 +55,26 @@ func (q *Queries) CreateFestival(ctx context.Context, arg CreateFestivalParams) 
 
 const createFestivalAlias = `-- name: CreateFestivalAlias :one
 INSERT INTO festival_alias (
-    festival_id,
+    festival,
     alias
 ) VALUES (
     $1, $2
 )
-RETURNING id, uuid, festival_id, alias, created, updated
+RETURNING id, uuid, festival, alias, created, updated
 `
 
 type CreateFestivalAliasParams struct {
-	FestivalID int32
-	Alias      string
+	Festival int32
+	Alias    string
 }
 
 func (q *Queries) CreateFestivalAlias(ctx context.Context, arg CreateFestivalAliasParams) (FestivalAlias, error) {
-	row := q.db.QueryRowContext(ctx, createFestivalAlias, arg.FestivalID, arg.Alias)
+	row := q.db.QueryRowContext(ctx, createFestivalAlias, arg.Festival, arg.Alias)
 	var i FestivalAlias
 	err := row.Scan(
 		&i.ID,
 		&i.Uuid,
-		&i.FestivalID,
+		&i.Festival,
 		&i.Alias,
 		&i.Created,
 		&i.Updated,
@@ -103,7 +103,7 @@ func (q *Queries) DeleteFestivalAlias(ctx context.Context, id int32) error {
 }
 
 const getFestival = `-- name: GetFestival :one
-SELECT id, uuid, name, promoter_id, start_date, end_date, description FROM festival
+SELECT id, uuid, name, promoter, start_date, end_date, description FROM festival
 WHERE id = $1 LIMIT 1
 `
 
@@ -114,7 +114,7 @@ func (q *Queries) GetFestival(ctx context.Context, id int32) (Festival, error) {
 		&i.ID,
 		&i.Uuid,
 		&i.Name,
-		&i.PromoterID,
+		&i.Promoter,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
@@ -123,7 +123,7 @@ func (q *Queries) GetFestival(ctx context.Context, id int32) (Festival, error) {
 }
 
 const getFestivalAlias = `-- name: GetFestivalAlias :one
-SELECT id, uuid, festival_id, alias, created, updated FROM festival_alias
+SELECT id, uuid, festival, alias, created, updated FROM festival_alias
 WHERE id = $1 LIMIT 1
 `
 
@@ -133,7 +133,7 @@ func (q *Queries) GetFestivalAlias(ctx context.Context, id int32) (FestivalAlias
 	err := row.Scan(
 		&i.ID,
 		&i.Uuid,
-		&i.FestivalID,
+		&i.Festival,
 		&i.Alias,
 		&i.Created,
 		&i.Updated,
@@ -142,7 +142,7 @@ func (q *Queries) GetFestivalAlias(ctx context.Context, id int32) (FestivalAlias
 }
 
 const listFestivalAliases = `-- name: ListFestivalAliases :many
-SELECT id, uuid, festival_id, alias, created, updated FROM festival_alias
+SELECT id, uuid, festival, alias, created, updated FROM festival_alias
 ORDER BY alias
 `
 
@@ -158,7 +158,7 @@ func (q *Queries) ListFestivalAliases(ctx context.Context) ([]FestivalAlias, err
 		if err := rows.Scan(
 			&i.ID,
 			&i.Uuid,
-			&i.FestivalID,
+			&i.Festival,
 			&i.Alias,
 			&i.Created,
 			&i.Updated,
@@ -177,7 +177,7 @@ func (q *Queries) ListFestivalAliases(ctx context.Context) ([]FestivalAlias, err
 }
 
 const listFestivals = `-- name: ListFestivals :many
-SELECT id, uuid, name, promoter_id, start_date, end_date, description FROM festival
+SELECT id, uuid, name, promoter, start_date, end_date, description FROM festival
 ORDER BY start_date DESC
 `
 
@@ -194,7 +194,7 @@ func (q *Queries) ListFestivals(ctx context.Context) ([]Festival, error) {
 			&i.ID,
 			&i.Uuid,
 			&i.Name,
-			&i.PromoterID,
+			&i.Promoter,
 			&i.StartDate,
 			&i.EndDate,
 			&i.Description,
@@ -216,18 +216,18 @@ const updateFestival = `-- name: UpdateFestival :one
 UPDATE festival
 SET
     name = $2,
-    promoter_id = $3,
+    promoter = $3,
     start_date = $4,
     end_date = $5,
     description = $6
 WHERE id = $1
-RETURNING id, uuid, name, promoter_id, start_date, end_date, description
+RETURNING id, uuid, name, promoter, start_date, end_date, description
 `
 
 type UpdateFestivalParams struct {
 	ID          int32
 	Name        string
-	PromoterID  int32
+	Promoter    int32
 	StartDate   time.Time
 	EndDate     time.Time
 	Description sql.NullString
@@ -237,7 +237,7 @@ func (q *Queries) UpdateFestival(ctx context.Context, arg UpdateFestivalParams) 
 	row := q.db.QueryRowContext(ctx, updateFestival,
 		arg.ID,
 		arg.Name,
-		arg.PromoterID,
+		arg.Promoter,
 		arg.StartDate,
 		arg.EndDate,
 		arg.Description,
@@ -247,7 +247,7 @@ func (q *Queries) UpdateFestival(ctx context.Context, arg UpdateFestivalParams) 
 		&i.ID,
 		&i.Uuid,
 		&i.Name,
-		&i.PromoterID,
+		&i.Promoter,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
@@ -258,25 +258,25 @@ func (q *Queries) UpdateFestival(ctx context.Context, arg UpdateFestivalParams) 
 const updateFestivalAlias = `-- name: UpdateFestivalAlias :one
 UPDATE festival_alias
 SET
-    festival_id = $2,
+    festival = $2,
     alias = $3
 WHERE id = $1
-RETURNING id, uuid, festival_id, alias, created, updated
+RETURNING id, uuid, festival, alias, created, updated
 `
 
 type UpdateFestivalAliasParams struct {
-	ID         int32
-	FestivalID int32
-	Alias      string
+	ID       int32
+	Festival int32
+	Alias    string
 }
 
 func (q *Queries) UpdateFestivalAlias(ctx context.Context, arg UpdateFestivalAliasParams) (FestivalAlias, error) {
-	row := q.db.QueryRowContext(ctx, updateFestivalAlias, arg.ID, arg.FestivalID, arg.Alias)
+	row := q.db.QueryRowContext(ctx, updateFestivalAlias, arg.ID, arg.Festival, arg.Alias)
 	var i FestivalAlias
 	err := row.Scan(
 		&i.ID,
 		&i.Uuid,
-		&i.FestivalID,
+		&i.Festival,
 		&i.Alias,
 		&i.Created,
 		&i.Updated,

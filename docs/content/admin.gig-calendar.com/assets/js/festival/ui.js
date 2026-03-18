@@ -15,7 +15,7 @@ export function renderDisplayRow(tbody, festival, promoters) {
         row.dataset.id = festival.ID.toString();
         tbody.appendChild(row);
     }
-    const promoterName = promoters.find(p => p.ID === festival.PromoterID)?.Name || `Unknown (${festival.PromoterID})`;
+    const promoterName = promoters.find(p => p.ID === festival.Promoter)?.Name || `Unknown (${festival.Promoter})`;
     // Format dates to YYYY-MM-DD for display
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
     const end = festival.EndDate ? festival.EndDate.split('T')[0] : '';
@@ -48,7 +48,7 @@ export function renderEditRow(tbody, festival, isNew, promoters) {
     }
     if (!row)
         return;
-    const promoterOptions = promoters.map(p => `<option value="${p.ID}" ${p.ID === festival.PromoterID ? 'selected' : ''}>${p.Name}</option>`).join('');
+    const promoterOptions = promoters.map(p => `<option value="${p.ID}" ${p.ID === festival.Promoter ? 'selected' : ''}>${p.Name}</option>`).join('');
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
     const end = festival.EndDate ? festival.EndDate.split('T')[0] : '';
     row.innerHTML = `
@@ -56,7 +56,7 @@ export function renderEditRow(tbody, festival, isNew, promoters) {
         <td><input type="text" class="edit-name" value="${festival.Name || ''}" placeholder="Name"></td>
         <td>
             <select class="edit-promoter">
-                <option value="" disabled ${!festival.PromoterID ? 'selected' : ''}>Select Promoter</option>
+                <option value="" disabled ${!festival.Promoter ? 'selected' : ''}>Select Promoter</option>
                 ${promoterOptions}
             </select>
         </td>

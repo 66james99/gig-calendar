@@ -51,30 +51,30 @@ type Festival struct {
 	ID          int32
 	Uuid        uuid.UUID
 	Name        string
-	PromoterID  int32
+	Promoter    int32
 	StartDate   time.Time
 	EndDate     time.Time
 	Description sql.NullString
 }
 
 type FestivalAlias struct {
-	ID         int32
-	Uuid       uuid.UUID
-	FestivalID int32
-	Alias      string
-	Created    time.Time
-	Updated    time.Time
+	ID       int32
+	Uuid     uuid.UUID
+	Festival int32
+	Alias    string
+	Created  time.Time
+	Updated  time.Time
 }
 
 type FestivalPromoter struct {
-	FestivalID int32
-	PromoterID int32
-	Role       sql.NullString
+	Festival int32
+	Promoter int32
+	Role     sql.NullString
 }
 
 type FestivalVenue struct {
-	FestivalID int32
-	VenueID    int32
+	Festival   int32
+	Venue      int32
 	StageOrder sql.NullInt32
 	IsPrimary  sql.NullBool
 }

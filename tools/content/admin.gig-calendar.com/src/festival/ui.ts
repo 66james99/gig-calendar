@@ -20,7 +20,7 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, festival: Festi
         tbody.appendChild(row);
     }
 
-    const promoterName = promoters.find(p => p.ID === festival.PromoterID)?.Name || `Unknown (${festival.PromoterID})`;
+    const promoterName = promoters.find(p => p.ID === festival.Promoter)?.Name || `Unknown (${festival.Promoter})`;
 
     // Format dates to YYYY-MM-DD for display
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
@@ -58,7 +58,7 @@ export function renderEditRow(tbody: HTMLTableSectionElement, festival: Partial<
     if (!row) return;
 
     const promoterOptions = promoters.map(p => 
-        `<option value="${p.ID}" ${p.ID === festival.PromoterID ? 'selected' : ''}>${p.Name}</option>`
+        `<option value="${p.ID}" ${p.ID === festival.Promoter ? 'selected' : ''}>${p.Name}</option>`
     ).join('');
 
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
@@ -69,7 +69,7 @@ export function renderEditRow(tbody: HTMLTableSectionElement, festival: Partial<
         <td><input type="text" class="edit-name" value="${festival.Name || ''}" placeholder="Name"></td>
         <td>
             <select class="edit-promoter">
-                <option value="" disabled ${!festival.PromoterID ? 'selected' : ''}>Select Promoter</option>
+                <option value="" disabled ${!festival.Promoter ? 'selected' : ''}>Select Promoter</option>
                 ${promoterOptions}
             </select>
         </td>

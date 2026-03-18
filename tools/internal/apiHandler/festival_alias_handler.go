@@ -19,7 +19,7 @@ func (a *API) CreateFestivalAlias(c *echo.Context) error {
 	}
 
 	params := database.CreateFestivalAliasParams{
-		FestivalID: payload.FestivalID,
+		Festival:   payload.FestivalID,
 		Alias:      payload.Alias,
 	}
 
@@ -72,7 +72,7 @@ func (a *API) UpdateFestivalAlias(c *echo.Context) error {
 
 	params := database.UpdateFestivalAliasParams{
 		ID:         int32(id),
-		FestivalID: payload.FestivalID,
+		Festival:   payload.FestivalID,
 		Alias:      payload.Alias,
 	}
 

@@ -66,7 +66,7 @@ export async function refreshFestivals() {
 
 export function applyFilters(festivals: Festival[]): Festival[] {
     return festivals.filter(f => {
-        const promoterName = promotersCache.find(p => p.ID === f.PromoterID)?.Name || '';
+        const promoterName = promotersCache.find(p => p.ID === f.Promoter)?.Name || '';
         const fName = f.Name || '';
         const fStart = f.StartDate || '';
         const fEnd = f.EndDate || '';
@@ -90,9 +90,9 @@ export function sortFestivals(festivals: Festival[]): Festival[] {
         let valB: any = b[currentSort.column];
 
         // Handle special columns if needed (dates are strings, so string compare usually works for ISO)
-        if (currentSort.column === 'PromoterID') {
-             valA = promotersCache.find(p => p.ID === a.PromoterID)?.Name || '';
-             valB = promotersCache.find(p => p.ID === b.PromoterID)?.Name || '';
+        if (currentSort.column === 'Promoter') {
+             valA = promotersCache.find(p => p.ID === a.Promoter)?.Name || '';
+             valB = promotersCache.find(p => p.ID === b.Promoter)?.Name || '';
         }
 
         if (valA === undefined || valA === null) valA = '';

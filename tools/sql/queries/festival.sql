@@ -1,7 +1,7 @@
 -- name: CreateFestival :one
 INSERT INTO festival (
     name,
-    promoter_id,
+    promoter,
     start_date,
     end_date,
     description
@@ -22,7 +22,7 @@ ORDER BY start_date DESC;
 UPDATE festival
 SET
     name = $2,
-    promoter_id = $3,
+    promoter = $3,
     start_date = $4,
     end_date = $5,
     description = $6
@@ -35,7 +35,7 @@ WHERE id = $1;
 
 -- name: CreateFestivalAlias :one
 INSERT INTO festival_alias (
-    festival_id,
+    festival,
     alias
 ) VALUES (
     $1, $2
@@ -53,7 +53,7 @@ ORDER BY alias;
 -- name: UpdateFestivalAlias :one
 UPDATE festival_alias
 SET
-    festival_id = $2,
+    festival = $2,
     alias = $3
 WHERE id = $1
 RETURNING *;

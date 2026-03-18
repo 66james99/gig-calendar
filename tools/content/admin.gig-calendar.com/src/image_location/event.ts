@@ -272,7 +272,7 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                 : '';
             const perfStr = (item.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const venueName = (item.venue?.confidence && item.venue?.confidence > 0) ? (item.venue?.match || '') : (item.venue?.name || '');
-            const promStr = (item.promoters || []).join(', ');
+            const promStr = (item.promoters || []).map((p: any) => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const consistentMatch = filters.consistent === '' || item.consistent.toString() === filters.consistent;
 
             return dateStr.includes(filters.date) &&
@@ -297,8 +297,8 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                 valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
                 valB = ((b.venue?.confidence && b.venue?.confidence > 0) ? (b.venue?.match || '') : (b.venue?.name || '')).toLowerCase();
             } else if (sortCol === 'promoters') {
-                valA = (a.promoters || []).join(', ').toLowerCase();
-                valB = (b.promoters || []).join(', ').toLowerCase();
+                valA = (a.promoters || []).map((p: any) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                valB = (b.promoters || []).map((p: any) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             } else if (sortCol === 'consistent') {
                 valA = a.consistent ? 1 : 0;
                 valB = b.consistent ? 1 : 0;
@@ -331,7 +331,19 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                 const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
                 return `<span style="color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${tooltip}>${display}</span>`;
             }).join(', ');
-            const promStr = (item.promoters || []).join(', ');
+            const promStr = (item.promoters || []).map((p: any) => {
+                const conf = p.confidence || 0;
+                const display = (conf > 0 ? p.match : p.name) || '';
+                let color = 'red';
+                if (conf === 100) color = 'green';
+                else if (conf === 75) color = 'blue';
+                else if (conf === 50) color = 'orange';
+                else if (conf === 25) color = 'gray';
+
+                const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
+                const style = `color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};${p.festival ? ' text-decoration: underline;' : ''}`;
+                return `<span style="${style}" ${tooltip}>${display}</span>`;
+            }).join(', ');
 
             const conf = item.venue?.confidence || 0;
             const displayVenue = (conf > 0 ? item.venue?.match : item.venue?.name) || '';

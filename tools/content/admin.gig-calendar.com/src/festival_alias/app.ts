@@ -73,14 +73,14 @@ export async function refreshAliases() {
 function getFestivalDisplayName(id: number): string {
     const f = festivalsCache.find(i => i.ID === id);
     if (!f) return '';
-    const pName = promotersCache.find(p => p.ID === f.PromoterID)?.Name || '';
+    const pName = promotersCache.find(p => p.ID === f.Promoter)?.Name || '';
     const d = f.StartDate ? f.StartDate.split('T')[0] : '';
     return f.Description ? `${f.Description} (${d})` : `${pName} (${d})`;
 }
 
 export function applyFilters(aliases: FestivalAlias[]): FestivalAlias[] {
     return aliases.filter(a => {
-        const festivalName = getFestivalDisplayName(a.FestivalID);
+        const festivalName = getFestivalDisplayName(a.Festival);
         return (
             a.ID.toString().includes(currentFilters.id) &&
             festivalName.toLowerCase().includes(currentFilters.festival.toLowerCase()) &&
@@ -97,9 +97,9 @@ export function sortAliases(aliases: FestivalAlias[]): FestivalAlias[] {
         let valA: any = a[currentSort.column];
         let valB: any = b[currentSort.column];
 
-        if (currentSort.column === 'FestivalID') {
-             valA = getFestivalDisplayName(a.FestivalID);
-             valB = getFestivalDisplayName(b.FestivalID);
+        if (currentSort.column === 'Festival') {
+             valA = getFestivalDisplayName(a.Festival);
+             valB = getFestivalDisplayName(b.Festival);
         }
 
         if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;

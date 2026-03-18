@@ -11,6 +11,7 @@ import (
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/venues"
 	"github.com/66james99/gig-calendar/internal/metadata/performers"
+	"github.com/66james99/gig-calendar/internal/metadata/promoters"
 )
 
 
@@ -70,7 +71,7 @@ type MatchedResult struct {
 	Day             int      `json:"day,omitempty"`
 	Performers      []performers.PerformerMatchResult `json:"performers,omitempty"`
 	Venue           venues.VenueMatchResult   `json:"venue,omitempty"`
-	Promoters       []string `json:"promoters,omitempty"`
+	Promoters       []promoters.PromoterMatchResult `json:"promoters,omitempty"`
 	Consistent      bool     `json:"consistent"`
 }
 
@@ -118,7 +119,7 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 					Month:      data.Month,
 					Day:        data.Day,
 					// Performers: data.Performers,
-					Promoters:  data.Promoters,
+					// Promoters:  data.Promoters,
 					Consistent: data.Consistent,
 				}
 
@@ -136,6 +137,16 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 							match, err := performers.PerformerMatch(context.Background(), cfg.Queries, p)
 							if err == nil {
 								matched.Performers = append(matched.Performers, match)
+								} else if cfg.Debug {
+								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
+							}
+						}	
+					}
+					if len(data.Promoters) > 0 {
+						for _, p := range data.Promoters {
+							match, err := promoters.PromoterMatch(context.Background(), cfg.Queries, p)
+							if err == nil {
+								matched.Promoters = append(matched.Promoters, match)
 								} else if cfg.Debug {
 								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
 							}
