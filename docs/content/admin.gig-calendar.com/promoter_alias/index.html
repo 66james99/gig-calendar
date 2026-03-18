@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoter Alias Management</title>
+    <link rel="stylesheet" href="../assets/css/style.css">    
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Promoter Alias Management</h1>
+        </header>
+
+        <main>
+            <div class="toolbar">
+                <button id="new-btn" class="btn btn-primary">New</button>
+                <button id="refresh-btn" class="btn btn-secondary">Refresh Table</button>
+            </div>
+
+            <div class="table-container">
+                <table id="promoter-aliases-list">
+                    <thead>
+                        <tr>
+                            <th data-col="ID" class="sortable">ID <span class="sort-indicator"></span></th>
+                            <th data-col="Promoter" class="sortable">Promoter <span class="sort-indicator"></span></th>
+                            <th data-col="Alias" class="sortable">Alias <span class="sort-indicator"></span></th>
+                            <th data-col="Uuid" class="sortable">UUID <span class="sort-indicator"></span></th>
+                            <th data-col="Created" class="sortable">Created <span class="sort-indicator"></span></th>
+                            <th data-col="Updated" class="sortable">Updated <span class="sort-indicator"></span></th>
+                            <th>Actions</th>
+                        </tr>
+                        <tr class="filter-row">
+                            <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
+                            <th><input type="text" id="filter-promoter" placeholder="Filter Promoter"></th>
+                            <th><input type="text" id="filter-alias" placeholder="Filter Alias"></th>
+                            <th><input type="text" id="filter-uuid" placeholder="Filter UUID"></th>
+                            <th><input type="text" id="filter-created" placeholder="Filter Created"></th>
+                            <th><input type="text" id="filter-updated" placeholder="Filter Updated"></th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body">
+                        <!-- Rows will be populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-data-message" class="hidden">No promoter aliases found.</div>
+        </main>
+    </div>
+
+    <script type="module" src="../../assets/js/promoter_alias/app.js"></script>
+</body>
+</html>

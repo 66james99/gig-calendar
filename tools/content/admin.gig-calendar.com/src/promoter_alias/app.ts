@@ -1,100 +1,103 @@
 import { fetchPromoterAliases, fetchPromoters } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
-import { applySort, type SorterMap } from '../shared/table-utils.js';
-import type { SortState } from '../shared/types.js';
-import type { Filters, PromoterAlias, PromoterAliasSortableColumn, Promoter } from './types.js';
+import { handleTableClick, handleNewClick, handleSort, handleFilterChange } from './event.js';
+import { renderTable } from './ui.js';
+import type { PromoterAlias, Promoter, PromoterAliasSortableColumn, SortDirection } from './types.js';
+import { updateSortIndicators } from '../shared/ui.js';
 
-// --- State ---
+// DOM Elements
+export const tableBody = document.getElementById('table-body') as HTMLTableSectionElement;
+export const newBtn = document.getElementById('new-btn') as HTMLButtonElement;
+export const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+export const tableHeader = document.querySelector('thead') as HTMLTableSectionElement;
+
+// Filter Inputs
+export const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
+export const filterPromoterInput = document.getElementById('filter-promoter') as HTMLInputElement;
+export const filterAliasInput = document.getElementById('filter-alias') as HTMLInputElement;
+export const filterUuidInput = document.getElementById('filter-uuid') as HTMLInputElement;
+export const filterCreatedInput = document.getElementById('filter-created') as HTMLInputElement;
+export const filterUpdatedInput = document.getElementById('filter-updated') as HTMLInputElement;
+
+// State
 export let aliasesCache: PromoterAlias[] = [];
-export let promotersCache: Promoter[] = []; // Cache for promoter names
-export let currentSort: SortState<PromoterAliasSortableColumn> = {
-    column: 'ID',
-    direction: 'asc',
-};
-export let currentFilters: Filters = {
+export let promotersCache: Promoter[] = [];
+export let currentSort: { column: PromoterAliasSortableColumn, direction: SortDirection } = { column: 'Created', direction: 'desc' };
+export let currentFilters = {
     id: '',
     promoter: '',
-    uuid: '',
     alias: '',
+    uuid: '',
     created: '',
     updated: '',
 };
 
-export function setAliasesCache(newCache: PromoterAlias[]) {
-    aliasesCache = newCache || [];
-}
-export function setPromotersCache(newCache: Promoter[]) {
-    promotersCache = newCache || [];
-}
-export function setCurrentSort(newSort: SortState<PromoterAliasSortableColumn>) {
-    currentSort = newSort;
-}
-export function setCurrentFilters(newFilters: Filters) {
-    currentFilters = newFilters;
+// Setters for State (used by event handlers)
+export function setCurrentSort(sort: { column: PromoterAliasSortableColumn, direction: SortDirection }) {
+    currentSort = sort;
 }
 
-// --- DOM Elements ---
+export function setCurrentFilters(filters: typeof currentFilters) {
+    currentFilters = filters;
+}
 
-export const tableBody = document.querySelector('#promoter-aliases-list tbody') as HTMLTableSectionElement;
-export const tableHeader = document.querySelector('#promoter-aliases-list thead') as HTMLTableSectionElement;
-export const newButton = document.getElementById('new-btn') as HTMLButtonElement;
-export const refreshButton = document.getElementById('refresh-btn') as HTMLButtonElement;
+export async function init() {
+    // Bind Events
+    if (newBtn) newBtn.addEventListener('click', handleNewClick);
+    if (refreshBtn) refreshBtn.addEventListener('click', refreshAliases);
+    if (tableBody) tableBody.addEventListener('click', handleTableClick);
+    if (tableHeader) tableHeader.addEventListener('click', handleSort);
 
-export const filterIdInput = document.getElementById('filter-id') as HTMLInputElement;
-export const filterPromoterInput = document.getElementById('filter-promoter') as HTMLInputElement;
-export const filterAliasInput = document.getElementById('filter-alias') as HTMLInputElement;
+    // Bind Filter Events
+    [filterIdInput, filterPromoterInput, filterAliasInput, filterUuidInput, filterCreatedInput, filterUpdatedInput].forEach(input => {
+        if (input) input.addEventListener('input', handleFilterChange);
+    });
 
-// --- UI Functions ---
+    await loadData();
+}
+
+async function loadData() {
+    try {
+        const [aliases, promoters] = await Promise.all([
+            fetchPromoterAliases(),
+            fetchPromoters()
+        ]);
+        aliasesCache = aliases;
+        promotersCache = promoters;
+        handleFilterChange(); // Triggers render
+    } catch (error) {
+        console.error("Failed to load data", error);
+        alert("Failed to load data. See console for details.");
+    }
+}
+
+export async function refreshAliases() {
+    await loadData();
+}
 
 export function applyFilters(aliases: PromoterAlias[]): PromoterAlias[] {
-    return aliases.filter(alias => {
-        const idMatch = alias.ID.toString().includes(currentFilters.id);
-        const promoterName = promotersCache.find(p => p.ID === alias.Promoter)?.Name || '';
-        const promoterMatch = promoterName.toLowerCase().includes(currentFilters.promoter.toLowerCase());
-        const uuidMatch = alias.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase());
-        const aliasMatch = alias.Alias.toLowerCase().includes(currentFilters.alias.toLowerCase());
-        const createdMatch = alias.Created.includes(currentFilters.created);
-        const updatedMatch = alias.Updated.includes(currentFilters.updated);
-
-        return idMatch && promoterMatch && uuidMatch && aliasMatch && createdMatch && updatedMatch;
+    return aliases.filter(a => {
+        const promoterName = promotersCache.find(p => p.ID === a.Promoter)?.Name || '';
+        return (
+            a.ID.toString().includes(currentFilters.id) &&
+            promoterName.toLowerCase().includes(currentFilters.promoter.toLowerCase()) &&
+            a.Alias.toLowerCase().includes(currentFilters.alias.toLowerCase()) &&
+            a.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase()) &&
+            (currentFilters.created === '' || a.Created.includes(currentFilters.created)) &&
+            (currentFilters.updated === '' || a.Updated.includes(currentFilters.updated))
+        );
     });
 }
 
 export function sortAliases(aliases: PromoterAlias[]): PromoterAlias[] {
-    const sorters: SorterMap<PromoterAlias> = {
-        Promoter: (a) => promotersCache.find(p => p.ID === a.Promoter)?.Name || ''
-    };
-    return applySort(aliases, currentSort, sorters);
+    return [...aliases].sort((a, b) => {
+        const valA = a[currentSort.column];
+        const valB = b[currentSort.column];
+
+        if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+        if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
 }
 
-// --- Initialization ---
-
-export async function refreshAliases() {
-    try {
-        setPromotersCache(await fetchPromoters()); // Fetch promoters first for display
-        setAliasesCache(await fetchPromoterAliases());
-        handleFilterChange(); // Apply any existing filters and sorting, then render the table
-    } catch (error) {
-        alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        if (tableBody) {
-             tableBody.innerHTML = '<tr><td colspan="4">Failed to load data. Is the backend server running?</td></tr>';
-        }
-    }
-}
-
-function init() {
-    if (tableBody) tableBody.addEventListener('click', handleTableClick);
-    if (tableHeader) tableHeader.addEventListener('click', handleSort);
-    if (newButton) newButton.addEventListener('click', handleNewClick);
-    if (refreshButton) refreshButton.addEventListener('click', refreshAliases);
-
-    // Add event listeners for filters
-    if (filterIdInput) filterIdInput.addEventListener('input', handleFilterChange);
-    if (filterPromoterInput) filterPromoterInput.addEventListener('input', handleFilterChange);
-    if (filterAliasInput) filterAliasInput.addEventListener('input', handleFilterChange);
-
-    refreshAliases();
-}
-
-// Start the app
-init();
+// Start
+document.addEventListener('DOMContentLoaded', init);

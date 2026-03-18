@@ -1,70 +1,93 @@
 import type { PromoterAlias, Promoter } from './types.js';
 
 export function renderTable(tbody: HTMLTableSectionElement, aliases: PromoterAlias[], promoters: Promoter[]) {
-    tbody.innerHTML = ''; // Clear existing rows
+    tbody.innerHTML = '';
+    const noDataMsg = document.getElementById('no-data-message');
+
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align: center;">No promoter aliases found.</td></tr>';
+        if (noDataMsg) noDataMsg.classList.remove('hidden');
         return;
     }
-    aliases.forEach(alias => renderDisplayRow(tbody, alias, promoters));
+
+    if (noDataMsg) noDataMsg.classList.add('hidden');
+
+    aliases.forEach(alias => {
+        renderDisplayRow(tbody, alias, promoters);
+    });
 }
 
 export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: PromoterAlias, promoters: Promoter[]) {
-    let row = tbody.querySelector<HTMLTableRowElement>(`tr[data-id="${alias.ID}"]`);
+    let row = tbody.querySelector(`tr[data-id="${alias.ID}"]`) as HTMLTableRowElement;
     if (!row) {
-        row = tbody.insertRow();
+        row = document.createElement('tr');
         row.dataset.id = alias.ID.toString();
+        tbody.appendChild(row);
     }
+
+    const promoterName = promoters.find(p => p.ID === alias.Promoter)?.Name || `Unknown (${alias.Promoter})`;
+
     row.innerHTML = `
         <td>${alias.ID}</td>
+        <td>${promoterName}</td>
         <td>${alias.Alias}</td>
-        <td>${getPromoterName(alias.Promoter, promoters)}</td>
-        <td>
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+        <td>${alias.Uuid}</td>
+        <td>${new Date(alias.Created).toLocaleString()}</td>
+        <td>${new Date(alias.Updated).toLocaleString()}</td>
+        <td class="actions">
+            <button class="btn-icon edit-btn" title="Edit">✏️</button>
+            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
+            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
         </td>
     `;
 }
 
 export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<PromoterAlias>, isNew: boolean, promoters: Promoter[]) {
-    // If the table currently displays the "No promoter aliases found" message, clear it before adding the new row.
-    if (tbody.rows.length === 1 && tbody.rows[0].cells.length === 1 && tbody.rows[0].innerText.includes('No promoter aliases found')) {
-        tbody.innerHTML = '';
+    let row: HTMLTableRowElement;
+
+    if (isNew) {
+        // For new rows, we assume the row is already inserted by the caller (handleNewClick) or we are transforming the first row
+        // Note: The event handler logic usually inserts a blank row first.
+        // If the passed alias has no ID, we look for a row without a dataset ID or create one.
+        row = tbody.querySelector('tr:not([data-id])') as HTMLTableRowElement;
+        if (!row) {
+            row = document.createElement('tr');
+            tbody.prepend(row);
+        }
+    } else {
+        row = tbody.querySelector(`tr[data-id="${alias.ID}"]`) as HTMLTableRowElement;
     }
 
-    let row = tbody.querySelector<HTMLTableRowElement>(`tr[data-id="${alias.ID}"]`);
-    if (!row && isNew) {
-        row = tbody.insertRow(0); // Insert at top for new entries
-        row.dataset.id = alias.ID ? alias.ID.toString() : 'new';
-    } else if (!row) {
-        return; // Should not happen for existing rows
-    }
+    if (!row) return;
 
-    // Sort promoters alphabetically for the dropdown
-    const sortedPromoters = [...promoters].sort((a, b) => a.Name.localeCompare(b.Name));
-
-    const promoterOptions = sortedPromoters.map(p => 
-        `<option value="${p.ID}" ${alias.Promoter === p.ID ? 'selected' : ''}>${p.Name}</option>`
+    const promoterOptions = promoters.map(p => 
+        `<option value="${p.ID}" ${p.ID === alias.Promoter ? 'selected' : ''}>${p.Name}</option>`
     ).join('');
 
     row.innerHTML = `
         <td>${alias.ID || 'New'}</td>
         <td>
-            <input type="text" class="edit-alias" value="${alias.Alias || ''}" style="width: 100%;">
-        </td>
-        <td>
-            <select class="edit-promoter_id" style="width: 100%;">
+            <select class="edit-promoter_id">
+                <option value="" disabled ${!alias.Promoter ? 'selected' : ''}>Select Promoter</option>
                 ${promoterOptions}
             </select>
         </td>
-        <td>
-            <button class="${isNew ? 'add-btn' : 'save-btn'}">${isNew ? 'Add' : 'Save'}</button>
-            <button class="${isNew ? 'cancel-add-btn' : 'cancel-btn'}">Cancel</button>
+        <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" placeholder="Alias"></td>
+        <td>${alias.Uuid || '-'}</td>
+        <td>${alias.Created ? new Date(alias.Created).toLocaleString() : '-'}</td>
+        <td>${alias.Updated ? new Date(alias.Updated).toLocaleString() : '-'}</td>
+        <td class="actions">
+            ${isNew 
+                ? `<button class="btn-icon add-btn" title="Add">✅</button>
+                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
+                : `<button class="btn-icon save-btn" title="Save">💾</button>
+                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`
+            }
         </td>
     `;
-}
-
-function getPromoterName(promoterID: number, promoters: Promoter[]): string {
-    const promoter = promoters.find(p => p.ID === promoterID);
-    return promoter ? promoter.Name : `Unknown Promoter (${promoterID})`;
+    
+    // Focus on the alias input for convenience
+    const aliasInput = row.querySelector('.edit-alias') as HTMLInputElement;
+    if (aliasInput) {
+        aliasInput.focus();
+    }
 }
