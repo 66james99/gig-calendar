@@ -9,9 +9,9 @@ import (
 
 // PerformerMatchResult holds the result of a performer matching operation.
 type PerformerMatchResult struct {
-	Name       string
-	Match      string
-	Confidence int
+	Name       string `json:"name"`
+	Match      string `json:"match"`
+	Confidence int    `json:"confidence"`
 }
 
 // PerformerMatch checks for the existence of a performer in the database.

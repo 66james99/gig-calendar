@@ -228,7 +228,7 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : '';
-            const perfStr = (item.performers || []).join(', ');
+            const perfStr = (item.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const venueName = (item.venue?.confidence && item.venue?.confidence > 0) ? (item.venue?.match || '') : (item.venue?.name || '');
             const promStr = (item.promoters || []).join(', ');
             const consistentMatch = filters.consistent === '' || item.consistent.toString() === filters.consistent;
@@ -247,8 +247,8 @@ function createPreviewContent(result, isDebug) {
                 valB = (b.year || 0) * 10000 + (b.month || 0) * 100 + (b.day || 0);
             }
             else if (sortCol === 'performers') {
-                valA = (a.performers || []).join(', ').toLowerCase();
-                valB = (b.performers || []).join(', ').toLowerCase();
+                valA = (a.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                valB = (b.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             }
             else if (sortCol === 'venue') {
                 valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
@@ -277,7 +277,21 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : 'N/A';
-            const perfStr = (item.performers || []).join(', ');
+            const perfStr = (item.performers || []).map(p => {
+                const conf = p.confidence || 0;
+                const display = (conf > 0 ? p.match : p.name) || '';
+                let color = 'red';
+                if (conf === 100)
+                    color = 'green';
+                else if (conf === 75)
+                    color = 'blue';
+                else if (conf === 50)
+                    color = 'orange';
+                else if (conf === 25)
+                    color = 'gray';
+                const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
+                return `<span style="color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${tooltip}>${display}</span>`;
+            }).join(', ');
             const promStr = (item.promoters || []).join(', ');
             const conf = item.venue?.confidence || 0;
             const displayVenue = (conf > 0 ? item.venue?.match : item.venue?.name) || '';

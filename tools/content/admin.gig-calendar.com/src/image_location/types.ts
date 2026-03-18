@@ -25,12 +25,18 @@ export interface MatchedVenue {
     confidence: number;
 }
 
+export interface MatchedPerformer {
+    name: string;
+    match: string;
+    confidence: number;
+}
+
 export interface ParsedResult {
     directory: string;
     year?: number;
     month?: number;
     day?: number;
-    performers?: string[];
+    performers?: MatchedPerformer[];
     venue?: MatchedVenue;
     promoters?: string[];
     consistent: boolean;
