@@ -6,14 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
-	"github.com/66james99/gig-calendar/internal/metadata/venues"
 	"github.com/66james99/gig-calendar/internal/metadata/performers"
 	"github.com/66james99/gig-calendar/internal/metadata/promoters"
+	"github.com/66james99/gig-calendar/internal/metadata/venues"
 )
-
 
 type ImagesConfig struct {
 	metadata.BaseConfig
@@ -26,17 +26,16 @@ type ImagesConfig struct {
 }
 
 type Performer struct {
-	Name string `json:"name"`
-	Match string `json:"match"`
-	Confidence int `json:"confidence"`
+	Name       string `json:"name"`
+	Match      string `json:"match"`
+	Confidence int    `json:"confidence"`
 }
 
 type Promoter struct {
-	Name string `json:"name"`
-	Match string `json:"match"`
-	Confidence int `json:"confidence"`
+	Name       string `json:"name"`
+	Match      string `json:"match"`
+	Confidence int    `json:"confidence"`
 }
-
 
 // ParsedResult holds the parsed data for a single directory.
 type ParsedResult struct {
@@ -54,27 +53,26 @@ type ParsedResult struct {
 
 // ScanResult holds the outcome of a directory scan operation.
 type ScanResult struct {
-	Directories       []string       `json:"directories"`
+	Directories       []string        `json:"directories"`
 	Successes         []MatchedResult `json:"successes,omitempty"`
-	SuccessCount      int            `json:"success_count"`
-	InconsistentCount int            `json:"inconsistent_count"`
-	ErrorCount        int            `json:"error_count"`
-	IgnoredCount      int            `json:"ignored_count"`
-	ParseErrors       []string       `json:"parse_errors,omitempty"` // Only populated in debug mode
+	SuccessCount      int             `json:"success_count"`
+	InconsistentCount int             `json:"inconsistent_count"`
+	ErrorCount        int             `json:"error_count"`
+	IgnoredCount      int             `json:"ignored_count"`
+	ParseErrors       []string        `json:"parse_errors,omitempty"` // Only populated in debug mode
 }
 
 // MatchedResult holds the outcome of matching Performers, Venue and Promoter against those existing in the DB
 type MatchedResult struct {
-	Directory       string   `json:"directory"`
-	Year            int      `json:"year,omitempty"`
-	Month           int      `json:"month,omitempty"`
-	Day             int      `json:"day,omitempty"`
-	Performers      []performers.PerformerMatchResult `json:"performers,omitempty"`
-	Venue           venues.VenueMatchResult   `json:"venue,omitempty"`
-	Promoters       []promoters.PromoterMatchResult `json:"promoters,omitempty"`
-	Consistent      bool     `json:"consistent"`
+	Directory  string                            `json:"directory"`
+	Year       int                               `json:"year,omitempty"`
+	Month      int                               `json:"month,omitempty"`
+	Day        int                               `json:"day,omitempty"`
+	Performers []performers.PerformerMatchResult `json:"performers,omitempty"`
+	Venue      venues.VenueMatchResult           `json:"venue,omitempty"`
+	Promoters  []promoters.PromoterMatchResult   `json:"promoters,omitempty"`
+	Consistent bool                              `json:"consistent"`
 }
-
 
 // ExecuteScan performs the directory scanning and parsing based on the provided config.
 // It returns a structured result and does not print to standard output.
@@ -114,10 +112,10 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 					result.InconsistentCount++
 				}
 				matched := MatchedResult{
-					Directory:  dir,
-					Year:       data.Year,
-					Month:      data.Month,
-					Day:        data.Day,
+					Directory: dir,
+					Year:      data.Year,
+					Month:     data.Month,
+					Day:       data.Day,
 					// Performers: data.Performers,
 					// Promoters:  data.Promoters,
 					Consistent: data.Consistent,
@@ -137,20 +135,50 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 							match, err := performers.PerformerMatch(context.Background(), cfg.Queries, p)
 							if err == nil {
 								matched.Performers = append(matched.Performers, match)
-								} else if cfg.Debug {
+							} else if cfg.Debug {
 								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
 							}
-						}	
+						}
 					}
 					if len(data.Promoters) > 0 {
 						for _, p := range data.Promoters {
 							match, err := promoters.PromoterMatch(context.Background(), cfg.Queries, p)
 							if err == nil {
 								matched.Promoters = append(matched.Promoters, match)
-								} else if cfg.Debug {
-								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
+							} else if cfg.Debug {
+								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching promoter '%s': %v", p, err))
 							}
-						}	
+						}
+					}
+
+					festivalCount := 0
+					var festival promoters.PromoterMatchResult
+					for _, p := range matched.Promoters {
+						if p.Festival {
+							festivalCount++
+							festival = p
+						}
+					}
+
+					if festivalCount > 1 {
+						matched.Consistent = false
+					} else if festivalCount == 1 {
+						// If there is exactly one festival, check if the event date is within the festival's date range.
+						foundFestival, err := cfg.Queries.GetFestivalByName(context.Background(), festival.Match)
+						if err == nil {
+							if matched.Year > 0 && matched.Month > 0 && matched.Day > 0 {
+								eventDate := time.Date(matched.Year, time.Month(matched.Month), matched.Day, 0, 0, 0, 0, time.UTC)
+								if eventDate.Before(foundFestival.StartDate) || eventDate.After(foundFestival.EndDate) {
+									// If it is already inconsistent then don't need to flag and increment counter. Avoid double counting,
+									if matched.Consistent {
+									matched.Consistent = false
+									result.InconsistentCount++
+									}
+								}
+								
+							}
+						}
+
 					}
 
 				}

@@ -141,6 +141,26 @@ func (q *Queries) GetFestivalAlias(ctx context.Context, id int32) (FestivalAlias
 	return i, err
 }
 
+const getFestivalByName = `-- name: GetFestivalByName :one
+SELECT id, uuid, name, promoter, start_date, end_date, description FROM festival
+WHERE name = $1 LIMIT 1
+`
+
+func (q *Queries) GetFestivalByName(ctx context.Context, name string) (Festival, error) {
+	row := q.db.QueryRowContext(ctx, getFestivalByName, name)
+	var i Festival
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Name,
+		&i.Promoter,
+		&i.StartDate,
+		&i.EndDate,
+		&i.Description,
+	)
+	return i, err
+}
+
 const listFestivalAliases = `-- name: ListFestivalAliases :many
 SELECT id, uuid, festival, alias, created, updated FROM festival_alias
 ORDER BY alias
