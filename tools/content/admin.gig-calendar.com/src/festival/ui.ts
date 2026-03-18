@@ -63,6 +63,7 @@ export function renderEditRow(tbody: HTMLTableSectionElement, festival: Partial<
 
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
     const end = festival.EndDate ? festival.EndDate.split('T')[0] : '';
+    const description = festival.Description || '';
 
     row.innerHTML = `
         <td>${festival.ID || 'New'}</td>
@@ -75,7 +76,7 @@ export function renderEditRow(tbody: HTMLTableSectionElement, festival: Partial<
         </td>
         <td><input type="date" class="edit-start" value="${start}"></td>
         <td><input type="date" class="edit-end" value="${end}"></td>
-        <td><input type="text" class="edit-description" value="${festival.Description || ''}" placeholder="Description"></td>
+        <td><input type="text" class="edit-description" value="${description}" placeholder="Description"></td>
         <td>${festival.Uuid || '-'}</td>
         <td class="actions">
             ${isNew 

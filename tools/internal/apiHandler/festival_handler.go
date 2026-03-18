@@ -26,6 +26,18 @@ type festivalAliasPayload struct {
 	Alias      string `json:"alias"`
 }
 
+func mapFestival(f database.Festival) map[string]interface{} {
+	return map[string]interface{}{
+		"ID":          f.ID,
+		"Name":        f.Name,
+		"Promoter":    f.Promoter,
+		"StartDate":   f.StartDate,
+		"EndDate":     f.EndDate,
+		"Description": f.Description.String,
+		"Uuid":        f.Uuid,
+	}
+}
+
 // --- Festival Handlers ---
 
 func (a *API) CreateFestival(c *echo.Context) error {
@@ -51,7 +63,7 @@ func (a *API) CreateFestival(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create festival"})
 	}
 
-	return c.JSON(http.StatusCreated, festival)
+	return c.JSON(http.StatusCreated, mapFestival(festival))
 }
 
 func (a *API) ListFestivals(c *echo.Context) error {
@@ -60,7 +72,11 @@ func (a *API) ListFestivals(c *echo.Context) error {
 		log.Printf("Error listing festivals: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve festivals"})
 	}
-	return c.JSON(http.StatusOK, festivals)
+	response := make([]map[string]interface{}, len(festivals))
+	for i, f := range festivals {
+		response[i] = mapFestival(f)
+	}
+	return c.JSON(http.StatusOK, response)
 }
 
 func (a *API) GetFestival(c *echo.Context) error {
@@ -78,7 +94,7 @@ func (a *API) GetFestival(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to retrieve festival"})
 	}
 
-	return c.JSON(http.StatusOK, festival)
+	return c.JSON(http.StatusOK, mapFestival(festival))
 }
 
 func (a *API) UpdateFestival(c *echo.Context) error {
@@ -113,7 +129,7 @@ func (a *API) UpdateFestival(c *echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to update festival"})
 	}
 
-	return c.JSON(http.StatusOK, updatedFestival)
+	return c.JSON(http.StatusOK, mapFestival(updatedFestival))
 }
 
 func (a *API) DeleteFestival(c *echo.Context) error {

@@ -9,9 +9,18 @@ import type { Festival, FestivalSortableColumn } from './types.js';
 
 export function handleNewClick() {
     const tbody = document.getElementById('table-body') as HTMLTableSectionElement;
-    // Check if new row already exists
-    if (tbody.querySelector('tr:not([data-id])')) return;
-    renderEditRow(tbody, {}, true, promotersCache);
+    // Check if a row is already in 'add' mode to prevent multiple new rows.
+    const existingAddRow = tbody.querySelector('.add-btn');
+    if (existingAddRow) {
+        alert('Please save or cancel the current new festival before adding another.');
+        existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Insert an empty row at the top, which will be populated by renderEditRow.
+    tbody.insertRow(0);
+    const newFestivalData: Partial<Festival> = {};
+    renderEditRow(tbody, newFestivalData, true, promotersCache);
 }
 
 export async function handleTableClick(event: MouseEvent) {
@@ -54,8 +63,8 @@ export async function handleTableClick(event: MouseEvent) {
     } else if (btn.classList.contains('cancel-add-btn')) {
         row.remove();
         const tbody = document.getElementById('table-body') as HTMLTableSectionElement;
-        if (aliasesCache.length === 0 && tbody.children.length === 0) {
-             document.getElementById('no-data-message')?.classList.remove('hidden');
+        if (tbody.children.length === 0 && aliasesCache.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No festivals found.</td></tr>';
         }
 
     } else if (btn.classList.contains('save-btn') || btn.classList.contains('add-btn')) {

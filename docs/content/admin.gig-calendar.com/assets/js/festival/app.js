@@ -70,7 +70,7 @@ export function applyFilters(festivals) {
             fStart.includes(currentFilters.startDate) &&
             fEnd.includes(currentFilters.endDate) &&
             fDesc.toLowerCase().includes(currentFilters.description.toLowerCase()) &&
-            f.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase()));
+            (f.Uuid || '').toLowerCase().includes(currentFilters.uuid.toLowerCase()));
     });
 }
 export function sortFestivals(festivals) {

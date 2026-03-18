@@ -4,10 +4,17 @@ import { aliasesCache, promotersCache, currentSort, setCurrentSort, setCurrentFi
 import { updateSortIndicators } from '../shared/ui.js';
 export function handleNewClick() {
     const tbody = document.getElementById('table-body');
-    // Check if new row already exists
-    if (tbody.querySelector('tr:not([data-id])'))
+    // Check if a row is already in 'add' mode to prevent multiple new rows.
+    const existingAddRow = tbody.querySelector('.add-btn');
+    if (existingAddRow) {
+        alert('Please save or cancel the current new festival before adding another.');
+        existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
-    renderEditRow(tbody, {}, true, promotersCache);
+    }
+    // Insert an empty row at the top, which will be populated by renderEditRow.
+    tbody.insertRow(0);
+    const newFestivalData = {};
+    renderEditRow(tbody, newFestivalData, true, promotersCache);
 }
 export async function handleTableClick(event) {
     const target = event.target;
@@ -51,8 +58,8 @@ export async function handleTableClick(event) {
     else if (btn.classList.contains('cancel-add-btn')) {
         row.remove();
         const tbody = document.getElementById('table-body');
-        if (aliasesCache.length === 0 && tbody.children.length === 0) {
-            document.getElementById('no-data-message')?.classList.remove('hidden');
+        if (tbody.children.length === 0 && aliasesCache.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No festivals found.</td></tr>';
         }
     }
     else if (btn.classList.contains('save-btn') || btn.classList.contains('add-btn')) {
