@@ -18,9 +18,10 @@ export function renderDisplayRow(tbody, promoter) {
         <td>${promoter.Uuid}</td>
         <td>${new Date(promoter.Created).toLocaleString()}</td>
         <td>${new Date(promoter.Updated).toLocaleString()}</td>
-        <td>
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+        <td class="actions">
+            <button class="btn-icon edit-btn" title="Edit">✏️</button>
+            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
+            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
         </td>
     `;
 }
@@ -39,9 +40,12 @@ export function renderEditRow(tbody, promoter, isNew) {
         <td>${promoter.Uuid || 'N/A'}</td>
         <td>${promoter.Created ? new Date(promoter.Created).toLocaleString() : 'N/A'}</td>
         <td>${promoter.Updated ? new Date(promoter.Updated).toLocaleString() : 'N/A'}</td>
-        <td>
-            <button class="${isNew ? 'add-btn' : 'save-btn'}">${isNew ? 'Add' : 'Save'}</button>
-            <button class="${isNew ? 'cancel-add-btn' : 'cancel-btn'}">Cancel</button>
+        <td class="actions">
+            ${isNew
+        ? `<button class="btn-icon add-btn" title="Add">✅</button>
+                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
+        : `<button class="btn-icon save-btn" title="Save">💾</button>
+                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`}
         </td>
     `;
 }

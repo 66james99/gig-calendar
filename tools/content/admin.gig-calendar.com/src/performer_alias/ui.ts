@@ -22,9 +22,10 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: Performe
         <td>${alias.Alias}</td>
         <td>${new Date(alias.Created).toLocaleString()}</td>
         <td>${new Date(alias.Updated).toLocaleString()}</td>
-        <td>
-            <button class="edit-btn">Edit</button>
-            <button class="delete-btn">Delete</button>
+        <td class="actions">
+            <button class="btn-icon edit-btn" title="Edit">✏️</button>
+            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
+            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
         </td>
     `;
 }
@@ -56,11 +57,20 @@ export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<Per
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" style="width: 100%;"></td>
         <td>${alias.Created ? new Date(alias.Created).toLocaleString() : 'N/A'}</td>
         <td>${alias.Updated ? new Date(alias.Updated).toLocaleString() : 'N/A'}</td>
-        <td>
-            <button class="${isNew ? 'add-btn' : 'save-btn'}">${isNew ? 'Add' : 'Save'}</button>
-            <button class="${isNew ? 'cancel-add-btn' : 'cancel-btn'}">Cancel</button>
+        <td class="actions">
+            ${isNew 
+                ? `<button class="btn-icon add-btn" title="Add">✅</button>
+                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
+                : `<button class="btn-icon save-btn" title="Save">💾</button>
+                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`
+            }
         </td>
     `;
+
+    const aliasInput = row.querySelector('.edit-alias') as HTMLInputElement;
+    if (aliasInput) {
+        aliasInput.focus();
+    }
 }
 
 function getPerformerName(performerID: number, performers: Performer[]): string {
