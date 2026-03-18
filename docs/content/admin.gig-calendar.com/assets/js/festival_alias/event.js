@@ -4,9 +4,16 @@ import { aliasesCache, festivalsCache, promotersCache, currentSort, setCurrentSo
 import { updateSortIndicators } from '../shared/ui.js';
 export function handleNewClick() {
     const tbody = document.getElementById('table-body');
-    if (tbody.querySelector('tr:not([data-id])'))
+    // Check if a row is already in 'add' mode to prevent multiple new rows.
+    const existingAddRow = tbody.querySelector('.add-btn');
+    if (existingAddRow) {
+        alert('Please save or cancel the current new alias before adding another.');
+        existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
-    renderEditRow(tbody, {}, true, festivalsCache, promotersCache);
+    }
+    const newRow = tbody.insertRow(0); // Insert a new row at the top of the table.
+    const newAliasData = {};
+    renderEditRow(tbody, newAliasData, true, festivalsCache, promotersCache);
 }
 export async function handleTableClick(event) {
     const target = event.target;

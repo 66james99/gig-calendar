@@ -9,8 +9,17 @@ import type { FestivalAlias, FestivalAliasSortableColumn } from './types.js';
 
 export function handleNewClick() {
     const tbody = document.getElementById('table-body') as HTMLTableSectionElement;
-    if (tbody.querySelector('tr:not([data-id])')) return;
-    renderEditRow(tbody, {}, true, festivalsCache, promotersCache);
+    // Check if a row is already in 'add' mode to prevent multiple new rows.
+    const existingAddRow = tbody.querySelector('.add-btn');
+    if (existingAddRow) {
+        alert('Please save or cancel the current new alias before adding another.');
+        existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    const newRow = tbody.insertRow(0); // Insert a new row at the top of the table.
+    const newAliasData: Partial<FestivalAlias> = {};
+    renderEditRow(tbody, newAliasData, true, festivalsCache, promotersCache);
 }
 
 export async function handleTableClick(event: MouseEvent) {
