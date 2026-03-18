@@ -14,11 +14,7 @@ export function renderTable(tbody: HTMLTableSectionElement, aliases: FestivalAli
 
 function getFestivalName(id: number, festivals: Festival[], promoters: Promoter[]): string {
     const fest = festivals.find(f => f.ID === id);
-    if (!fest) return `Unknown (${id})`;
-    const promoter = promoters.find(p => p.ID === fest.Promoter)?.Name || 'Unknown Promoter';
-    const date = fest.StartDate ? fest.StartDate.split('T')[0] : '';
-    // Display format: Promoter Name (Date) or Description if available
-    return fest.Description ? `${fest.Description} (${date})` : `${promoter} Festival (${date})`;
+    return fest ? fest.Name : `Unknown (${id})`;
 }
 
 export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: FestivalAlias, festivals: Festival[], promoters: Promoter[]) {

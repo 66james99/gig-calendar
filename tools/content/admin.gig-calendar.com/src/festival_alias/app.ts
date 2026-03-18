@@ -73,9 +73,7 @@ export async function refreshAliases() {
 function getFestivalDisplayName(id: number): string {
     const f = festivalsCache.find(i => i.ID === id);
     if (!f) return '';
-    const pName = promotersCache.find(p => p.ID === f.Promoter)?.Name || '';
-    const d = f.StartDate ? f.StartDate.split('T')[0] : '';
-    return f.Description ? `${f.Description} (${d})` : `${pName} (${d})`;
+    return f.Name;
 }
 
 export function applyFilters(aliases: FestivalAlias[]): FestivalAlias[] {

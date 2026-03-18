@@ -10,12 +10,7 @@ export function renderTable(tbody, aliases, festivals, promoters) {
 }
 function getFestivalName(id, festivals, promoters) {
     const fest = festivals.find(f => f.ID === id);
-    if (!fest)
-        return `Unknown (${id})`;
-    const promoter = promoters.find(p => p.ID === fest.Promoter)?.Name || 'Unknown Promoter';
-    const date = fest.StartDate ? fest.StartDate.split('T')[0] : '';
-    // Display format: Promoter Name (Date) or Description if available
-    return fest.Description ? `${fest.Description} (${date})` : `${promoter} Festival (${date})`;
+    return fest ? fest.Name : `Unknown (${id})`;
 }
 export function renderDisplayRow(tbody, alias, festivals, promoters) {
     let row = tbody.querySelector(`tr[data-id="${alias.ID}"]`);

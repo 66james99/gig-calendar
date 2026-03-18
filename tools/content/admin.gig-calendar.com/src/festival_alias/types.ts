@@ -9,6 +9,7 @@ export interface FestivalAlias {
 
 export interface Festival {
     ID: number;
+    Name: string;
     Promoter: number;
     Description: string;
     StartDate: string;
