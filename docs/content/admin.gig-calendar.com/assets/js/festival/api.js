@@ -1,8 +1,8 @@
 const API_BASE = '/api/v1';
-export async function fetchPromoterAliases() {
-    const response = await fetch(`${API_BASE}/promoter_aliases`);
+export async function fetchFestivals() {
+    const response = await fetch(`${API_BASE}/festivals`);
     if (!response.ok) {
-        throw new Error(`Failed to fetch promoter aliases: ${response.statusText}`);
+        throw new Error(`Failed to fetch festivals: ${response.statusText}`);
     }
     const data = await response.json();
     return data || [];
@@ -15,8 +15,8 @@ export async function fetchPromoters() {
     const data = await response.json();
     return data || [];
 }
-export async function createPromoterAlias(payload) {
-    const response = await fetch(`${API_BASE}/promoter_aliases`, {
+export async function createFestival(payload) {
+    const response = await fetch(`${API_BASE}/festivals`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -25,12 +25,12 @@ export async function createPromoterAlias(payload) {
     });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to create promoter alias: ${response.statusText}`);
+        throw new Error(errorData.error || `Failed to create festival: ${response.statusText}`);
     }
     return response.json();
 }
-export async function updatePromoterAlias(id, payload) {
-    const response = await fetch(`${API_BASE}/promoter_aliases/${id}`, {
+export async function updateFestival(id, payload) {
+    const response = await fetch(`${API_BASE}/festivals/${id}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -39,16 +39,16 @@ export async function updatePromoterAlias(id, payload) {
     });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to update promoter alias: ${response.statusText}`);
+        throw new Error(errorData.error || `Failed to update festival: ${response.statusText}`);
     }
     return response.json();
 }
-export async function deletePromoterAlias(id) {
-    const response = await fetch(`${API_BASE}/promoter_aliases/${id}`, {
+export async function deleteFestival(id) {
+    const response = await fetch(`${API_BASE}/festivals/${id}`, {
         method: 'DELETE',
     });
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Failed to delete promoter alias: ${response.statusText}`);
+        throw new Error(errorData.error || `Failed to delete festival: ${response.statusText}`);
     }
 }

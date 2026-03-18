@@ -9,7 +9,7 @@ This directory contains a sub-directory for each of the static web sites associa
 
   * admin.gig-calendar.com - content for the admin facing website for the project
 
-  * www.gig-calendar.com - content for the public facing website for the project
+  * www\.gig-calendar.com - content for the public facing website for the project
   
 * tools
 This directory contains the code for various parts of the application, using Go for server side components, TypeScipt for client side components
@@ -27,7 +27,7 @@ This directory contains the code for various parts of the application, using Go 
       This directory contains the source for SPAs for the application, written in TypeScript
 
     * admin.gig-calendar.com/src - code for the SPAs
-    * www.gig-calendar.com/src - code for the SPAs
+    * www\.gig-calendar.com/src - code for the SPAs
   * helpers
 
     This contains code for commands that assist in developing the application
@@ -56,7 +56,7 @@ This directory contains the code for various parts of the application, using Go 
   * webserver
     * admin - code for the admin web server
 
-## The gig-calendar admin application should have:
+## The gig-calendar admin application should have
 
 (docs/content/admin.gig-calendar.com)
 
@@ -65,6 +65,7 @@ This directory contains the code for various parts of the application, using Go 
 * Any CSS for the web site should be located in assets/css
 * Any JS files should be located in assets/js with a subdirectory for each SPA for the tables
 * Any JS files shared between SPA should be located in assets/js/shared
+* The only CSS that should be used is located in ../assets/css/style.css, relative to the location of the index.html files for each SPA
 
 ## Single Page Applications (SPA) for admin of database tables
 
@@ -77,7 +78,7 @@ This directory contains the code for various parts of the application, using Go 
 
   * "Edit" - causes the that row to become an edit dialouge - ✏️ should be on that button
   * "Delete" - cause that row to be deleted - with a confirmation popup - 🗑️ should be on that button
-  * "Duplicate" - causes the current row to be duplicated into a dialouge to allow a new row with that information to created - 📋
+  * "Duplicate" - causes the current row to be duplicated into a dialouge to allow a new row with that information to created - 📋 should be on that button
 
   Other buttons as required for functionality of that table
 

@@ -13,17 +13,19 @@ import (
 
 const createFestival = `-- name: CreateFestival :one
 INSERT INTO festival (
+    name,
     promoter_id,
     start_date,
     end_date,
     description
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 )
-RETURNING promoter_id, start_date, end_date, description, id, uuid
+RETURNING id, uuid, name, promoter_id, start_date, end_date, description
 `
 
 type CreateFestivalParams struct {
+	Name        string
 	PromoterID  int32
 	StartDate   time.Time
 	EndDate     time.Time
@@ -32,6 +34,7 @@ type CreateFestivalParams struct {
 
 func (q *Queries) CreateFestival(ctx context.Context, arg CreateFestivalParams) (Festival, error) {
 	row := q.db.QueryRowContext(ctx, createFestival,
+		arg.Name,
 		arg.PromoterID,
 		arg.StartDate,
 		arg.EndDate,
@@ -39,12 +42,13 @@ func (q *Queries) CreateFestival(ctx context.Context, arg CreateFestivalParams) 
 	)
 	var i Festival
 	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Name,
 		&i.PromoterID,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
-		&i.ID,
-		&i.Uuid,
 	)
 	return i, err
 }
@@ -99,7 +103,7 @@ func (q *Queries) DeleteFestivalAlias(ctx context.Context, id int32) error {
 }
 
 const getFestival = `-- name: GetFestival :one
-SELECT promoter_id, start_date, end_date, description, id, uuid FROM festival
+SELECT id, uuid, name, promoter_id, start_date, end_date, description FROM festival
 WHERE id = $1 LIMIT 1
 `
 
@@ -107,12 +111,13 @@ func (q *Queries) GetFestival(ctx context.Context, id int32) (Festival, error) {
 	row := q.db.QueryRowContext(ctx, getFestival, id)
 	var i Festival
 	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Name,
 		&i.PromoterID,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
-		&i.ID,
-		&i.Uuid,
 	)
 	return i, err
 }
@@ -172,7 +177,7 @@ func (q *Queries) ListFestivalAliases(ctx context.Context) ([]FestivalAlias, err
 }
 
 const listFestivals = `-- name: ListFestivals :many
-SELECT promoter_id, start_date, end_date, description, id, uuid FROM festival
+SELECT id, uuid, name, promoter_id, start_date, end_date, description FROM festival
 ORDER BY start_date DESC
 `
 
@@ -186,12 +191,13 @@ func (q *Queries) ListFestivals(ctx context.Context) ([]Festival, error) {
 	for rows.Next() {
 		var i Festival
 		if err := rows.Scan(
+			&i.ID,
+			&i.Uuid,
+			&i.Name,
 			&i.PromoterID,
 			&i.StartDate,
 			&i.EndDate,
 			&i.Description,
-			&i.ID,
-			&i.Uuid,
 		); err != nil {
 			return nil, err
 		}
@@ -209,16 +215,18 @@ func (q *Queries) ListFestivals(ctx context.Context) ([]Festival, error) {
 const updateFestival = `-- name: UpdateFestival :one
 UPDATE festival
 SET
-    promoter_id = $2,
-    start_date = $3,
-    end_date = $4,
-    description = $5
+    name = $2,
+    promoter_id = $3,
+    start_date = $4,
+    end_date = $5,
+    description = $6
 WHERE id = $1
-RETURNING promoter_id, start_date, end_date, description, id, uuid
+RETURNING id, uuid, name, promoter_id, start_date, end_date, description
 `
 
 type UpdateFestivalParams struct {
 	ID          int32
+	Name        string
 	PromoterID  int32
 	StartDate   time.Time
 	EndDate     time.Time
@@ -228,6 +236,7 @@ type UpdateFestivalParams struct {
 func (q *Queries) UpdateFestival(ctx context.Context, arg UpdateFestivalParams) (Festival, error) {
 	row := q.db.QueryRowContext(ctx, updateFestival,
 		arg.ID,
+		arg.Name,
 		arg.PromoterID,
 		arg.StartDate,
 		arg.EndDate,
@@ -235,12 +244,13 @@ func (q *Queries) UpdateFestival(ctx context.Context, arg UpdateFestivalParams) 
 	)
 	var i Festival
 	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Name,
 		&i.PromoterID,
 		&i.StartDate,
 		&i.EndDate,
 		&i.Description,
-		&i.ID,
-		&i.Uuid,
 	)
 	return i, err
 }

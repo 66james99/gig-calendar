@@ -1,0 +1,96 @@
+import { fetchFestivals, fetchPromoters } from './api.js';
+import { handleTableClick, handleNewClick, handleSort, handleFilterChange } from './event.js';
+// DOM Elements
+export const tableBody = document.getElementById('table-body');
+export const newBtn = document.getElementById('new-btn');
+export const refreshBtn = document.getElementById('refresh-btn');
+export const tableHeader = document.querySelector('thead');
+// State
+export let aliasesCache = []; // Reuse name aliasesCache to match event.ts generic usage or rename
+export let promotersCache = [];
+export let currentSort = { column: 'StartDate', direction: 'desc' };
+export let currentFilters = {
+    id: '',
+    name: '',
+    promoter: '',
+    startDate: '',
+    endDate: '',
+    description: '',
+    uuid: ''
+};
+export function setCurrentSort(sort) {
+    currentSort = sort;
+}
+export function setCurrentFilters(filters) {
+    currentFilters = filters;
+}
+export async function init() {
+    if (newBtn)
+        newBtn.addEventListener('click', handleNewClick);
+    if (refreshBtn)
+        refreshBtn.addEventListener('click', refreshFestivals);
+    if (tableBody)
+        tableBody.addEventListener('click', handleTableClick);
+    if (tableHeader)
+        tableHeader.addEventListener('click', handleSort);
+    const filterInputs = document.querySelectorAll('.filter-row input');
+    filterInputs.forEach(input => {
+        input.addEventListener('input', handleFilterChange);
+    });
+    await loadData();
+}
+async function loadData() {
+    try {
+        const [festivals, promoters] = await Promise.all([
+            fetchFestivals(),
+            fetchPromoters()
+        ]);
+        aliasesCache = festivals;
+        promotersCache = promoters;
+        handleFilterChange();
+    }
+    catch (error) {
+        console.error("Failed to load data", error);
+        alert("Failed to load data.");
+    }
+}
+export async function refreshFestivals() {
+    await loadData();
+}
+export function applyFilters(festivals) {
+    return festivals.filter(f => {
+        const promoterName = promotersCache.find(p => p.ID === f.PromoterID)?.Name || '';
+        const fName = f.Name || '';
+        const fStart = f.StartDate || '';
+        const fEnd = f.EndDate || '';
+        const fDesc = f.Description || '';
+        return (f.ID.toString().includes(currentFilters.id) &&
+            fName.toLowerCase().includes(currentFilters.name.toLowerCase()) &&
+            promoterName.toLowerCase().includes(currentFilters.promoter.toLowerCase()) &&
+            fStart.includes(currentFilters.startDate) &&
+            fEnd.includes(currentFilters.endDate) &&
+            fDesc.toLowerCase().includes(currentFilters.description.toLowerCase()) &&
+            f.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase()));
+    });
+}
+export function sortFestivals(festivals) {
+    return [...festivals].sort((a, b) => {
+        let valA = a[currentSort.column];
+        let valB = b[currentSort.column];
+        // Handle special columns if needed (dates are strings, so string compare usually works for ISO)
+        if (currentSort.column === 'PromoterID') {
+            valA = promotersCache.find(p => p.ID === a.PromoterID)?.Name || '';
+            valB = promotersCache.find(p => p.ID === b.PromoterID)?.Name || '';
+        }
+        if (valA === undefined || valA === null)
+            valA = '';
+        if (valB === undefined || valB === null)
+            valB = '';
+        if (valA < valB)
+            return currentSort.direction === 'asc' ? -1 : 1;
+        if (valA > valB)
+            return currentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+    });
+}
+document.addEventListener('DOMContentLoaded', init);

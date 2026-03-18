@@ -1,18 +1,27 @@
-import type { PromoterAlias, Promoter } from './types.js';
+import type { FestivalAlias, Festival, Promoter } from './types.js';
 
-export function renderTable(tbody: HTMLTableSectionElement, aliases: PromoterAlias[], promoters: Promoter[]) {
+export function renderTable(tbody: HTMLTableSectionElement, aliases: FestivalAlias[], festivals: Festival[], promoters: Promoter[]) {
     tbody.innerHTML = '';
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No promoter aliases found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No festival aliases found.</td></tr>';
         return;
     }
 
     aliases.forEach(alias => {
-        renderDisplayRow(tbody, alias, promoters);
+        renderDisplayRow(tbody, alias, festivals, promoters);
     });
 }
 
-export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: PromoterAlias, promoters: Promoter[]) {
+function getFestivalName(id: number, festivals: Festival[], promoters: Promoter[]): string {
+    const fest = festivals.find(f => f.ID === id);
+    if (!fest) return `Unknown (${id})`;
+    const promoter = promoters.find(p => p.ID === fest.PromoterID)?.Name || 'Unknown Promoter';
+    const date = fest.StartDate ? fest.StartDate.split('T')[0] : '';
+    // Display format: Promoter Name (Date) or Description if available
+    return fest.Description ? `${fest.Description} (${date})` : `${promoter} Festival (${date})`;
+}
+
+export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: FestivalAlias, festivals: Festival[], promoters: Promoter[]) {
     let row = tbody.querySelector(`tr[data-id="${alias.ID}"]`) as HTMLTableRowElement;
     if (!row) {
         row = document.createElement('tr');
@@ -20,11 +29,11 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: Promoter
         tbody.appendChild(row);
     }
 
-    const promoterName = promoters.find(p => p.ID === alias.Promoter)?.Name || `Unknown (${alias.Promoter})`;
+    const displayName = getFestivalName(alias.FestivalID, festivals, promoters);
 
     row.innerHTML = `
         <td>${alias.ID}</td>
-        <td>${promoterName}</td>
+        <td>${displayName}</td>
         <td>${alias.Alias}</td>
         <td>${alias.Uuid}</td>
         <td>${new Date(alias.Created).toLocaleString()}</td>
@@ -37,13 +46,10 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: Promoter
     `;
 }
 
-export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<PromoterAlias>, isNew: boolean, promoters: Promoter[]) {
+export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<FestivalAlias>, isNew: boolean, festivals: Festival[], promoters: Promoter[]) {
     let row: HTMLTableRowElement;
 
     if (isNew) {
-        // For new rows, we assume the row is already inserted by the caller (handleNewClick) or we are transforming the first row
-        // Note: The event handler logic usually inserts a blank row first.
-        // If the passed alias has no ID, we look for a row without a dataset ID or create one.
         row = tbody.querySelector('tr:not([data-id])') as HTMLTableRowElement;
         if (!row) {
             row = document.createElement('tr');
@@ -55,16 +61,17 @@ export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<Pro
 
     if (!row) return;
 
-    const promoterOptions = promoters.map(p => 
-        `<option value="${p.ID}" ${p.ID === alias.Promoter ? 'selected' : ''}>${p.Name}</option>`
-    ).join('');
+    const festivalOptions = festivals.map(f => {
+        const name = getFestivalName(f.ID, festivals, promoters);
+        return `<option value="${f.ID}" ${f.ID === alias.FestivalID ? 'selected' : ''}>${name}</option>`;
+    }).join('');
 
     row.innerHTML = `
         <td>${alias.ID || 'New'}</td>
         <td>
-            <select class="edit-promoter_id">
-                <option value="" disabled ${!alias.Promoter ? 'selected' : ''}>Select Promoter</option>
-                ${promoterOptions}
+            <select class="edit-festival">
+                <option value="" disabled ${!alias.FestivalID ? 'selected' : ''}>Select Festival</option>
+                ${festivalOptions}
             </select>
         </td>
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" placeholder="Alias"></td>
@@ -80,10 +87,7 @@ export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<Pro
             }
         </td>
     `;
-    
-    // Focus on the alias input for convenience
+
     const aliasInput = row.querySelector('.edit-alias') as HTMLInputElement;
-    if (aliasInput) {
-        aliasInput.focus();
-    }
+    if (aliasInput) aliasInput.focus();
 }

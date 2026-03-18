@@ -13,6 +13,7 @@ import (
 
 // festivalPayload defines the JSON body for creating/updating a festival.
 type festivalPayload struct {
+	Name        string    `json:"name"`
 	PromoterID  int32     `json:"promoter_id"`
 	StartDate   time.Time `json:"start_date"`
 	EndDate     time.Time `json:"end_date"`
@@ -34,6 +35,7 @@ func (a *API) CreateFestival(c *echo.Context) error {
 	}
 
 	params := database.CreateFestivalParams{
+		Name:        payload.Name,
 		PromoterID:  payload.PromoterID,
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
@@ -92,6 +94,7 @@ func (a *API) UpdateFestival(c *echo.Context) error {
 
 	params := database.UpdateFestivalParams{
 		ID:          int32(id),
+		Name:        payload.Name,
 		PromoterID:  payload.PromoterID,
 		StartDate:   payload.StartDate,
 		EndDate:     payload.EndDate,
@@ -127,4 +130,3 @@ func (a *API) DeleteFestival(c *echo.Context) error {
 
 	return c.NoContent(http.StatusNoContent)
 }
-

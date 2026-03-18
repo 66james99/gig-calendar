@@ -48,12 +48,13 @@ type EventType struct {
 }
 
 type Festival struct {
+	ID          int32
+	Uuid        uuid.UUID
+	Name        string
 	PromoterID  int32
 	StartDate   time.Time
 	EndDate     time.Time
 	Description sql.NullString
-	ID          int32
-	Uuid        uuid.UUID
 }
 
 type FestivalAlias struct {

@@ -7,7 +7,8 @@ export async function fetchPromoterAliases(): Promise<PromoterAlias[]> {
     if (!response.ok) {
         throw new Error(`Failed to fetch promoter aliases: ${response.statusText}`);
     }
-    return response.json();
+    const data = await response.json();
+    return data || [];
 }
 
 export async function fetchPromoters(): Promise<Promoter[]> {
@@ -15,7 +16,8 @@ export async function fetchPromoters(): Promise<Promoter[]> {
     if (!response.ok) {
         throw new Error(`Failed to fetch promoters: ${response.statusText}`);
     }
-    return response.json();
+    const data = await response.json();
+    return data || [];
 }
 
 export async function createPromoterAlias(payload: PromoterAliasPayload): Promise<PromoterAlias> {

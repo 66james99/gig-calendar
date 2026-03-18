@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promoter Alias Management</title>
-    <link rel="stylesheet" href="../assets/css/style.css">    
+    <title>Festival Management</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Promoter Alias Management</h1>
+            <h1>Festival Management</h1>
         </header>
 
         <main>
@@ -19,24 +19,26 @@
             </div>
 
             <div class="table-container">
-                <table id="promoter-aliases-list">
+                <table id="festivals-list">
                     <thead>
                         <tr>
                             <th data-col="ID" class="sortable">ID <span class="sort-indicator"></span></th>
-                            <th data-col="Promoter" class="sortable">Promoter <span class="sort-indicator"></span></th>
-                            <th data-col="Alias" class="sortable">Alias <span class="sort-indicator"></span></th>
+                            <th data-col="Name" class="sortable">Name <span class="sort-indicator"></span></th>
+                            <th data-col="PromoterID" class="sortable">Promoter <span class="sort-indicator"></span></th>
+                            <th data-col="StartDate" class="sortable">Start Date <span class="sort-indicator"></span></th>
+                            <th data-col="EndDate" class="sortable">End Date <span class="sort-indicator"></span></th>
+                            <th data-col="Description" class="sortable">Description <span class="sort-indicator"></span></th>
                             <th data-col="Uuid" class="sortable">UUID <span class="sort-indicator"></span></th>
-                            <th data-col="Created" class="sortable">Created <span class="sort-indicator"></span></th>
-                            <th data-col="Updated" class="sortable">Updated <span class="sort-indicator"></span></th>
                             <th>Actions</th>
                         </tr>
                         <tr class="filter-row">
                             <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
+                            <th><input type="text" id="filter-name" placeholder="Filter Name"></th>
                             <th><input type="text" id="filter-promoter" placeholder="Filter Promoter"></th>
-                            <th><input type="text" id="filter-alias" placeholder="Filter Alias"></th>
+                            <th><input type="text" id="filter-start" placeholder="Filter Start"></th>
+                            <th><input type="text" id="filter-end" placeholder="Filter End"></th>
+                            <th><input type="text" id="filter-desc" placeholder="Filter Desc"></th>
                             <th><input type="text" id="filter-uuid" placeholder="Filter UUID"></th>
-                            <th><input type="text" id="filter-created" placeholder="Filter Created"></th>
-                            <th><input type="text" id="filter-updated" placeholder="Filter Updated"></th>
                             <th></th>
                         </tr>
                     </thead>
@@ -48,6 +50,6 @@
         </main>
     </div>
 
-    <script type="module" src="../../assets/js/promoter_alias/app.js"></script>
+    <script type="module" src="../../assets/js/festival/app.js"></script>
 </body>
 </html>

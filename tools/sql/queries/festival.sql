@@ -1,11 +1,12 @@
 -- name: CreateFestival :one
 INSERT INTO festival (
+    name,
     promoter_id,
     start_date,
     end_date,
     description
 ) VALUES (
-    $1, $2, $3, $4
+    $1, $2, $3, $4, $5
 )
 RETURNING *;
 
@@ -20,10 +21,11 @@ ORDER BY start_date DESC;
 -- name: UpdateFestival :one
 UPDATE festival
 SET
-    promoter_id = $2,
-    start_date = $3,
-    end_date = $4,
-    description = $5
+    name = $2,
+    promoter_id = $3,
+    start_date = $4,
+    end_date = $5,
+    description = $6
 WHERE id = $1
 RETURNING *;
 

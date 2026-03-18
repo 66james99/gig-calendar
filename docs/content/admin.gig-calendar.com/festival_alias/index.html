@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promoter Alias Management</title>
-    <link rel="stylesheet" href="../assets/css/style.css">    
+    <title>Festival Alias Management</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Promoter Alias Management</h1>
+            <h1>Festival Alias Management</h1>
         </header>
 
         <main>
@@ -19,11 +19,11 @@
             </div>
 
             <div class="table-container">
-                <table id="promoter-aliases-list">
+                <table id="festival-aliases-list">
                     <thead>
                         <tr>
                             <th data-col="ID" class="sortable">ID <span class="sort-indicator"></span></th>
-                            <th data-col="Promoter" class="sortable">Promoter <span class="sort-indicator"></span></th>
+                            <th data-col="FestivalID" class="sortable">Festival <span class="sort-indicator"></span></th>
                             <th data-col="Alias" class="sortable">Alias <span class="sort-indicator"></span></th>
                             <th data-col="Uuid" class="sortable">UUID <span class="sort-indicator"></span></th>
                             <th data-col="Created" class="sortable">Created <span class="sort-indicator"></span></th>
@@ -32,7 +32,7 @@
                         </tr>
                         <tr class="filter-row">
                             <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
-                            <th><input type="text" id="filter-promoter" placeholder="Filter Promoter"></th>
+                            <th><input type="text" id="filter-festival" placeholder="Filter Festival"></th>
                             <th><input type="text" id="filter-alias" placeholder="Filter Alias"></th>
                             <th><input type="text" id="filter-uuid" placeholder="Filter UUID"></th>
                             <th><input type="text" id="filter-created" placeholder="Filter Created"></th>
@@ -48,6 +48,6 @@
         </main>
     </div>
 
-    <script type="module" src="../../assets/js/promoter_alias/app.js"></script>
+    <script type="module" src="../../assets/js/festival_alias/app.js"></script>
 </body>
 </html>

@@ -1,38 +1,36 @@
-import { fetchPromoterAliases, fetchPromoters } from './api.js';
+import { fetchFestivalAliases, fetchFestivals, fetchPromoters } from './api.js';
 import { handleTableClick, handleNewClick, handleSort, handleFilterChange } from './event.js';
 // DOM Elements
 export const tableBody = document.getElementById('table-body');
 export const newBtn = document.getElementById('new-btn');
 export const refreshBtn = document.getElementById('refresh-btn');
 export const tableHeader = document.querySelector('thead');
-// Filter Inputs
-export const filterIdInput = document.getElementById('filter-id');
-export const filterPromoterInput = document.getElementById('filter-promoter');
-export const filterAliasInput = document.getElementById('filter-alias');
-export const filterUuidInput = document.getElementById('filter-uuid');
-export const filterCreatedInput = document.getElementById('filter-created');
-export const filterUpdatedInput = document.getElementById('filter-updated');
 // State
 export let aliasesCache = [];
+export let festivalsCache = [];
 export let promotersCache = [];
 export let currentSort = { column: 'Created', direction: 'desc' };
 export let currentFilters = {
     id: '',
-    promoter: '',
+    festival: '',
     alias: '',
     uuid: '',
     created: '',
-    updated: '',
+    updated: ''
 };
-// Setters for State (used by event handlers)
 export function setCurrentSort(sort) {
     currentSort = sort;
 }
 export function setCurrentFilters(filters) {
-    currentFilters = filters;
+    // Simple mapping from generic object to typed filter
+    currentFilters.id = filters.id || '';
+    currentFilters.festival = filters.festival || '';
+    currentFilters.alias = filters.alias || '';
+    currentFilters.uuid = filters.uuid || '';
+    currentFilters.created = filters.created || '';
+    currentFilters.updated = filters.updated || '';
 }
 export async function init() {
-    // Bind Events
     if (newBtn)
         newBtn.addEventListener('click', handleNewClick);
     if (refreshBtn)
@@ -41,36 +39,43 @@ export async function init() {
         tableBody.addEventListener('click', handleTableClick);
     if (tableHeader)
         tableHeader.addEventListener('click', handleSort);
-    // Bind Filter Events
-    [filterIdInput, filterPromoterInput, filterAliasInput, filterUuidInput, filterCreatedInput, filterUpdatedInput].forEach(input => {
-        if (input)
-            input.addEventListener('input', handleFilterChange);
-    });
+    const inputs = document.querySelectorAll('.filter-row input');
+    inputs.forEach(input => input.addEventListener('input', handleFilterChange));
     await loadData();
 }
 async function loadData() {
     try {
-        const [aliases, promoters] = await Promise.all([
-            fetchPromoterAliases(),
+        const [aliases, festivals, promoters] = await Promise.all([
+            fetchFestivalAliases(),
+            fetchFestivals(),
             fetchPromoters()
         ]);
         aliasesCache = aliases;
+        festivalsCache = festivals;
         promotersCache = promoters;
-        handleFilterChange(); // Triggers render
+        handleFilterChange();
     }
     catch (error) {
         console.error("Failed to load data", error);
-        alert("Failed to load data. See console for details.");
+        alert("Failed to load data.");
     }
 }
 export async function refreshAliases() {
     await loadData();
 }
+function getFestivalDisplayName(id) {
+    const f = festivalsCache.find(i => i.ID === id);
+    if (!f)
+        return '';
+    const pName = promotersCache.find(p => p.ID === f.PromoterID)?.Name || '';
+    const d = f.StartDate ? f.StartDate.split('T')[0] : '';
+    return f.Description ? `${f.Description} (${d})` : `${pName} (${d})`;
+}
 export function applyFilters(aliases) {
     return aliases.filter(a => {
-        const promoterName = promotersCache.find(p => p.ID === a.Promoter)?.Name || '';
+        const festivalName = getFestivalDisplayName(a.FestivalID);
         return (a.ID.toString().includes(currentFilters.id) &&
-            promoterName.toLowerCase().includes(currentFilters.promoter.toLowerCase()) &&
+            festivalName.toLowerCase().includes(currentFilters.festival.toLowerCase()) &&
             a.Alias.toLowerCase().includes(currentFilters.alias.toLowerCase()) &&
             a.Uuid.toLowerCase().includes(currentFilters.uuid.toLowerCase()) &&
             (currentFilters.created === '' || a.Created.includes(currentFilters.created)) &&
@@ -79,8 +84,12 @@ export function applyFilters(aliases) {
 }
 export function sortAliases(aliases) {
     return [...aliases].sort((a, b) => {
-        const valA = a[currentSort.column];
-        const valB = b[currentSort.column];
+        let valA = a[currentSort.column];
+        let valB = b[currentSort.column];
+        if (currentSort.column === 'FestivalID') {
+            valA = getFestivalDisplayName(a.FestivalID);
+            valB = getFestivalDisplayName(b.FestivalID);
+        }
         if (valA < valB)
             return currentSort.direction === 'asc' ? -1 : 1;
         if (valA > valB)
@@ -88,5 +97,4 @@ export function sortAliases(aliases) {
         return 0;
     });
 }
-// Start
 document.addEventListener('DOMContentLoaded', init);
