@@ -51,8 +51,9 @@ type Festival struct {
 	PromoterID  int32
 	StartDate   time.Time
 	EndDate     time.Time
-	Website     sql.NullString
 	Description sql.NullString
+	ID          int32
+	Uuid        uuid.UUID
 }
 
 type FestivalAlias struct {

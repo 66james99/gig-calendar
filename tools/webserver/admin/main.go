@@ -114,6 +114,20 @@ func main() {
 	apiGroup.PUT("/performer_aliases/:id", handler.UpdatePerformerAlias)
 	apiGroup.DELETE("/performer_aliases/:id", handler.DeletePerformerAlias)
 
+	// --- Festivals Routes ---
+	apiGroup.POST("/festivals", handler.CreateFestival)
+	apiGroup.GET("/festivals", handler.ListFestivals)
+	apiGroup.GET("/festivals/:id", handler.GetFestival)
+	apiGroup.PUT("/festivals/:id", handler.UpdateFestival)
+	apiGroup.DELETE("/festivals/:id", handler.DeleteFestival)
+
+	// --- Festival Aliases Routes ---
+	apiGroup.POST("/festival_aliases", handler.CreateFestivalAlias)
+	apiGroup.GET("/festival_aliases", handler.ListFestivalAliases)
+	apiGroup.GET("/festival_aliases/:id", handler.GetFestivalAlias)
+	apiGroup.PUT("/festival_aliases/:id", handler.UpdateFestivalAlias)
+	apiGroup.DELETE("/festival_aliases/:id", handler.DeleteFestivalAlias)
+
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
 
