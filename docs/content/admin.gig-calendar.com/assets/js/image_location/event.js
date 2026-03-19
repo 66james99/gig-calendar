@@ -186,8 +186,10 @@ function createPreviewContent(result, isDebug) {
     // Data for table
     let data = result.successes || [];
     // State
-    let sortCol = 'date';
-    let sortDir = 'asc';
+    let previewSort = {
+        column: 'date',
+        direction: 'asc'
+    };
     let filters = {
         date: '',
         performers: '',
@@ -199,22 +201,23 @@ function createPreviewContent(result, isDebug) {
     const tableContainer = document.createElement('div');
     tableContainer.style.cssText = "max-height: 400px; overflow-y: auto; margin-top: 10px; border: 1px solid #ddd;";
     const table = document.createElement('table');
+    table.id = 'preview-table';
     table.style.cssText = "width: 100%; border-collapse: collapse; font-size: 0.9rem;";
     table.innerHTML = `
         <thead style="position: sticky; top: 0; background: white; border-bottom: 2px solid #ccc; z-index: 1;">
             <tr>
-                <th data-col="date" style="cursor: pointer; padding: 8px; text-align: left;">Date ↕</th>
-                <th data-col="performers" style="cursor: pointer; padding: 8px; text-align: left;">Performers ↕</th>
-                <th data-col="venue" style="cursor: pointer; padding: 8px; text-align: left;">Venue ↕</th>
-                <th data-col="promoters" style="cursor: pointer; padding: 8px; text-align: left;">Promoters ↕</th>
-                <th data-col="consistent" style="cursor: pointer; padding: 8px; text-align: center;">OK ↕</th>
+                <th data-col="date" class="sortable" style="width: 120px; padding: 8px; text-align: left;">Date <span class="sort-indicator asc"></span></th>
+                <th data-col="performers" class="sortable" style="padding: 8px; text-align: left;">Performers <span class="sort-indicator"></span></th>
+                <th data-col="venue" class="sortable" style="padding: 8px; text-align: left;">Venue <span class="sort-indicator"></span></th>
+                <th data-col="promoters" class="sortable" style="padding: 8px; text-align: left;">Promoters <span class="sort-indicator"></span></th>
+                <th data-col="consistent" class="sortable" style="width: 60px; padding: 8px; text-align: center;">OK <span class="sort-indicator"></span></th>
             </tr>
             <tr style="background: #f9f9f9;">
-                <th style="padding: 4px;"><input type="text" data-filter="date" placeholder="Filter Date" style="width: 100%; box-sizing: border-box;"></th>
+                <th style="width: 120px; padding: 4px;"><input type="text" data-filter="date" placeholder="Filter Date" style="width: 100%; box-sizing: border-box;"></th>
                 <th style="padding: 4px;"><input type="text" data-filter="performers" placeholder="Filter Perf" style="width: 100%; box-sizing: border-box;"></th>
                 <th style="padding: 4px;"><input type="text" data-filter="venue" placeholder="Filter Venue" style="width: 100%; box-sizing: border-box;"></th>
                 <th style="padding: 4px;"><input type="text" data-filter="promoters" placeholder="Filter Prom" style="width: 100%; box-sizing: border-box;"></th>
-                <th style="padding: 4px;"><select data-filter="consistent" style="width: 100%; box-sizing: border-box;"><option value="">All</option><option value="true">✓</option><option value="false">✗</option></select></th>
+                <th style="width: 60px; padding: 4px;"><select data-filter="consistent" style="width: 100%; box-sizing: border-box;"><option value="">All</option><option value="true">✓</option><option value="false">✗</option></select></th>
             </tr>
         </thead>
         <tbody></tbody>
@@ -242,30 +245,30 @@ function createPreviewContent(result, isDebug) {
         filtered.sort((a, b) => {
             let valA = '';
             let valB = '';
-            if (sortCol === 'date') {
+            if (previewSort.column === 'date') {
                 valA = (a.year || 0) * 10000 + (a.month || 0) * 100 + (a.day || 0);
                 valB = (b.year || 0) * 10000 + (b.month || 0) * 100 + (b.day || 0);
             }
-            else if (sortCol === 'performers') {
+            else if (previewSort.column === 'performers') {
                 valA = (a.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
                 valB = (b.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             }
-            else if (sortCol === 'venue') {
+            else if (previewSort.column === 'venue') {
                 valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
                 valB = ((b.venue?.confidence && b.venue?.confidence > 0) ? (b.venue?.match || '') : (b.venue?.name || '')).toLowerCase();
             }
-            else if (sortCol === 'promoters') {
+            else if (previewSort.column === 'promoters') {
                 valA = (a.promoters || []).map((p) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
                 valB = (b.promoters || []).map((p) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             }
-            else if (sortCol === 'consistent') {
+            else if (previewSort.column === 'consistent') {
                 valA = a.consistent ? 1 : 0;
                 valB = b.consistent ? 1 : 0;
             }
             if (valA < valB)
-                return sortDir === 'asc' ? -1 : 1;
+                return previewSort.direction === 'asc' ? -1 : 1;
             if (valA > valB)
-                return sortDir === 'asc' ? 1 : -1;
+                return previewSort.direction === 'asc' ? 1 : -1;
             return 0;
         });
         // Build HTML
@@ -334,18 +337,21 @@ function createPreviewContent(result, isDebug) {
                 </tr>
             `;
         }).join('');
+        if (document.getElementById('preview-table')) {
+            updateSortIndicators('preview-table', previewSort);
+        }
     };
     // Event Listeners for Sort
     thead.addEventListener('click', (e) => {
         const th = e.target.closest('th');
         if (th && th.dataset.col) {
             const col = th.dataset.col;
-            if (sortCol === col) {
-                sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+            if (previewSort.column === col) {
+                previewSort.direction = previewSort.direction === 'asc' ? 'desc' : 'asc';
             }
             else {
-                sortCol = col;
-                sortDir = 'asc';
+                previewSort.column = col;
+                previewSort.direction = 'asc';
             }
             render();
         }
