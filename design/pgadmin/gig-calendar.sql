@@ -43,15 +43,56 @@ CREATE TABLE IF NOT EXISTS public.event_promoter
 CREATE TABLE IF NOT EXISTS public.event_type
 (
     id serial NOT NULL,
-    created timestamp without time zone NOT NULL DEFAULT now(),
-    updated timestamp without time zone NOT NULL DEFAULT now(),
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
     name text COLLATE pg_catalog."default" NOT NULL,
+    created timestamp with time zone NOT NULL DEFAULT now(),
+    updated timestamp with time zone NOT NULL DEFAULT now(),
     CONSTRAINT event_type_pkey PRIMARY KEY (id),
-    CONSTRAINT event_type_name_key UNIQUE (name)
+    CONSTRAINT event_type_uuid_key UNIQUE (uuid)
 );
 
-COMMENT ON TABLE public.event_type
-    IS 'The types of event possible - examples music gig, music festival, comedy gig';
+CREATE TABLE IF NOT EXISTS public.festival
+(
+    id serial NOT NULL,
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
+    name text COLLATE pg_catalog."default" NOT NULL DEFAULT ''::text,
+    promoter integer NOT NULL,
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    description text COLLATE pg_catalog."default",
+    CONSTRAINT festival_pkey1 PRIMARY KEY (id),
+    CONSTRAINT festival_uuid_key1 UNIQUE (uuid)
+);
+
+CREATE TABLE IF NOT EXISTS public.festival_alias
+(
+    id serial NOT NULL,
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
+    festival integer NOT NULL,
+    alias text COLLATE pg_catalog."default" NOT NULL,
+    created timestamp with time zone NOT NULL DEFAULT now(),
+    updated timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT festival_alias_pkey1 PRIMARY KEY (id),
+    CONSTRAINT festival_alias_alias_key1 UNIQUE (alias),
+    CONSTRAINT festival_alias_uuid_key1 UNIQUE (uuid)
+);
+
+CREATE TABLE IF NOT EXISTS public.festival_promoter
+(
+    festival integer NOT NULL,
+    promoter integer NOT NULL,
+    role text COLLATE pg_catalog."default",
+    CONSTRAINT festival_promoter_pkey PRIMARY KEY (festival, promoter)
+);
+
+CREATE TABLE IF NOT EXISTS public.festival_venue
+(
+    festival integer NOT NULL,
+    venue integer NOT NULL,
+    stage_order integer,
+    is_primary boolean DEFAULT false,
+    CONSTRAINT festival_venue_pkey PRIMARY KEY (festival, venue)
+);
 
 CREATE TABLE IF NOT EXISTS public.goose_db_version
 (
@@ -104,14 +145,14 @@ CREATE TABLE IF NOT EXISTS public.performer
 CREATE TABLE IF NOT EXISTS public.performer_alias
 (
     id serial NOT NULL,
-    created timestamp without time zone NOT NULL DEFAULT now(),
-    updated timestamp without time zone NOT NULL DEFAULT now(),
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
     performer integer NOT NULL,
     alias text COLLATE pg_catalog."default" NOT NULL,
-    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
-    CONSTRAINT performer_alias_pkey PRIMARY KEY (id),
-    CONSTRAINT performer_alias_alias_key UNIQUE (alias),
-    CONSTRAINT uq_performer_alias_uuid UNIQUE (uuid)
+    created timestamp without time zone NOT NULL DEFAULT now(),
+    updated timestamp without time zone NOT NULL DEFAULT now(),
+    CONSTRAINT performer_alias_pkey1 PRIMARY KEY (id),
+    CONSTRAINT performer_alias_alias_key1 UNIQUE (alias),
+    CONSTRAINT performer_alias_uuid_key UNIQUE (uuid)
 );
 
 CREATE TABLE IF NOT EXISTS public.promoter
@@ -128,14 +169,14 @@ CREATE TABLE IF NOT EXISTS public.promoter
 CREATE TABLE IF NOT EXISTS public.promoter_alias
 (
     id serial NOT NULL,
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
     promoter integer NOT NULL,
     alias text COLLATE pg_catalog."default" NOT NULL,
     created timestamp with time zone NOT NULL DEFAULT now(),
     updated timestamp with time zone NOT NULL DEFAULT now(),
-    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
-    CONSTRAINT promoter_alias_pkey PRIMARY KEY (id),
-    CONSTRAINT promoter_alias_alias_key UNIQUE (alias),
-    CONSTRAINT uq_promoter_alias_uuid UNIQUE (uuid)
+    CONSTRAINT promoter_alias_pkey1 PRIMARY KEY (id),
+    CONSTRAINT promoter_alias_alias_key1 UNIQUE (alias),
+    CONSTRAINT promoter_alias_uuid_key UNIQUE (uuid)
 );
 
 CREATE TABLE IF NOT EXISTS public.source_image
@@ -146,6 +187,7 @@ CREATE TABLE IF NOT EXISTS public.source_image
     updated timestamp without time zone NOT NULL DEFAULT now(),
     event integer NOT NULL,
     source integer NOT NULL,
+    directory text COLLATE pg_catalog."default" NOT NULL DEFAULT ''::text,
     CONSTRAINT source_image_pkey PRIMARY KEY (id)
 );
 
@@ -163,23 +205,15 @@ CREATE TABLE IF NOT EXISTS public.venue
 CREATE TABLE IF NOT EXISTS public.venue_alias
 (
     id serial NOT NULL,
+    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
     venue integer NOT NULL,
+    alias text COLLATE pg_catalog."default" NOT NULL,
     created timestamp without time zone NOT NULL DEFAULT now(),
     updated timestamp without time zone NOT NULL DEFAULT now(),
-    alias text COLLATE pg_catalog."default" NOT NULL,
-    uuid uuid NOT NULL DEFAULT gen_random_uuid(),
-    CONSTRAINT venue_alias_pkey PRIMARY KEY (id),
-    CONSTRAINT uq_venue_alias_uuid UNIQUE (uuid),
-    CONSTRAINT venue_alias_alias_key UNIQUE (alias)
+    CONSTRAINT venue_alias_pkey1 PRIMARY KEY (id),
+    CONSTRAINT venue_alias_alias_key1 UNIQUE (alias),
+    CONSTRAINT venue_alias_uuid_key UNIQUE (uuid)
 );
-
-ALTER TABLE IF EXISTS public.event
-    ADD CONSTRAINT "Event Type" FOREIGN KEY (event_type)
-    REFERENCES public.event_type (id) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
-
 
 ALTER TABLE IF EXISTS public.event
     ADD CONSTRAINT "Venue for Event" FOREIGN KEY (venue)
@@ -187,6 +221,13 @@ ALTER TABLE IF EXISTS public.event
     ON UPDATE NO ACTION
     ON DELETE NO ACTION
     NOT VALID;
+
+
+ALTER TABLE IF EXISTS public.event
+    ADD CONSTRAINT event_event_type_fkey FOREIGN KEY (event_type)
+    REFERENCES public.event_type (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE RESTRICT;
 
 
 ALTER TABLE IF EXISTS public.event_performer
@@ -221,6 +262,48 @@ ALTER TABLE IF EXISTS public.event_promoter
     NOT VALID;
 
 
+ALTER TABLE IF EXISTS public.festival
+    ADD CONSTRAINT festival_promoter_id_fkey1 FOREIGN KEY (promoter)
+    REFERENCES public.promoter (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE RESTRICT;
+
+
+ALTER TABLE IF EXISTS public.festival_alias
+    ADD CONSTRAINT festival_alias_festival_id_fkey FOREIGN KEY (festival)
+    REFERENCES public.festival (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.festival_promoter
+    ADD CONSTRAINT festival_promoter_festival_id_fkey FOREIGN KEY (festival)
+    REFERENCES public.festival (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.festival_promoter
+    ADD CONSTRAINT festival_promoter_promoter_id_fkey FOREIGN KEY (promoter)
+    REFERENCES public.promoter (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE RESTRICT;
+
+
+ALTER TABLE IF EXISTS public.festival_venue
+    ADD CONSTRAINT festival_venue_festival_id_fkey FOREIGN KEY (festival)
+    REFERENCES public.festival (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE CASCADE;
+
+
+ALTER TABLE IF EXISTS public.festival_venue
+    ADD CONSTRAINT festival_venue_venue_id_fkey FOREIGN KEY (venue)
+    REFERENCES public.venue (id) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE RESTRICT;
+
+
 ALTER TABLE IF EXISTS public.image_location_scans
     ADD CONSTRAINT image_location_scans_location_fkey FOREIGN KEY (location)
     REFERENCES public.image_location (id) MATCH SIMPLE
@@ -230,15 +313,14 @@ ALTER TABLE IF EXISTS public.image_location_scans
 
 
 ALTER TABLE IF EXISTS public.performer_alias
-    ADD CONSTRAINT performer_alias_performer_fkey FOREIGN KEY (performer)
+    ADD CONSTRAINT performer_alias_performer_fkey1 FOREIGN KEY (performer)
     REFERENCES public.performer (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
+    ON DELETE NO ACTION;
 
 
 ALTER TABLE IF EXISTS public.promoter_alias
-    ADD CONSTRAINT promoter_alias_promoter_fkey FOREIGN KEY (promoter)
+    ADD CONSTRAINT promoter_alias_promoter_fkey1 FOREIGN KEY (promoter)
     REFERENCES public.promoter (id) MATCH SIMPLE
     ON UPDATE NO ACTION
     ON DELETE CASCADE;
@@ -261,10 +343,9 @@ ALTER TABLE IF EXISTS public.source_image
 
 
 ALTER TABLE IF EXISTS public.venue_alias
-    ADD CONSTRAINT venue_alias_venue_fkey FOREIGN KEY (venue)
+    ADD CONSTRAINT venue_alias_venue_fkey1 FOREIGN KEY (venue)
     REFERENCES public.venue (id) MATCH SIMPLE
     ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    NOT VALID;
+    ON DELETE NO ACTION;
 
 END;
