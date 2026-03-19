@@ -7,23 +7,26 @@ package database
 
 import (
 	"context"
+
+	"github.com/google/uuid"
 )
 
 const createEventType = `-- name: CreateEventType :one
 INSERT INTO event_type (name)
 VALUES ($1)
-RETURNING id, name
+RETURNING id, uuid, name
 `
 
 type CreateEventTypeRow struct {
 	ID   int32
+	Uuid uuid.UUID
 	Name string
 }
 
 func (q *Queries) CreateEventType(ctx context.Context, name string) (CreateEventTypeRow, error) {
 	row := q.db.QueryRowContext(ctx, createEventType, name)
 	var i CreateEventTypeRow
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Uuid, &i.Name)
 	return i, err
 }
 
@@ -38,31 +41,33 @@ func (q *Queries) DeleteEventType(ctx context.Context, id int32) error {
 }
 
 const getEventType = `-- name: GetEventType :one
-SELECT id, name
+SELECT id, uuid, name
 FROM event_type
 WHERE id = $1
 `
 
 type GetEventTypeRow struct {
 	ID   int32
+	Uuid uuid.UUID
 	Name string
 }
 
 func (q *Queries) GetEventType(ctx context.Context, id int32) (GetEventTypeRow, error) {
 	row := q.db.QueryRowContext(ctx, getEventType, id)
 	var i GetEventTypeRow
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Uuid, &i.Name)
 	return i, err
 }
 
 const listEventTypes = `-- name: ListEventTypes :many
-SELECT id, name
+SELECT id, uuid, name
 FROM event_type
 ORDER BY name
 `
 
 type ListEventTypesRow struct {
 	ID   int32
+	Uuid uuid.UUID
 	Name string
 }
 
@@ -75,7 +80,7 @@ func (q *Queries) ListEventTypes(ctx context.Context) ([]ListEventTypesRow, erro
 	var items []ListEventTypesRow
 	for rows.Next() {
 		var i ListEventTypesRow
-		if err := rows.Scan(&i.ID, &i.Name); err != nil {
+		if err := rows.Scan(&i.ID, &i.Uuid, &i.Name); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -93,7 +98,7 @@ const updateEventType = `-- name: UpdateEventType :one
 UPDATE event_type
 SET name = $2
 WHERE id = $1
-RETURNING id, name
+RETURNING id, uuid, name
 `
 
 type UpdateEventTypeParams struct {
@@ -103,12 +108,13 @@ type UpdateEventTypeParams struct {
 
 type UpdateEventTypeRow struct {
 	ID   int32
+	Uuid uuid.UUID
 	Name string
 }
 
 func (q *Queries) UpdateEventType(ctx context.Context, arg UpdateEventTypeParams) (UpdateEventTypeRow, error) {
 	row := q.db.QueryRowContext(ctx, updateEventType, arg.ID, arg.Name)
 	var i UpdateEventTypeRow
-	err := row.Scan(&i.ID, &i.Name)
+	err := row.Scan(&i.ID, &i.Uuid, &i.Name)
 	return i, err
 }

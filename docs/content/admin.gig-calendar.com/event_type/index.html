@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Types - Gig Calendar Admin</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Event Types Administration</h1>
+        </header>
+        
+        <main id="app">
+            <!-- SPA content will be injected here -->
+            <div class="controls">
+                <button id="new-btn">New</button>
+                <button id="refresh-btn">Refresh Table</button>
+            </div>
+            <table id="event-types-list">
+                <thead>
+                    <tr>
+                        <th data-col="ID">ID <span class="sort-indicator"></span></th>
+                        <th data-col="UUID">UUID <span class="sort-indicator"></span></th>
+                        <th data-col="Name">Name <span class="sort-indicator"></span></th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr class="filter-row">
+                        <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
+                        <th><input type="text" id="filter-uuid" placeholder="Filter UUID"></th>
+                        <th><input type="text" id="filter-name" placeholder="Filter Name"></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                </tbody>
+            </table>
+            <div id="no-data-message" class="hidden"></div>
+        </main>
+    </div>
+    <script type="module" src="../assets/js/event_type/app.js"></script>
+</body>
+</html>

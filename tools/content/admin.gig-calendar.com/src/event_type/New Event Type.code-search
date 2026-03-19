@@ -1,0 +1,14 @@
+# Query: New Event Type
+# ContextLines: 1
+
+2 results - 2 files
+
+docs/content/admin.gig-calendar.com/event_type/index.html:
+  17              <div class="controls">
+  18:                 <button id="new-btn">New</button>
+  19                  <button id="refresh-btn">Refresh Table</button>
+
+tools/content/admin.gig-calendar.com/src/event_type/event.ts:
+  12      if (existingAddRow) {
+  13:         alert('Please save or cancel the current new event type before adding another.');
+  14          existingAddRow.closest('tr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });

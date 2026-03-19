@@ -39,12 +39,12 @@ type EventPromoter struct {
 	Primary  bool
 }
 
-// The types of event possible - examples music gig, music festival, comedy gig
 type EventType struct {
 	ID      int32
+	Uuid    uuid.UUID
+	Name    string
 	Created time.Time
 	Updated time.Time
-	Name    string
 }
 
 type Festival struct {

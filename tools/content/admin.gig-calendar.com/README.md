@@ -84,3 +84,12 @@ This directory contains the code for various parts of the application, using Go 
 
 * It should be possible to sort by any of the column of the table
 * It should be possible to filter on any of the columns of the table
+
+* File structure for the SPA should be
+  * api.ts
+  * app.ts - the main application called from HTML
+  * events.ts
+  * types.ts - containing types used with the SPA
+  * ui.ts
+
+* The index.html file hosting the SPA should be located in the docs/content/admin.gig-calendar.com/${name of table}/ directory
