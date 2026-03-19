@@ -1,9 +1,10 @@
 import type { VenueAlias, Venue } from './types.js';
+import { getActionButtonsHtml, getEditButtonsHtml, getNoDataRowHtml, formatDateTime } from '../shared/ui.js';
 
 export function renderTable(tbody: HTMLTableSectionElement, aliases: VenueAlias[], venues: Venue[]) {
     tbody.innerHTML = ''; // Clear existing rows
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No venue aliases found.</td></tr>';
+        tbody.innerHTML = getNoDataRowHtml(7, 'No venue aliases found.');
         return;
     }
     aliases.forEach(alias => renderDisplayRow(tbody, alias, venues));
@@ -20,13 +21,9 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: VenueAli
         <td>${getVenueName(alias.Venue, venues)}</td>
         <td>${alias.Uuid}</td>
         <td>${alias.Alias}</td>
-        <td>${new Date(alias.Created).toLocaleString()}</td>
-        <td>${new Date(alias.Updated).toLocaleString()}</td>
-        <td class="actions">
-            <button class="btn-icon edit-btn" title="Edit">✏️</button>
-            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
-            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
-        </td>
+        <td>${formatDateTime(alias.Created)}</td>
+        <td>${formatDateTime(alias.Updated)}</td>
+        <td class="actions">${getActionButtonsHtml()}</td>
     `;
 }
 
@@ -52,16 +49,9 @@ export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<Ven
         </td>
         <td>${alias.Uuid || 'N/A'}</td>
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" style="width: 100%;"></td>
-        <td>${alias.Created ? new Date(alias.Created).toLocaleString() : 'N/A'}</td>
-        <td>${alias.Updated ? new Date(alias.Updated).toLocaleString() : 'N/A'}</td>
-        <td class="actions">
-            ${isNew 
-                ? `<button class="btn-icon add-btn" title="Add">✅</button>
-                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
-                : `<button class="btn-icon save-btn" title="Save">💾</button>
-                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`
-            }
-        </td>
+        <td>${formatDateTime(alias.Created)}</td>
+        <td>${formatDateTime(alias.Updated)}</td>
+        <td class="actions">${getEditButtonsHtml(isNew)}</td>
     `;
 }
 

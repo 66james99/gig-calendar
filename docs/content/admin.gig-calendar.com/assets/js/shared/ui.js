@@ -36,3 +36,23 @@ export function updateSortIndicators(tableId, currentSort) {
         }
     });
 }
+export function getActionButtonsHtml() {
+    return `
+        <button class="btn-icon edit-btn" title="Edit">✏️</button>
+        <button class="btn-icon delete-btn" title="Delete">🗑️</button>
+        <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
+    `;
+}
+export function getEditButtonsHtml(isNew) {
+    return isNew
+        ? `<button class="btn-icon add-btn" title="Add">✅</button>
+           <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
+        : `<button class="btn-icon save-btn" title="Save">💾</button>
+                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`;
+}
+export function getNoDataRowHtml(colSpan, message) {
+    return `<tr><td colspan="${colSpan}" style="text-align: center;">${message}</td></tr>`;
+}
+export function formatDateTime(dateStr) {
+    return dateStr ? new Date(dateStr).toLocaleString() : 'N/A';
+}

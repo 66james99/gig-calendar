@@ -1,7 +1,8 @@
+import { getActionButtonsHtml, getEditButtonsHtml, getNoDataRowHtml, formatDateTime } from '../shared/ui.js';
 export function renderTable(tbody, performers) {
     tbody.innerHTML = ''; // Clear existing rows
     if (performers.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No performers found.</td></tr>';
+        tbody.innerHTML = getNoDataRowHtml(6, 'No performers found.');
         return;
     }
     performers.forEach(performer => renderDisplayRow(tbody, performer));
@@ -16,13 +17,9 @@ export function renderDisplayRow(tbody, performer) {
         <td>${performer.ID}</td>
         <td>${performer.Name}</td>
         <td>${performer.Uuid}</td>
-        <td>${new Date(performer.Created).toLocaleString()}</td>
-        <td>${new Date(performer.Updated).toLocaleString()}</td>
-        <td class="actions">
-            <button class="btn-icon edit-btn" title="Edit">✏️</button>
-            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
-            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
-        </td>
+        <td>${formatDateTime(performer.Created)}</td>
+        <td>${formatDateTime(performer.Updated)}</td>
+        <td class="actions">${getActionButtonsHtml()}</td>
     `;
 }
 export function renderEditRow(tbody, performer, isNew) {
@@ -38,14 +35,8 @@ export function renderEditRow(tbody, performer, isNew) {
         <td>${performer.ID || 'New'}</td>
         <td><input type="text" class="edit-name" value="${performer.Name || ''}" style="width: 100%;"></td>
         <td>${performer.Uuid || 'N/A'}</td>
-        <td>${performer.Created ? new Date(performer.Created).toLocaleString() : 'N/A'}</td>
-        <td>${performer.Updated ? new Date(performer.Updated).toLocaleString() : 'N/A'}</td>
-        <td class="actions">
-            ${isNew
-        ? `<button class="btn-icon add-btn" title="Add">✅</button>
-                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
-        : `<button class="btn-icon save-btn" title="Save">💾</button>
-                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`}
-        </td>
+        <td>${formatDateTime(performer.Created)}</td>
+        <td>${formatDateTime(performer.Updated)}</td>
+        <td class="actions">${getEditButtonsHtml(isNew)}</td>
     `;
 }

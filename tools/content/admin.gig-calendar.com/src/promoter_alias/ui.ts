@@ -1,9 +1,10 @@
 import type { PromoterAlias, Promoter } from './types.js';
+import { getActionButtonsHtml, getEditButtonsHtml, getNoDataRowHtml, formatDateTime } from '../shared/ui.js';
 
 export function renderTable(tbody: HTMLTableSectionElement, aliases: PromoterAlias[], promoters: Promoter[]) {
     tbody.innerHTML = '';
     if (aliases.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No promoter aliases found.</td></tr>';
+        tbody.innerHTML = getNoDataRowHtml(7, 'No promoter aliases found.');
         return;
     }
 
@@ -27,13 +28,9 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, alias: Promoter
         <td>${promoterName}</td>
         <td>${alias.Alias}</td>
         <td>${alias.Uuid}</td>
-        <td>${new Date(alias.Created).toLocaleString()}</td>
-        <td>${new Date(alias.Updated).toLocaleString()}</td>
-        <td class="actions">
-            <button class="btn-icon edit-btn" title="Edit">✏️</button>
-            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
-            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
-        </td>
+        <td>${formatDateTime(alias.Created)}</td>
+        <td>${formatDateTime(alias.Updated)}</td>
+        <td class="actions">${getActionButtonsHtml()}</td>
     `;
 }
 
@@ -69,16 +66,9 @@ export function renderEditRow(tbody: HTMLTableSectionElement, alias: Partial<Pro
         </td>
         <td><input type="text" class="edit-alias" value="${alias.Alias || ''}" placeholder="Alias"></td>
         <td>${alias.Uuid || '-'}</td>
-        <td>${alias.Created ? new Date(alias.Created).toLocaleString() : '-'}</td>
-        <td>${alias.Updated ? new Date(alias.Updated).toLocaleString() : '-'}</td>
-        <td class="actions">
-            ${isNew 
-                ? `<button class="btn-icon add-btn" title="Add">✅</button>
-                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
-                : `<button class="btn-icon save-btn" title="Save">💾</button>
-                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`
-            }
-        </td>
+        <td>${formatDateTime(alias.Created)}</td>
+        <td>${formatDateTime(alias.Updated)}</td>
+        <td class="actions">${getEditButtonsHtml(isNew)}</td>
     `;
     
     // Focus on the alias input for convenience

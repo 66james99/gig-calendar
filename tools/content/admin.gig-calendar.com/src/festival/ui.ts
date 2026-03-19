@@ -1,9 +1,10 @@
 import type { Festival, Promoter } from './types.js';
+import { getActionButtonsHtml, getEditButtonsHtml, getNoDataRowHtml } from '../shared/ui.js';
 
 export function renderTable(tbody: HTMLTableSectionElement, festivals: Festival[], promoters: Promoter[]) {
     tbody.innerHTML = '';
     if (festivals.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No festivals found.</td></tr>';
+        tbody.innerHTML = getNoDataRowHtml(8, 'No festivals found.');
         return;
     }
 
@@ -34,11 +35,7 @@ export function renderDisplayRow(tbody: HTMLTableSectionElement, festival: Festi
         <td>${end}</td>
         <td>${festival.Description || ''}</td>
         <td>${festival.Uuid}</td>
-        <td class="actions">
-            <button class="btn-icon edit-btn" title="Edit">✏️</button>
-            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
-            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
-        </td>
+        <td class="actions">${getActionButtonsHtml()}</td>
     `;
 }
 
@@ -78,13 +75,6 @@ export function renderEditRow(tbody: HTMLTableSectionElement, festival: Partial<
         <td><input type="date" class="edit-end" value="${end}"></td>
         <td><input type="text" class="edit-description" value="${description}" placeholder="Description"></td>
         <td>${festival.Uuid || '-'}</td>
-        <td class="actions">
-            ${isNew 
-                ? `<button class="btn-icon add-btn" title="Add">✅</button>
-                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
-                : `<button class="btn-icon save-btn" title="Save">💾</button>
-                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`
-            }
-        </td>
+        <td class="actions">${getEditButtonsHtml(isNew)}</td>
     `;
 }
