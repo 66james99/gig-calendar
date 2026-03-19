@@ -1,7 +1,8 @@
+import { getActionButtonsHtml, getEditButtonsHtml, getNoDataRowHtml } from '../shared/ui.js';
 export function renderTable(tbody, festivals, promoters) {
     tbody.innerHTML = '';
     if (festivals.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No festivals found.</td></tr>';
+        tbody.innerHTML = getNoDataRowHtml(8, 'No festivals found.');
         return;
     }
     festivals.forEach(festival => {
@@ -27,11 +28,7 @@ export function renderDisplayRow(tbody, festival, promoters) {
         <td>${end}</td>
         <td>${festival.Description || ''}</td>
         <td>${festival.Uuid}</td>
-        <td class="actions">
-            <button class="btn-icon edit-btn" title="Edit">✏️</button>
-            <button class="btn-icon duplicate-btn" title="Duplicate">📋</button>
-            <button class="btn-icon delete-btn" title="Delete">🗑️</button>
-        </td>
+        <td class="actions">${getActionButtonsHtml()}</td>
     `;
 }
 export function renderEditRow(tbody, festival, isNew, promoters) {
@@ -51,6 +48,7 @@ export function renderEditRow(tbody, festival, isNew, promoters) {
     const promoterOptions = promoters.map(p => `<option value="${p.ID}" ${p.ID === festival.Promoter ? 'selected' : ''}>${p.Name}</option>`).join('');
     const start = festival.StartDate ? festival.StartDate.split('T')[0] : '';
     const end = festival.EndDate ? festival.EndDate.split('T')[0] : '';
+    const description = festival.Description || '';
     row.innerHTML = `
         <td>${festival.ID || 'New'}</td>
         <td><input type="text" class="edit-name" value="${festival.Name || ''}" placeholder="Name"></td>
@@ -62,14 +60,8 @@ export function renderEditRow(tbody, festival, isNew, promoters) {
         </td>
         <td><input type="date" class="edit-start" value="${start}"></td>
         <td><input type="date" class="edit-end" value="${end}"></td>
-        <td><input type="text" class="edit-description" value="${festival.Description || ''}" placeholder="Description"></td>
+        <td><input type="text" class="edit-description" value="${description}" placeholder="Description"></td>
         <td>${festival.Uuid || '-'}</td>
-        <td class="actions">
-            ${isNew
-        ? `<button class="btn-icon add-btn" title="Add">✅</button>
-                   <button class="btn-icon cancel-add-btn" title="Cancel">❌</button>`
-        : `<button class="btn-icon save-btn" title="Save">💾</button>
-                   <button class="btn-icon cancel-btn" title="Cancel">❌</button>`}
-        </td>
+        <td class="actions">${getEditButtonsHtml(isNew)}</td>
     `;
 }
