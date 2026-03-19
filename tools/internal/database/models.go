@@ -137,12 +137,13 @@ type PromoterAlias struct {
 }
 
 type SourceImage struct {
-	ID      int32
-	Uuid    uuid.UUID
-	Created time.Time
-	Updated time.Time
-	Event   int32
-	Source  int32
+	ID        int32
+	Uuid      uuid.UUID
+	Created   time.Time
+	Updated   time.Time
+	Event     int32
+	Source    int32
+	Directory string
 }
 
 type Venue struct {
