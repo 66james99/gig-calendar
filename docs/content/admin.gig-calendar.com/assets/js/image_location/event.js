@@ -241,6 +241,21 @@ function createPreviewContent(result, isDebug) {
                 promStr.toLowerCase().includes(filters.promoters.toLowerCase()) &&
                 consistentMatch;
         });
+        // Update headers to show filtered count
+        const headerTitles = {
+            date: 'Date',
+            performers: 'Performers',
+            venue: 'Venue',
+            promoters: 'Promoters',
+            consistent: 'OK'
+        };
+        Object.keys(headerTitles).forEach(key => {
+            const th = thead.querySelector(`th[data-col="${key}"]`);
+            if (th) {
+                const isActive = filters[key] !== '';
+                th.innerHTML = `${headerTitles[key]}${isActive ? ` (${filtered.length})` : ''} <span class="sort-indicator"></span>`;
+            }
+        });
         // Sort
         filtered.sort((a, b) => {
             let valA = '';

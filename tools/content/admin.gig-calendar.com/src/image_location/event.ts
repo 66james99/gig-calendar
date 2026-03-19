@@ -286,6 +286,22 @@ function createPreviewContent(result: ScanResult, isDebug: boolean): HTMLElement
                    consistentMatch;
         });
 
+        // Update headers to show filtered count
+        const headerTitles: Record<string, string> = {
+            date: 'Date',
+            performers: 'Performers',
+            venue: 'Venue',
+            promoters: 'Promoters',
+            consistent: 'OK'
+        };
+        (Object.keys(headerTitles) as Array<keyof typeof filters>).forEach(key => {
+            const th = thead.querySelector(`th[data-col="${key}"]`);
+            if (th) {
+                const isActive = filters[key] !== '';
+                th.innerHTML = `${headerTitles[key]}${isActive ? ` (${filtered.length})` : ''} <span class="sort-indicator"></span>`;
+            }
+        });
+
         // Sort
         filtered.sort((a, b) => {
             let valA: string | number = '';
