@@ -29,14 +29,15 @@ func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, tab
 		dbQueried:    0,
 		dbNotQueried: 0,
 	}
-	if err := c.GetConstValues(ctx); err != nil {
+	// Use the Update function to create the inital population of the constants array
+	if err := c.UpdateConstValues(ctx); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
 // GetConstValues populates the array DBConst.consts with data from the configured column and table.
-func (c *DBConst[T]) GetConstValues(ctx context.Context) error {
+func (c *DBConst[T]) UpdateConstValues(ctx context.Context) error {
 	var lastModified time.Time
 	if err := c.db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", c.table).Scan(&lastModified); err != nil {
 		return err
