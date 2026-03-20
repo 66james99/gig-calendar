@@ -150,6 +150,8 @@ type StageRole struct {
 	ID      int32
 	Uuid    uuid.UUID
 	Pattern string
+	Created time.Time
+	Updated time.Time
 }
 
 type Venue struct {

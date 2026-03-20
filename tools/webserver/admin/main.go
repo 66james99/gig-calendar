@@ -135,6 +135,13 @@ func main() {
 	apiGroup.PUT("/event_types/:id", handler.UpdateEventType)
 	apiGroup.DELETE("/event_types/:id", handler.DeleteEventType)
 
+	// --- Stage Roles Routes ---
+	apiGroup.POST("/stage_roles", handler.CreateStageRole)
+	apiGroup.GET("/stage_roles", handler.ListStageRoles)
+	apiGroup.GET("/stage_roles/:id", handler.GetStageRole)
+	apiGroup.PUT("/stage_roles/:id", handler.UpdateStageRole)
+	apiGroup.DELETE("/stage_roles/:id", handler.DeleteStageRole)
+
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")
 
