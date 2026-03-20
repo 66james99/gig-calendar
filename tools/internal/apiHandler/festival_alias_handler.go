@@ -10,6 +10,11 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
+type festivalAliasPayload struct {
+	FestivalID int32  `json:"festival_id"`
+	Alias      string `json:"alias"`
+}
+
 // --- Festival Alias Handlers ---
 
 func (a *API) CreateFestivalAlias(c *echo.Context) error {

@@ -14,17 +14,7 @@ import (
 	"github.com/labstack/echo/v5"
 )
 
-// API holds the database queries, making them available to handlers.
-type API struct {
-	queries *database.Queries
-}
 
-// New creates a new API handler instance.
-func New(queries *database.Queries) *API {
-	return &API{
-		queries: queries,
-	}
-}
 
 // imageLocationPayload defines the shape of the JSON body for create and update requests.
 type imageLocationPayload struct {

@@ -21,10 +21,7 @@ type festivalPayload struct {
 }
 
 // festivalAliasPayload defines the JSON body for creating/updating a festival alias.
-type festivalAliasPayload struct {
-	FestivalID int32  `json:"festival_id"`
-	Alias      string `json:"alias"`
-}
+
 
 func mapFestival(f database.Festival) map[string]interface{} {
 	return map[string]interface{}{
