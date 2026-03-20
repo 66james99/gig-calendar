@@ -2,6 +2,10 @@
 SELECT id, uuid, promoter, created, updated, alias FROM promoter_alias
 ORDER BY alias;
 
+-- name: GetPerformerAliasByName :one
+SELECT * FROM performer_alias
+WHERE alias = $1 LIMIT 1;
+
 -- name: CreatePromoterAlias :one
 INSERT INTO promoter_alias (promoter, alias)
 VALUES ($1, $2)

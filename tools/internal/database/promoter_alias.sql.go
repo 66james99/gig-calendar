@@ -56,6 +56,25 @@ func (q *Queries) DeletePromoterAlias(ctx context.Context, id int32) error {
 	return err
 }
 
+const getPerformerAliasByName = `-- name: GetPerformerAliasByName :one
+SELECT id, uuid, performer, alias, created, updated FROM performer_alias
+WHERE alias = $1 LIMIT 1
+`
+
+func (q *Queries) GetPerformerAliasByName(ctx context.Context, alias string) (PerformerAlias, error) {
+	row := q.db.QueryRowContext(ctx, getPerformerAliasByName, alias)
+	var i PerformerAlias
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Performer,
+		&i.Alias,
+		&i.Created,
+		&i.Updated,
+	)
+	return i, err
+}
+
 const getPromoterAlias = `-- name: GetPromoterAlias :one
 SELECT id, uuid, promoter, created, updated, alias FROM promoter_alias
 WHERE id = $1

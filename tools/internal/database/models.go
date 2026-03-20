@@ -146,6 +146,12 @@ type SourceImage struct {
 	Directory string
 }
 
+type StageRole struct {
+	ID      int32
+	Uuid    uuid.UUID
+	Pattern string
+}
+
 type Venue struct {
 	ID      int32
 	Uuid    uuid.UUID

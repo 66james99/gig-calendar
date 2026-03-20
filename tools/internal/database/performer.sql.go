@@ -56,6 +56,24 @@ func (q *Queries) GetPerformer(ctx context.Context, id int32) (Performer, error)
 	return i, err
 }
 
+const getPerformerByName = `-- name: GetPerformerByName :one
+SELECT id, uuid, created, updated, name FROM performer
+WHERE name = $1 LIMIT 1
+`
+
+func (q *Queries) GetPerformerByName(ctx context.Context, name string) (Performer, error) {
+	row := q.db.QueryRowContext(ctx, getPerformerByName, name)
+	var i Performer
+	err := row.Scan(
+		&i.ID,
+		&i.Uuid,
+		&i.Created,
+		&i.Updated,
+		&i.Name,
+	)
+	return i, err
+}
+
 const listPerformers = `-- name: ListPerformers :many
 SELECT id, uuid, created, updated, name FROM performer
 ORDER BY name

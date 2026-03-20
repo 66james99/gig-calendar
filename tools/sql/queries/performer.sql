@@ -2,6 +2,10 @@
 SELECT id, uuid, created, updated, name FROM performer
 ORDER BY name;
 
+-- name: GetPerformerByName :one
+SELECT * FROM performer
+WHERE name = $1 LIMIT 1;
+
 -- name: CreatePerformer :one
 INSERT INTO performer (name)
 VALUES ($1)

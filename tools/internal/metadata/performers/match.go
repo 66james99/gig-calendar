@@ -2,6 +2,7 @@ package performers
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
@@ -28,37 +29,30 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	}
 
 	// 1. Exact match in Performer table
+	p, err := q.GetPerformerByName(ctx, normalized)
+	if err == nil {
+		return PerformerMatchResult{Name: p.Name, Match: p.Name, Confidence: 100}, nil
+	} else if err != sql.ErrNoRows {
+		return PerformerMatchResult{}, err
+	}
+
+	// 2. Match in Performer Alias table
+	a, err := q.GetPerformerAliasByName(ctx, normalized)
+	if err == nil {
+		performer, err := q.GetPerformer(ctx, a.Performer)
+		if err != nil {
+			return PerformerMatchResult{}, err
+		}
+		return PerformerMatchResult{Name: rawPerformer, Match: performer.Name, Confidence: 75}, nil
+	} else if err != sql.ErrNoRows {
+		return PerformerMatchResult{}, err
+	}
+
+	// 3. Fuzzy match against Performers
 	performers, err := q.ListPerformers(ctx)
 	if err != nil {
 		return PerformerMatchResult{}, err
 	}
-
-	for _, p := range performers {
-		if p.Name == normalized {
-			return PerformerMatchResult{Name: p.Name, Match: p.Name, Confidence: 100}, nil
-		}
-	}
-
-	// 2. Match in Performer Alias table
-	aliases, err := q.ListPerformerAliases(ctx)
-	if err != nil {
-		return PerformerMatchResult{}, err
-	}
-
-	performerMap := make(map[int32]string)
-	for _, p := range performers {
-		performerMap[p.ID] = p.Name
-	}
-
-	for _, a := range aliases {
-		if a.Alias == normalized {
-			if name, ok := performerMap[a.Performer]; ok {
-				return PerformerMatchResult{Name: rawPerformer, Match: name, Confidence: 75}, nil
-			}
-		}
-	}
-
-	// 3. Fuzzy match against Performers
 	for _, p := range performers {
 		if metadata.IsFuzzyMatch(p.Name, normalized) {
 			return PerformerMatchResult{Name: rawPerformer, Match: p.Name, Confidence: 50}, nil
@@ -66,6 +60,14 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	}
 
 	// 4. Fuzzy match against Performer Aliases
+	aliases, err := q.ListPerformerAliases(ctx)
+	if err != nil {
+		return PerformerMatchResult{}, err
+	}
+	performerMap := make(map[int32]string)
+	for _, p := range performers {
+		performerMap[p.ID] = p.Name
+	}
 	for _, a := range aliases {
 		if metadata.IsFuzzyMatch(a.Alias, normalized) {
 			if name, ok := performerMap[a.Performer]; ok {
