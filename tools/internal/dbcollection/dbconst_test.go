@@ -22,7 +22,7 @@ func TestNewDBConst(t *testing.T) {
 	column := "my_col"
 	ts := time.Now()
 
-	// 1. NewDBConst calls GetConstValues
+	// 1. NewDBConst calls UpdateConstValues
 	//    a. QueryRowContext for metadata
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
@@ -45,12 +45,19 @@ func TestNewDBConst(t *testing.T) {
 		t.Errorf("got values %v, want [val1, val2]", vals)
 	}
 
+	if c.GetDBQueried() != 1 {
+		t.Errorf("got dbQueried %d, want 1", c.GetDBQueried())
+	}
+	if c.GetDBNotQueried() != 0 {
+		t.Errorf("got dbNotQueried %d, want 0", c.GetDBNotQueried())
+	}
+
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)
 	}
 }
 
-func TestGetConstValues_Cached(t *testing.T) {
+func TestUpdateConstValues_Cached(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -75,14 +82,28 @@ func TestGetConstValues_Cached(t *testing.T) {
 		t.Fatalf("setup failed: %v", err)
 	}
 
+	if c.GetDBQueried() != 1 {
+		t.Errorf("after initial load, got dbQueried %d, want 1", c.GetDBQueried())
+	}
+	if c.GetDBNotQueried() != 0 {
+		t.Errorf("after initial load, got dbNotQueried %d, want 0", c.GetDBNotQueried())
+	}
+
 	// Test: Call GetConstValues again with SAME timestamp
 	// Should only query metadata, not the table
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"last_modified"}).AddRow(ts))
 
-	if err := c.GetConstValues(ctx); err != nil {
-		t.Errorf("GetConstValues failed: %v", err)
+	if err := c.UpdateConstValues(ctx); err != nil {
+		t.Errorf("UpdateConstValues failed: %v", err)
+	}
+
+	if c.GetDBQueried() != 1 {
+		t.Errorf("after cached call, got dbQueried %d, want 1", c.GetDBQueried())
+	}
+	if c.GetDBNotQueried() != 1 {
+		t.Errorf("after cached call, got dbNotQueried %d, want 1", c.GetDBNotQueried())
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {
@@ -90,7 +111,7 @@ func TestGetConstValues_Cached(t *testing.T) {
 	}
 }
 
-func TestGetConstValues_Refresh(t *testing.T) {
+func TestUpdateConstValues_Refresh(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -116,6 +137,13 @@ func TestGetConstValues_Refresh(t *testing.T) {
 		t.Fatalf("setup failed: %v", err)
 	}
 
+	if c.GetDBQueried() != 1 {
+		t.Errorf("after initial load, got dbQueried %d, want 1", c.GetDBQueried())
+	}
+	if c.GetDBNotQueried() != 0 {
+		t.Errorf("after initial load, got dbNotQueried %d, want 0", c.GetDBNotQueried())
+	}
+
 	// Test: Call GetConstValues with NEW timestamp
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
@@ -124,13 +152,20 @@ func TestGetConstValues_Refresh(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnRows(sqlmock.NewRows([]string{column}).AddRow("new_val"))
 
-	if err := c.GetConstValues(ctx); err != nil {
-		t.Errorf("GetConstValues failed: %v", err)
+	if err := c.UpdateConstValues(ctx); err != nil {
+		t.Errorf("UpdateConstValues failed: %v", err)
 	}
 
 	vals := c.Get()
 	if len(vals) != 1 || vals[0] != "new_val" {
 		t.Errorf("expected [new_val], got %v", vals)
+	}
+
+	if c.GetDBQueried() != 2 {
+		t.Errorf("after refresh, got dbQueried %d, want 2", c.GetDBQueried())
+	}
+	if c.GetDBNotQueried() != 0 {
+		t.Errorf("after refresh, got dbNotQueried %d, want 0", c.GetDBNotQueried())
 	}
 
 	if err := mock.ExpectationsWereMet(); err != nil {

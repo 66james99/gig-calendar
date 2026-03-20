@@ -38,46 +38,30 @@ func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, tab
 
 // GetConstValues populates the array DBConst.consts with data from the configured column and table.
 func (c *DBConst[T]) UpdateConstValues(ctx context.Context) error {
-	var lastModified time.Time
-	if err := c.db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", c.table).Scan(&lastModified); err != nil {
+	lastModified, err := getMetaTimestamp(ctx, c.db, c.table)
+	if err != nil {
 		return err
 	}
+
 	c.mu.RLock()
 	if !lastModified.After(c.lastModified) {
 		c.mu.RUnlock()
-		c.mu.Lock()
-		c.dbNotQueried++
-		c.mu.Unlock()
+		c.incrementNotQueried()
 		return nil
 	}
 	c.mu.RUnlock()
 
-	query := fmt.Sprintf("SELECT %s FROM %s", c.column, c.table)
-	rows, err := c.db.QueryContext(ctx, query)
+	items, err := getValues[T](ctx, c.db, c.column, c.table)
 	if err != nil {
 		return err
 	}
-	defer rows.Close()
 
-	var items []T
-	for rows.Next() {
-		var i T
-		if err := rows.Scan(&i); err != nil {
-			return err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return err
-	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.consts = items
 	c.lastModified = lastModified
 	c.dbQueried++
+
 	return nil
 }
 
@@ -86,4 +70,61 @@ func (c *DBConst[T]) Get() []T {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.consts
+}
+
+// GetDBQueried returns the number of times the database was queried for the main data.
+func (c *DBConst[T]) GetDBQueried() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.dbQueried
+}
+
+// GetDBNotQueried returns the number of times the data was served from cache.
+func (c *DBConst[T]) GetDBNotQueried() int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.dbNotQueried
+}
+
+func (c *DBConst[T]) incrementNotQueried() {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.dbNotQueried++
+}
+
+const getDBCollectionMetaTimestamp = `-- name: GetDBCollectionMetaTimestamp :one
+SELECT last_modified FROM dbcollections_meta WHERE table_name = $1
+`
+
+func getMetaTimestamp(ctx context.Context, db database.DBTX, tableName string) (time.Time, error) {
+	var lastModified time.Time
+	err := db.QueryRowContext(ctx, getDBCollectionMetaTimestamp, tableName).Scan(&lastModified)
+	return lastModified, err
+}
+
+func getValues[T any](ctx context.Context, db database.DBTX, column string, table string) ([]T, error) {
+	// This function encapsulates a dynamic query that sqlc cannot generate.
+	// It builds the query string and scans the results into a generic slice.
+	query := fmt.Sprintf("SELECT %s FROM %s", column, table)
+	rows, err := db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []T
+	for rows.Next() {
+		var i T
+		if err := rows.Scan(&i); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
