@@ -11,9 +11,11 @@ import (
 // PerformerMatchResult holds the result of a performer matching operation.
 type PerformerMatchResult struct {
 	Name       string `json:"name"`
-	Match      string `json:"match"`
+	Match      string `json:"match,omitempty"`
 	Confidence int    `json:"confidence"`
+	Pattern    string `json:"pattern,omitempty"`
 }
+
 
 // PerformerMatch checks for the existence of a performer in the database.
 // It returns a confidence score:
@@ -78,3 +80,24 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 
 	return PerformerMatchResult{Name: rawPerformer, Match: "", Confidence: 0}, nil
 }
+
+func MultiPerformerMatch(ctx context.Context, q *database.Queries, rawPerformers string) ([]PerformerMatchResult, error) {
+	var results []PerformerMatchResult
+
+	match, err := PerformerMatch(ctx, q, rawPerformers)
+	if err != nil {
+		return nil, err
+	}
+	
+	if match.Confidence > 0 { // we found a match on the full rawPerformers - so no need to futher divide
+		results = append(results, match)
+		return results, nil
+	}
+
+	// Check if rawPerformers contains at least one of the patterns used to seperate multiple performers on stage
+
+	// If we've reached here we've not found any matches despite splitting the rawPerformers based on patterns that indicate multiple performers on stage
+	
+	return results, nil
+}
+
