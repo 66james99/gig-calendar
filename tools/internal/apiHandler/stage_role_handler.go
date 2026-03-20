@@ -11,7 +11,7 @@ import (
 )
 
 type stageRolePayload struct {
-	Name string `json:"name"`
+	Pattern string `json:"pattern"`
 }
 
 func (a *API) CreateStageRole(c *echo.Context) error {
@@ -20,7 +20,7 @@ func (a *API) CreateStageRole(c *echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request payload"})
 	}
 
-	role, err := a.queries.CreateStageRole(c.Request().Context(), payload.Name)
+	role, err := a.queries.CreateStageRole(c.Request().Context(), payload.Pattern)
 	if err != nil {
 		log.Printf("Error creating stage role: %v", err)
 		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "Failed to create stage role"})
@@ -68,7 +68,7 @@ func (a *API) UpdateStageRole(c *echo.Context) error {
 	}
 
 	params := database.UpdateStageRoleParams{
-		Name: payload.Name,
+		Pattern: payload.Pattern,
 		ID:   int32(id),
 	}
 

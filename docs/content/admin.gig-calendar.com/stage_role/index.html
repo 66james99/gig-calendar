@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stage Roles - Admin</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1>Stage Roles</h1>
+        </nav>
+    </header>
+
+    <main>
+        <div class="toolbar">
+            <button id="new-btn" class="btn btn-primary">New</button>
+            <button id="refresh-btn" class="btn">Refresh Table</button>
+        </div>
+
+        <div class="table-container">
+            <table id="stage-roles-list">
+                <thead>
+                    <tr>
+                        <th data-sort="id" data-col="ID">ID</th>
+                        <th data-sort="uuid" data-col="Uuid">UUID</th>
+                        <th data-sort="pattern" data-col="Pattern">Pattern</th>
+                        <th data-sort="created" data-col="Created">Created</th>
+                        <th data-sort="updated" data-col="Updated">Updated</th>
+                        <th>Actions</th>
+                    </tr>
+                    <tr class="filter-row">
+                        <th><input type="text" id="filter-id" placeholder="Filter ID"></th>
+                        <th><input type="text" id="filter-uuid" placeholder="Filter UUID"></th>
+                        <th><input type="text" id="filter-pattern" placeholder="Filter Pattern"></th>
+                        <th></th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Rows will be populated by JS -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script type="module" src="../assets/js/stage_role/app.js"></script>
+</body>
+</html>
