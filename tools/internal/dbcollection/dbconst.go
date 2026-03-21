@@ -22,6 +22,10 @@ type DBConst[T any] struct {
 
 // NewDBConst creates a new DBConst instance with the specified column and table.
 func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, table string) (*DBConst[T], error) {
+	if err := validateColumnType(ctx, db, column, table); err != nil {
+		return nil, err
+	}
+
 	c := &DBConst[T]{
 		db:           db,
 		column:       column,
@@ -127,4 +131,44 @@ func getValues[T any](ctx context.Context, db database.DBTX, column string, tabl
 		return nil, err
 	}
 	return items, nil
+}
+
+func validateColumnType(ctx context.Context, db database.DBTX, column string, table string) error {
+	const query = `
+SELECT column_name, data_type
+FROM information_schema.columns
+WHERE table_name = $1;
+`
+	rows, err := db.QueryContext(ctx, query, table)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var allowedTypes = map[string]bool{
+		"text":                        true,
+		"varchar":                     true,
+		"character varying":           true,
+		"integer":                     true,
+		"bigint":                      true,
+		"boolean":                     true,
+		"timestamp with time zone":    true,
+		"timestamp without time zone": true,
+		"uuid":                        true,
+		"jsonb":                       true,
+	}
+
+	for rows.Next() {
+		var colName, dataType string
+		if err := rows.Scan(&colName, &dataType); err != nil {
+			return err
+		}
+		if colName == column {
+			if allowedTypes[dataType] {
+				return nil
+			}
+			return fmt.Errorf("column type %s not allowed", dataType)
+		}
+	}
+	return fmt.Errorf("column %s not found in table %s", column, table)
 }
