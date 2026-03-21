@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
 	"strings"
 
 	"github.com/66james99/gig-calendar/internal/database"
+	"github.com/66james99/gig-calendar/internal/dbcollection"
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/images"
 	"github.com/joho/godotenv"
@@ -136,6 +138,10 @@ func main() {
 			defer db.Close()
 			cfg.Queries = database.New(db)
 		}
+		patternsConst, err := dbcollection.NewDBConst[string](context.Background(), cfg.Queries, "stage_role", "pattern")
+		if err == nil {
+			cfg.Patterns = patternsConst
+		}
 
 		if cfg.Debug {
 			fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
@@ -151,7 +157,7 @@ func main() {
 		if cfg.Verbose {
 			for _, s := range result.Successes {
 				fmt.Printf("Parsed Location: \"%s\" ->\n Date: %04d-%02d-%02d\n Venue: %s (Match: %s, Conf: %d%%)\n Performers: %v\n Promoters: %v\n\n",
-				 			s.Directory, s.Year, s.Month, s.Day, s.Venue.Name, s.Venue.Match, s.Venue.Confidence, s.Performers, s.Promoters)
+					s.Directory, s.Year, s.Month, s.Day, s.Venue.Name, s.Venue.Match, s.Venue.Confidence, s.Performers, s.Promoters)
 			}
 		}
 

@@ -13,16 +13,18 @@ import (
 	"github.com/66james99/gig-calendar/internal/metadata/performers"
 	"github.com/66james99/gig-calendar/internal/metadata/promoters"
 	"github.com/66james99/gig-calendar/internal/metadata/venues"
+	"github.com/66james99/gig-calendar/internal/dbcollection"
 )
 
 type ImagesConfig struct {
 	metadata.BaseConfig
 	DateFromExif  bool
 	RootDir       string
-	Pattern       string
+	Pattern       string	// The pattern of tokens to be matching in the directory path
 	IncludeParent bool
 	IgnoreDirs    []string
 	Queries       *database.Queries
+	Patterns      *dbcollection.DBConst[string]		// An array of patterns to be used to seperate performers when there are more than one in a single slot
 }
 
 type Performer struct {
