@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/66james99/gig-calendar/internal/database"
-	"github.com/66james99/gig-calendar/internal/metadata"
+	// "github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/images"
 	"github.com/labstack/echo/v5"
 )
@@ -153,7 +153,6 @@ func (a *API) PreviewImageLocationScan(c *echo.Context) error {
 		IncludeParent: 	location.IncludeParent,
 		IgnoreDirs:    	location.IgnoreDirs,
 		Queries:       	a.queries,
-		},
 	}
 
 	// 4. Execute the core logic from the finder tool.
