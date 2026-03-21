@@ -64,14 +64,14 @@ type ScanResult struct {
 
 // MatchedResult holds the outcome of matching Performers, Venue and Promoter against those existing in the DB
 type MatchedResult struct {
-	Directory  string                            `json:"directory"`
-	Year       int                               `json:"year,omitempty"`
-	Month      int                               `json:"month,omitempty"`
-	Day        int                               `json:"day,omitempty"`
-	Performers []performers.PerformerMatchResult `json:"performers,omitempty"`
-	Venue      venues.VenueMatchResult           `json:"venue,omitempty"`
-	Promoters  []promoters.PromoterMatchResult   `json:"promoters,omitempty"`
-	Consistent bool                              `json:"consistent"`
+	Directory  string                            	`json:"directory"`
+	Year       int                               	`json:"year,omitempty"`
+	Month      int                               	`json:"month,omitempty"`
+	Day        int                               	`json:"day,omitempty"`
+	Performers [][]performers.PerformerMatchResult 	`json:"performers,omitempty"`
+	Venue      venues.VenueMatchResult           	`json:"venue,omitempty"`
+	Promoters  []promoters.PromoterMatchResult   	`json:"promoters,omitempty"`
+	Consistent bool                              	`json:"consistent"`
 }
 
 // ExecuteScan performs the directory scanning and parsing based on the provided config.
@@ -134,7 +134,7 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 						for _, p := range data.Performers {
 							match, err := performers.PerformerMatch(context.Background(), cfg.Queries, p)
 							if err == nil {
-								matched.Performers = append(matched.Performers, match)
+								matched.Performers = append(matched.Performers, []performers.PerformerMatchResult{match})
 							} else if cfg.Debug {
 								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
 							}

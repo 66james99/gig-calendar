@@ -6,6 +6,7 @@ import (
 
 	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
+	"github.com/66james99/gig-calendar/internal/dbcollection"
 )
 
 // PerformerMatchResult holds the result of a performer matching operation.
@@ -81,7 +82,7 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	return PerformerMatchResult{Name: rawPerformer, Match: "", Confidence: 0}, nil
 }
 
-func MultiPerformerMatch(ctx context.Context, q *database.Queries, rawPerformers string) ([]PerformerMatchResult, error) {
+func MultiPerformerMatch(ctx context.Context, q *database.Queries, patterns *dbcollection.DBConst[string], rawPerformers string) ([]PerformerMatchResult, error) {
 	var results []PerformerMatchResult
 
 	match, err := PerformerMatch(ctx, q, rawPerformers)
