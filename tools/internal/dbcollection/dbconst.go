@@ -10,7 +10,7 @@ import (
 )
 
 type DBConst[T any] struct {
-	db           database.DBTX
+	db           *database.Queries
 	mu           sync.RWMutex
 	consts       []T
 	lastModified time.Time
@@ -21,7 +21,7 @@ type DBConst[T any] struct {
 }
 
 // NewDBConst creates a new DBConst instance with the specified column and table.
-func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, table string) (*DBConst[T], error) {
+func NewDBConst[T any](ctx context.Context, db *database.Queries, column string, table string) (*DBConst[T], error) {
 	exists, err := validateColumnExistence(ctx, db, table, column)
 	if err != nil {
 		return nil, err
@@ -30,7 +30,7 @@ func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, tab
 		return nil, fmt.Errorf("column %s not found in table %s", column, table)
 	}
 
-	if err := validateColumnType(ctx, db, column, table); err != nil {
+	if err := validateColumnType[T](ctx, db, column, table); err != nil {
 		return nil, err
 	}
 
@@ -116,19 +116,19 @@ SELECT EXISTS (
 )
 `
 
-func validateColumnExistence(ctx context.Context, db database.DBTX, table string, column string) (bool, error) {
+func validateColumnExistence(ctx context.Context, db database.Queries, table string, column string) (bool, error) {
 	var exists bool
 	err := db.QueryRowContext(ctx, validateColumnExistenceQuery, table, column).Scan(&exists)
 	return exists, err
 }
 
-func getMetaTimestamp(ctx context.Context, db database.DBTX, tableName string) (time.Time, error) {
+func getMetaTimestamp(ctx context.Context, db database.Queries, tableName string) (time.Time, error) {
 	var lastModified time.Time
 	err := db.QueryRowContext(ctx, getDBCollectionMetaTimestamp, tableName).Scan(&lastModified)
 	return lastModified, err
 }
 
-func getValues[T any](ctx context.Context, db database.DBTX, column string, table string) ([]T, error) {
+func getValues[T any](ctx context.Context, db database.Queries, column string, table string) ([]T, error) {
 	// This function encapsulates a dynamic query that sqlc cannot generate.
 	// It builds the query string and scans the results into a generic slice.
 	query := fmt.Sprintf("SELECT %s FROM %s", column, table)
@@ -155,42 +155,31 @@ func getValues[T any](ctx context.Context, db database.DBTX, column string, tabl
 	return items, nil
 }
 
-func validateColumnType(ctx context.Context, db database.DBTX, column string, table string) error {
+func validateColumnType[T any](ctx context.Context, db *database.Queries, column string, table string) error {
 	const query = `
-SELECT column_name, data_type
+SELECT data_type
 FROM information_schema.columns
-WHERE table_name = $1;
+WHERE table_name = $1 AND column_name = $2;
 `
-	rows, err := db.QueryContext(ctx, query, table)
-	if err != nil {
+	var dataType string
+	if err := db.QueryRowContext(ctx, query, table, column).Scan(&dataType); err != nil {
 		return err
 	}
-	defer rows.Close()
 
-	var allowedTypes = map[string]bool{
-		"text":                        true,
-		"varchar":                     true,
-		"character varying":           true,
-		"integer":                     true,
-		"bigint":                      true,
-		"boolean":                     true,
-		"timestamp with time zone":    true,
-		"timestamp without time zone": true,
-		"uuid":                        true,
-		"jsonb":                       true,
+	var zero T
+	var valid bool
+	switch any(zero).(type) {
+	case string:
+		valid = dataType == "text" || dataType == "varchar" || dataType == "character varying" || dataType == "uuid"
+	case int, int32, int64:
+		valid = dataType == "integer" || dataType == "bigint" || dataType == "smallint"
+	case bool:
+		valid = dataType == "boolean"
+	case time.Time:
+		valid = dataType == "timestamp with time zone" || dataType == "timestamp without time zone"
 	}
-
-	for rows.Next() {
-		var colName, dataType string
-		if err := rows.Scan(&colName, &dataType); err != nil {
-			return err
-		}
-		if colName == column {
-			if allowedTypes[dataType] {
-				return nil
-			}
-			return fmt.Errorf("column type %s not allowed", dataType)
-		}
+	if !valid {
+		return fmt.Errorf("column %s is type %s, which is not compatible with %T", column, dataType, zero)
 	}
-	return fmt.Errorf("column %s not found in table %s", column, table)
+	return nil
 }
