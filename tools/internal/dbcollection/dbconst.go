@@ -22,6 +22,14 @@ type DBConst[T any] struct {
 
 // NewDBConst creates a new DBConst instance with the specified column and table.
 func NewDBConst[T any](ctx context.Context, db database.DBTX, column string, table string) (*DBConst[T], error) {
+	exists, err := validateColumnExistence(ctx, db, table, column)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, fmt.Errorf("column %s not found in table %s", column, table)
+	}
+
 	if err := validateColumnType(ctx, db, column, table); err != nil {
 		return nil, err
 	}
@@ -99,6 +107,20 @@ func (c *DBConst[T]) incrementNotQueried() {
 const getDBCollectionMetaTimestamp = `-- name: GetDBCollectionMetaTimestamp :one
 SELECT last_modified FROM dbcollections_meta WHERE table_name = $1
 `
+
+const validateColumnExistenceQuery = `-- name: ValidateColumnExistence :one
+SELECT EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = $1 AND column_name = $2
+)
+`
+
+func validateColumnExistence(ctx context.Context, db database.DBTX, table string, column string) (bool, error) {
+	var exists bool
+	err := db.QueryRowContext(ctx, validateColumnExistenceQuery, table, column).Scan(&exists)
+	return exists, err
+}
 
 func getMetaTimestamp(ctx context.Context, db database.DBTX, tableName string) (time.Time, error) {
 	var lastModified time.Time

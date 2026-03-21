@@ -22,12 +22,17 @@ func TestNewDBConst(t *testing.T) {
 	column := "my_col"
 	ts := time.Now()
 
-	// 0. Validate column type
+	// 1. Validate column existence
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+	// 2. Validate column type
 	mock.ExpectQuery("SELECT column_name, data_type").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"column_name", "data_type"}).AddRow(column, "text"))
 
-	// 1. NewDBConst calls UpdateConstValues
+	// 3. NewDBConst calls UpdateConstValues
 	//    a. QueryRowContext for metadata
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
@@ -74,7 +79,12 @@ func TestUpdateConstValues_Cached(t *testing.T) {
 	column := "my_col"
 	ts := time.Now()
 
-	// 0. Validate column type
+	// 1. Validate column existence
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+	// 2. Validate column type
 	mock.ExpectQuery("SELECT column_name, data_type").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"column_name", "data_type"}).AddRow(column, "text"))
@@ -134,7 +144,12 @@ func TestUpdateConstValues_Refresh(t *testing.T) {
 	ts1 := time.Now().Add(-1 * time.Hour)
 	ts2 := time.Now()
 
-	// 0. Validate column type
+	// 1. Validate column existence
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
+	// 2. Validate column type
 	mock.ExpectQuery("SELECT column_name, data_type").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"column_name", "data_type"}).AddRow(column, "text"))
@@ -199,8 +214,22 @@ func TestNewDBConst_Errors(t *testing.T) {
 	table := "error_table"
 	column := "error_col"
 
-	// Case 1: Metadata query fails
+	// Case 1: Existence check fails
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(false))
+
+	_, err = NewDBConst[int](ctx, db, column, table)
+	if err == nil {
+		t.Error("expected error when column does not exist, got nil")
+	}
+
+	// Case 2: Metadata query fails
 	// Must pass validation first
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
 	mock.ExpectQuery("SELECT column_name, data_type").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"column_name", "data_type"}).AddRow(column, "text"))
@@ -214,8 +243,12 @@ func TestNewDBConst_Errors(t *testing.T) {
 		t.Error("expected error when metadata query fails, got nil")
 	}
 
-	// Case 2: Data query fails
+	// Case 3: Data query fails
 	// Must pass validation first
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
+
 	mock.ExpectQuery("SELECT column_name, data_type").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"column_name", "data_type"}).AddRow(column, "text"))
@@ -246,6 +279,11 @@ func TestNewDBConst_InvalidColumnType(t *testing.T) {
 	ctx := context.Background()
 	table := "bad_table"
 	column := "bad_col"
+
+	// Existence passes
+	mock.ExpectQuery("SELECT EXISTS").
+		WithArgs(table, column).
+		WillReturnRows(sqlmock.NewRows([]string{"exists"}).AddRow(true))
 
 	// Return a disallowed type (e.g., "bytea")
 	mock.ExpectQuery("SELECT column_name, data_type").
