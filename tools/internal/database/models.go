@@ -11,6 +11,11 @@ import (
 	"github.com/google/uuid"
 )
 
+type DbcollectionsMetum struct {
+	TableName    string
+	LastModified time.Time
+}
+
 type Event struct {
 	ID        int32
 	Uuid      uuid.UUID

@@ -138,9 +138,19 @@ func main() {
 			defer db.Close()
 			cfg.Queries = database.New(db)
 		}
-		patternsConst, err := dbcollection.NewDBConst[string](context.Background(), cfg.Queries, "stage_role", "pattern")
+		patternsConst, err := dbcollection.NewDBConst(context.Background(), cfg.Queries.LastModifiedPatternConsts, cfg.Queries.GetPatternConsts)
 		if err == nil {
 			cfg.Patterns = patternsConst
+		} else {
+			fmt.Printf("Error: %v\n", err)
+			return
+		}
+		patterns := cfg.Patterns.Get()
+		if cfg.Debug {
+			fmt.Printf("Patterns being used:\n")
+			for _, p := range patterns {
+				fmt.Printf("Pattern: %s\n", p)
+			}
 		}
 
 		if cfg.Debug {
