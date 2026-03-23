@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"sort"
 	"strings"
+	"unicode"
 
 	"github.com/66james99/gig-calendar/internal/database"
 	// "github.com/66james99/gig-calendar/internal/dbcollection"
@@ -147,7 +148,17 @@ func splitFuzzy(s, sep string) []string {
 	sRunes := []rune(s)
 	sLower := []rune(strings.ToLower(s))
 	sepLowerStr := strings.ToLower(sep)
-	sepLen := len([]rune(sepLowerStr))
+	sepRunes := []rune(sepLowerStr)
+	sepLen := len(sepRunes)
+
+	checkLeftBoundary := false
+	if sepLen > 0 && (unicode.IsLetter(sepRunes[0]) || unicode.IsDigit(sepRunes[0])) {
+		checkLeftBoundary = true
+	}
+	checkRightBoundary := false
+	if sepLen > 0 && (unicode.IsLetter(sepRunes[sepLen-1]) || unicode.IsDigit(sepRunes[sepLen-1])) {
+		checkRightBoundary = true
+	}
 
 	var parts []string
 	lastIdx := 0
@@ -169,9 +180,25 @@ func splitFuzzy(s, sep string) []string {
 			candidate := string(sLower[i : i+l])
 			dist := metadata.Levenshtein(candidate, sepLowerStr)
 			if dist <= threshold {
-				if dist < bestDist {
-					bestDist = dist
-					bestLen = l
+				valid := true
+				if checkLeftBoundary && i > 0 {
+					prev := sLower[i-1]
+					if unicode.IsLetter(prev) || unicode.IsDigit(prev) {
+						valid = false
+					}
+				}
+				if valid && checkRightBoundary && i+l < len(sLower) {
+					next := sLower[i+l]
+					if unicode.IsLetter(next) || unicode.IsDigit(next) {
+						valid = false
+					}
+				}
+
+				if valid {
+					if dist < bestDist {
+						bestDist = dist
+						bestLen = l
+					}
 				}
 			}
 		}
