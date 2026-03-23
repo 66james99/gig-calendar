@@ -2,6 +2,7 @@ package dbcollection
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 )
@@ -20,6 +21,12 @@ type DBArray[T any] struct {
 
 // NewDBArray creates a new DBArray instance with the specified column and table.
 func NewDBArray[T any](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) ([]T, error)) (*DBArray[T], error) {
+	if lastModifiedFunc == nil {
+		return nil, errors.New("lastModifiedFunc cannot be nil")
+	}
+	if dataFunc == nil {
+		return nil, errors.New("dataFunc cannot be nil")
+	}
 	c := &DBArray[T]{
 		lastModifiedFunc: lastModifiedFunc,
 		dataFunc:         dataFunc,
@@ -51,6 +58,9 @@ func (c *DBArray[T]) UpdateArrayValues(ctx context.Context) error {
 	items, err := c.dataFunc(ctx)
 	if err != nil {
 		return err
+	}
+	if items == nil {
+		items = make([]T, 0)
 	}
 
 	c.mu.Lock()

@@ -288,3 +288,17 @@ func TestNewDBArray_Errors(t *testing.T) {
 		t.Error("expected error when data query fails, got nil")
 	}
 }
+
+func TestNewDBArray_NilReturn(t *testing.T) {
+	ctx := context.Background()
+	c, err := NewDBArray(ctx,
+		func(_ context.Context) (time.Time, error) { return time.Now(), nil },
+		func(_ context.Context) ([]string, error) { return nil, nil },
+	)
+	if err != nil {
+		t.Fatalf("NewDBArray failed: %v", err)
+	}
+	if c.Get() == nil {
+		t.Error("Get() returned nil, expected empty slice")
+	}
+}
