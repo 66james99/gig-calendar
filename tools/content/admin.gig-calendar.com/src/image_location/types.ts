@@ -25,26 +25,34 @@ export interface MatchedVenue {
     confidence: number;
 }
 
-export interface MatchedPerformer {
+export interface PerformerMatchResult {
+    name: string;
+    match?: string;
+    confidence: number;
+    pattern?: string;
+}
+
+export interface PromoterMatchResult {
     name: string;
     match: string;
     confidence: number;
+    festival?: boolean;
 }
 
-export interface ParsedResult {
+export interface MatchedResult {
     directory: string;
     year?: number;
     month?: number;
     day?: number;
-    performers?: MatchedPerformer[];
+    performers?: PerformerMatchResult[][];
     venue?: MatchedVenue;
-    promoters?: string[];
+    promoters?: PromoterMatchResult[];
     consistent: boolean;
 }
 
 export interface ScanResult {
     directories: string[];
-    successes?: ParsedResult[];
+    successes?: MatchedResult[];
     success_count: number;
     inconsistent_count: number;
     error_count: number;

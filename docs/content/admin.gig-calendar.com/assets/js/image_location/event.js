@@ -231,9 +231,10 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : '';
-            const perfStr = (item.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
+            const flatPerformers = (item.performers || []).reduce((acc, val) => acc.concat(val), []);
+            const perfStr = flatPerformers.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const venueName = (item.venue?.confidence && item.venue?.confidence > 0) ? (item.venue?.match || '') : (item.venue?.name || '');
-            const promStr = (item.promoters || []).map((p) => (p.confidence > 0 ? p.match : p.name)).join(', ');
+            const promStr = (item.promoters || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const consistentMatch = filters.consistent === '' || item.consistent.toString() === filters.consistent;
             return dateStr.includes(filters.date) &&
                 perfStr.toLowerCase().includes(filters.performers.toLowerCase()) &&
@@ -265,16 +266,18 @@ function createPreviewContent(result, isDebug) {
                 valB = (b.year || 0) * 10000 + (b.month || 0) * 100 + (b.day || 0);
             }
             else if (previewSort.column === 'performers') {
-                valA = (a.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
-                valB = (b.performers || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                const flatA = (a.performers || []).reduce((acc, val) => acc.concat(val), []);
+                const flatB = (b.performers || []).reduce((acc, val) => acc.concat(val), []);
+                valA = flatA.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                valB = flatB.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             }
             else if (previewSort.column === 'venue') {
                 valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
                 valB = ((b.venue?.confidence && b.venue?.confidence > 0) ? (b.venue?.match || '') : (b.venue?.name || '')).toLowerCase();
             }
             else if (previewSort.column === 'promoters') {
-                valA = (a.promoters || []).map((p) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
-                valB = (b.promoters || []).map((p) => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                valA = (a.promoters || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                valB = (b.promoters || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
             }
             else if (previewSort.column === 'consistent') {
                 valA = a.consistent ? 1 : 0;
@@ -295,7 +298,8 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : 'N/A';
-            const perfStr = (item.performers || []).map(p => {
+            const flatPerformers = (item.performers || []).reduce((acc, val) => acc.concat(val), []);
+            const perfStr = flatPerformers.map(p => {
                 const conf = p.confidence || 0;
                 const display = (conf > 0 ? p.match : p.name) || '';
                 let color = 'red';
@@ -310,7 +314,7 @@ function createPreviewContent(result, isDebug) {
                 const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
                 return `<span style="color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${tooltip}>${display}</span>`;
             }).join(', ');
-            const promStr = (item.promoters || []).map((p) => {
+            const promStr = (item.promoters || []).map(p => {
                 const conf = p.confidence || 0;
                 const display = (conf > 0 ? p.match : p.name) || '';
                 let color = 'red';
