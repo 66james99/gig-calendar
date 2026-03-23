@@ -24,7 +24,7 @@ type ImagesConfig struct {
 	IncludeParent bool
 	IgnoreDirs    []string
 	Queries       *database.Queries
-	Patterns      *dbcollection.DBConst[string]		// An array of patterns to be used to seperate performers when there are more than one in a single slot
+	Patterns      *dbcollection.DBArray[string]		// An array of patterns to be used to seperate performers when there are more than one in a single slot
 }
 
 type Performer struct {

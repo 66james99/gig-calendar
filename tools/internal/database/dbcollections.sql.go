@@ -41,6 +41,7 @@ func (q *Queries) GetPatternConsts(ctx context.Context) ([]string, error) {
 const lastModifiedPatternConsts = `-- name: LastModifiedPatternConsts :one
 SELECT last_modified FROM dbcollections_meta 
 WHERE table_name = 'stage_role'
+LIMIT 1
 `
 
 func (q *Queries) LastModifiedPatternConsts(ctx context.Context) (time.Time, error) {

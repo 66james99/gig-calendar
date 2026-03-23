@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-type DBConst[T any] struct {
+type DBArray[T any] struct {
 	mu               sync.RWMutex
 	consts           []T
 	lastModified     time.Time
@@ -16,25 +16,25 @@ type DBConst[T any] struct {
 	dbNotQueried     int
 }
 
-// func (q *Queries) LastModifiedConsts(ctx context.Context, tableName string) (time.Time, error)
+// func (q *Queries) LastModifiedArrays(ctx context.Context, tableName string) (time.Time, error)
 
-// NewDBConst creates a new DBConst instance with the specified column and table.
-func NewDBConst[T any](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) ([]T, error)) (*DBConst[T], error) {
-	c := &DBConst[T]{
+// NewDBArray creates a new DBArray instance with the specified column and table.
+func NewDBArray[T any](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) ([]T, error)) (*DBArray[T], error) {
+	c := &DBArray[T]{
 		lastModifiedFunc: lastModifiedFunc,
 		dataFunc:         dataFunc,
 		dbQueried:        0,
 		dbNotQueried:     0,
 	}
-	// Use the Update function to create the inital population of the constants array
-	if err := c.UpdateConstValues(ctx); err != nil {
+	// Use the Update function to create the initial population of the array
+	if err := c.UpdateArrayValues(ctx); err != nil {
 		return nil, err
 	}
 	return c, nil
 }
 
-// GetConstValues populates the array DBConst.consts with data from the configured column and table.
-func (c *DBConst[T]) UpdateConstValues(ctx context.Context) error {
+// UpdateArrayValues populates the array DBArray.consts with data from the configured column and table.
+func (c *DBArray[T]) UpdateArrayValues(ctx context.Context) error {
 	lastModified, err := c.lastModifiedFunc(ctx)
 	if err != nil {
 		return err
@@ -62,34 +62,29 @@ func (c *DBConst[T]) UpdateConstValues(ctx context.Context) error {
 	return nil
 }
 
-// Get returns the cached constants in a thread-safe manner.
-func (c *DBConst[T]) Get() []T {
+// Get returns the cached values in a thread-safe manner.
+func (c *DBArray[T]) Get() []T {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.consts
 }
 
 // GetDBQueried returns the number of times the database was queried for the main data.
-func (c *DBConst[T]) GetDBQueried() int {
+func (c *DBArray[T]) GetDBQueried() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.dbQueried
 }
 
 // GetDBNotQueried returns the number of times the data was served from cache.
-func (c *DBConst[T]) GetDBNotQueried() int {
+func (c *DBArray[T]) GetDBNotQueried() int {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 	return c.dbNotQueried
 }
 
-func (c *DBConst[T]) incrementNotQueried() {
+func (c *DBArray[T]) incrementNotQueried() {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.dbNotQueried++
 }
-
-
-
-
-

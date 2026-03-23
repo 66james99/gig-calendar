@@ -82,7 +82,7 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	return PerformerMatchResult{Name: rawPerformer, Match: "", Confidence: 0}, nil
 }
 
-func MultiPerformerMatch(ctx context.Context, q *database.Queries, patterns *dbcollection.DBConst[string], rawPerformers string) ([]PerformerMatchResult, error) {
+func MultiPerformerMatch(ctx context.Context, q *database.Queries, patterns *dbcollection.DBArray[string], rawPerformers string) ([]PerformerMatchResult, error) {
 	var results []PerformerMatchResult
 
 	match, err := PerformerMatch(ctx, q, rawPerformers)

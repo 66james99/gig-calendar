@@ -10,7 +10,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 )
 
-func TestNewDBConst(t *testing.T) {
+func TestNewDBArray(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -22,7 +22,7 @@ func TestNewDBConst(t *testing.T) {
 	column := "my_col"
 	ts := time.Now()
 
-	// 1. NewDBConst calls UpdateConstValues
+	// 1. NewDBArray calls UpdateArrayValues
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"last_modified"}).AddRow(ts))
@@ -30,7 +30,7 @@ func TestNewDBConst(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnRows(sqlmock.NewRows([]string{column}).AddRow("val1").AddRow("val2"))
 
-	c, err := NewDBConst(ctx, func(ctx context.Context) (time.Time, error) {
+	c, err := NewDBArray(ctx, func(ctx context.Context) (time.Time, error) {
 		var t time.Time
 		err := db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", table).Scan(&t)
 		return t, err
@@ -53,7 +53,7 @@ func TestNewDBConst(t *testing.T) {
 		},
 	)
 	if err != nil {
-		t.Fatalf("NewDBConst returned error: %v", err)
+		t.Fatalf("NewDBArray returned error: %v", err)
 	}
 
 	vals := c.Get()
@@ -76,7 +76,7 @@ func TestNewDBConst(t *testing.T) {
 	}
 }
 
-func TestUpdateConstValues_Cached(t *testing.T) {
+func TestUpdateArrayValues_Cached(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -96,7 +96,7 @@ func TestUpdateConstValues_Cached(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnRows(sqlmock.NewRows([]string{column}).AddRow("val1"))
 
-	c, err := NewDBConst(ctx, func(ctx context.Context) (time.Time, error) {
+	c, err := NewDBArray(ctx, func(ctx context.Context) (time.Time, error) {
 		var t time.Time
 		err := db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", table).Scan(&t)
 		return t, err
@@ -129,14 +129,14 @@ func TestUpdateConstValues_Cached(t *testing.T) {
 		t.Errorf("after initial load, got dbNotQueried %d, want 0", c.GetDBNotQueried())
 	}
 
-	// Test: Call GetConstValues again with SAME timestamp
+	// Test: Call UpdateArrayValues again with SAME timestamp
 	// Should only query metadata, not the table
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"last_modified"}).AddRow(ts))
 
-	if err := c.UpdateConstValues(ctx); err != nil {
-		t.Errorf("UpdateConstValues failed: %v", err)
+	if err := c.UpdateArrayValues(ctx); err != nil {
+		t.Errorf("UpdateArrayValues failed: %v", err)
 	}
 
 	if c.GetDBQueried() != 1 {
@@ -151,7 +151,7 @@ func TestUpdateConstValues_Cached(t *testing.T) {
 	}
 }
 
-func TestUpdateConstValues_Refresh(t *testing.T) {
+func TestUpdateArrayValues_Refresh(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -172,7 +172,7 @@ func TestUpdateConstValues_Refresh(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnRows(sqlmock.NewRows([]string{column}).AddRow("old_val"))
 
-	c, err := NewDBConst[string](ctx, func(ctx context.Context) (time.Time, error) {
+	c, err := NewDBArray(ctx, func(ctx context.Context) (time.Time, error) {
 		var t time.Time
 		err := db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", table).Scan(&t)
 		return t, err
@@ -205,7 +205,7 @@ func TestUpdateConstValues_Refresh(t *testing.T) {
 		t.Errorf("after initial load, got dbNotQueried %d, want 0", c.GetDBNotQueried())
 	}
 
-	// Test: Call GetConstValues with NEW timestamp
+	// Test: Call UpdateArrayValues with NEW timestamp
 	mock.ExpectQuery("SELECT last_modified FROM dbcollections_meta WHERE table_name = \\$1").
 		WithArgs(table).
 		WillReturnRows(sqlmock.NewRows([]string{"last_modified"}).AddRow(ts2))
@@ -213,8 +213,8 @@ func TestUpdateConstValues_Refresh(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnRows(sqlmock.NewRows([]string{column}).AddRow("new_val"))
 
-	if err := c.UpdateConstValues(ctx); err != nil {
-		t.Errorf("UpdateConstValues failed: %v", err)
+	if err := c.UpdateArrayValues(ctx); err != nil {
+		t.Errorf("UpdateArrayValues failed: %v", err)
 	}
 
 	vals := c.Get()
@@ -234,7 +234,7 @@ func TestUpdateConstValues_Refresh(t *testing.T) {
 	}
 }
 
-func TestNewDBConst_Errors(t *testing.T) {
+func TestNewDBArray_Errors(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("failed to open stub db: %v", err)
@@ -250,7 +250,7 @@ func TestNewDBConst_Errors(t *testing.T) {
 		WithArgs(table).
 		WillReturnError(errors.New("meta error"))
 
-	_, err = NewDBConst[int](ctx, func(ctx context.Context) (time.Time, error) {
+	_, err = NewDBArray(ctx, func(ctx context.Context) (time.Time, error) {
 		var t time.Time
 		err := db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", table).Scan(&t)
 		return t, err
@@ -274,7 +274,7 @@ func TestNewDBConst_Errors(t *testing.T) {
 	mock.ExpectQuery(fmt.Sprintf("SELECT %s FROM %s", column, table)).
 		WillReturnError(errors.New("data error"))
 
-	_, err = NewDBConst[int](ctx, func(ctx context.Context) (time.Time, error) {
+	_, err = NewDBArray(ctx, func(ctx context.Context) (time.Time, error) {
 		var t time.Time
 		err := db.QueryRowContext(ctx, "SELECT last_modified FROM dbcollections_meta WHERE table_name = $1", table).Scan(&t)
 		return t, err
