@@ -133,6 +133,21 @@ func SplitFuzzy(s, sep string) []string {
 						valid = false
 					}
 				}
+				// Prevent splitting strictly between two alphanumeric characters (mid-word)
+				if valid && i > 0 {
+					if (unicode.IsLetter(sRunes[i]) || unicode.IsDigit(sRunes[i])) &&
+						(unicode.IsLetter(sRunes[i-1]) || unicode.IsDigit(sRunes[i-1])) {
+						valid = false
+					}
+				}
+				// If separator starts with a non-alphanumeric character (e.g. space),
+				// the match should not start with an alphanumeric character.
+				if valid && sepPreparedLen > 0 && !(unicode.IsLetter(sepPreparedRunes[0]) || unicode.IsDigit(sepPreparedRunes[0])) {
+					firstRune := []rune(candidateRaw)[0]
+					if unicode.IsLetter(firstRune) || unicode.IsDigit(firstRune) {
+						valid = false
+					}
+				}
 
 				if valid {
 					if dist < bestDist {
