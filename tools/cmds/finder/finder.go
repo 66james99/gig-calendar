@@ -138,9 +138,9 @@ func main() {
 			defer db.Close()
 			cfg.Queries = database.New(db)
 		}
-		patternsConst, err := dbcollection.NewDBArray(context.Background(), cfg.Queries.LastModifiedPatternConsts, cfg.Queries.GetPatternConsts)
+		patternsArray, err := dbcollection.NewDBArray(context.Background(), cfg.Queries.LastModifiedPatternConsts, cfg.Queries.GetPatternConsts)
 		if err == nil {
-			cfg.Patterns = patternsConst
+			cfg.Patterns = patternsArray
 		} else {
 			fmt.Printf("Error: %v\n", err)
 			return

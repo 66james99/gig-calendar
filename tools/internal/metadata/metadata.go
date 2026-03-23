@@ -14,3 +14,4 @@ type TicketsConfig struct {
 type InfoConfig struct {
 	BaseConfig
 }
+

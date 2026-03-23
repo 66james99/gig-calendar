@@ -134,9 +134,9 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 					}
 					if len(data.Performers) > 0 {
 						for _, p := range data.Performers {
-							match, err := performers.PerformerMatch(context.Background(), cfg.Queries, p)
+							match, err := performers.MultiPerformerMatch(context.Background(), cfg, p)
 							if err == nil {
-								matched.Performers = append(matched.Performers, []performers.PerformerMatchResult{match})
+								matched.Performers = append(matched.Performers, match)
 							} else if cfg.Debug {
 								result.ParseErrors = append(result.ParseErrors, fmt.Sprintf("Error matching performer '%s': %v", p, err))
 							}
