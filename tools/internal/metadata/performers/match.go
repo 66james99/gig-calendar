@@ -3,6 +3,7 @@ package performers
 import (
 	"context"
 	"database/sql"
+	"sort"
 	"strings"
 
 	"github.com/66james99/gig-calendar/internal/database"
@@ -97,9 +98,17 @@ func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerfor
 	}
 
 	// Check if rawPerformers contains at least one of the patterns used to seperate multiple performers on stage
-	patterns := c.Patterns.Get()
+	cachedPatterns := c.Patterns.Get()
+	patterns := make([]string, len(cachedPatterns))
+	copy(patterns, cachedPatterns)
+
+	// Sort patterns by length in descending order so we match the longest pattern first
+	sort.Slice(patterns, func(i, j int) bool {
+		return len(patterns[i]) > len(patterns[j])
+	})
+
 	for _, pattern := range patterns {
-		parts := splitCaseInsensitive(rawPerformers, pattern)
+		parts := splitFuzzy(rawPerformers, pattern)
 		if len(parts) > 1 {
 			for _, part := range parts {
 				part = strings.TrimSpace(part)
@@ -125,25 +134,56 @@ func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerfor
 	return results, nil
 }
 
-func splitCaseInsensitive(s, sep string) []string {
+func splitFuzzy(s, sep string) []string {
 	if sep == "" {
 		return []string{s}
 	}
-	lowerS := strings.ToLower(s)
-	lowerSep := strings.ToLower(sep)
-	sepLen := len(sep)
+
+	threshold := 2
+	if len(sep) <= 5 {
+		threshold = 1
+	}
+
+	sRunes := []rune(s)
+	sLower := []rune(strings.ToLower(s))
+	sepLowerStr := strings.ToLower(sep)
+	sepLen := len([]rune(sepLowerStr))
 
 	var parts []string
-	start := 0
-	for {
-		idx := strings.Index(lowerS[start:], lowerSep)
-		if idx == -1 {
-			parts = append(parts, s[start:])
-			break
+	lastIdx := 0
+	i := 0
+	for i < len(sLower) {
+		bestDist := threshold + 1
+		bestLen := -1
+
+		minLen := sepLen - threshold
+		if minLen < 1 {
+			minLen = 1
 		}
-		absIdx := start + idx
-		parts = append(parts, s[start:absIdx])
-		start = absIdx + sepLen
+		maxLen := sepLen + threshold
+		if maxLen > len(sLower)-i {
+			maxLen = len(sLower) - i
+		}
+
+		for l := minLen; l <= maxLen; l++ {
+			candidate := string(sLower[i : i+l])
+			dist := metadata.Levenshtein(candidate, sepLowerStr)
+			if dist <= threshold {
+				if dist < bestDist {
+					bestDist = dist
+					bestLen = l
+				}
+			}
+		}
+
+		if bestLen != -1 {
+			parts = append(parts, string(sRunes[lastIdx:i]))
+			lastIdx = i + bestLen
+			i += bestLen
+		} else {
+			i++
+		}
 	}
+	parts = append(parts, string(sRunes[lastIdx:]))
 	return parts
 }
