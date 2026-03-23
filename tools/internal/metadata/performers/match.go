@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"sort"
 	"strings"
-	"unicode"
 
 	"github.com/66james99/gig-calendar/internal/database"
 	// "github.com/66james99/gig-calendar/internal/dbcollection"
@@ -109,7 +108,7 @@ func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerfor
 	})
 
 	for _, pattern := range patterns {
-		parts := splitFuzzy(rawPerformers, pattern)
+		parts := metadata.SplitFuzzy(rawPerformers, pattern)
 		if len(parts) > 1 {
 			for _, part := range parts {
 				part = strings.TrimSpace(part)
@@ -133,84 +132,4 @@ func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerfor
 	results = append(results, match)
 
 	return results, nil
-}
-
-func splitFuzzy(s, sep string) []string {
-	if sep == "" {
-		return []string{s}
-	}
-
-	threshold := 2
-	if len(sep) <= 5 {
-		threshold = 1
-	}
-
-	sRunes := []rune(s)
-	sLower := []rune(strings.ToLower(s))
-	sepLowerStr := strings.ToLower(sep)
-	sepRunes := []rune(sepLowerStr)
-	sepLen := len(sepRunes)
-
-	checkLeftBoundary := false
-	if sepLen > 0 && (unicode.IsLetter(sepRunes[0]) || unicode.IsDigit(sepRunes[0])) {
-		checkLeftBoundary = true
-	}
-	checkRightBoundary := false
-	if sepLen > 0 && (unicode.IsLetter(sepRunes[sepLen-1]) || unicode.IsDigit(sepRunes[sepLen-1])) {
-		checkRightBoundary = true
-	}
-
-	var parts []string
-	lastIdx := 0
-	i := 0
-	for i < len(sLower) {
-		bestDist := threshold + 1
-		bestLen := -1
-
-		minLen := sepLen - threshold
-		if minLen < 1 {
-			minLen = 1
-		}
-		maxLen := sepLen + threshold
-		if maxLen > len(sLower)-i {
-			maxLen = len(sLower) - i
-		}
-
-		for l := minLen; l <= maxLen; l++ {
-			candidate := string(sLower[i : i+l])
-			dist := metadata.Levenshtein(candidate, sepLowerStr)
-			if dist <= threshold {
-				valid := true
-				if checkLeftBoundary && i > 0 {
-					prev := sLower[i-1]
-					if unicode.IsLetter(prev) || unicode.IsDigit(prev) {
-						valid = false
-					}
-				}
-				if valid && checkRightBoundary && i+l < len(sLower) {
-					next := sLower[i+l]
-					if unicode.IsLetter(next) || unicode.IsDigit(next) {
-						valid = false
-					}
-				}
-
-				if valid {
-					if dist < bestDist {
-						bestDist = dist
-						bestLen = l
-					}
-				}
-			}
-		}
-
-		if bestLen != -1 {
-			parts = append(parts, string(sRunes[lastIdx:i]))
-			lastIdx = i + bestLen
-			i += bestLen
-		} else {
-			i++
-		}
-	}
-	parts = append(parts, string(sRunes[lastIdx:]))
-	return parts
 }
