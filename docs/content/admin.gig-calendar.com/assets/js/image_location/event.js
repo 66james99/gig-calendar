@@ -4,6 +4,24 @@ import { renderDisplayRow, renderEditRow, renderTable, } from './ui.js';
 import { updateSortIndicators } from '../shared/ui.js';
 import { applySort } from '../shared/table-utils.js';
 let highlightedRow = null;
+// --- Context Menu Helpers ---
+function removeContextMenu() {
+    const existing = document.getElementById('preview-context-menu');
+    if (existing)
+        existing.remove();
+}
+document.addEventListener('click', (e) => {
+    // Close context menu if clicking outside of it
+    if (!e.target.closest('#preview-context-menu')) {
+        removeContextMenu();
+    }
+});
+function getSpaUrl(type, name) {
+    // Assumes SPA structure: ../{type}/index.html
+    // Adds query params for "new" mode and pre-filled name.
+    // The receiving SPA must handle these params (e.g. ?action=new&name=...)
+    return `../${type}/?action=new&name=${encodeURIComponent(name)}`;
+}
 function clearPreview() {
     if (highlightedRow) {
         highlightedRow.classList.remove('highlighted');
@@ -224,6 +242,57 @@ function createPreviewContent(result, isDebug) {
     `;
     const tbody = table.querySelector('tbody');
     const thead = table.querySelector('thead');
+    // Event Delegation for Context Menu
+    table.addEventListener('click', (e) => {
+        const target = e.target;
+        const entityItem = target.closest('.entity-item');
+        if (entityItem) {
+            e.stopPropagation(); // Prevent document click from closing immediately
+            removeContextMenu();
+            const type = entityItem.dataset.type || '';
+            const name = decodeURIComponent(entityItem.dataset.name || '');
+            const conf = parseInt(entityItem.dataset.confidence || '0', 10);
+            if (!type || !name)
+                return;
+            const menu = document.createElement('div');
+            menu.id = 'preview-context-menu';
+            menu.style.cssText = `
+                position: absolute;
+                background: white;
+                border: 1px solid #ccc;
+                box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+                padding: 5px 0;
+                z-index: 1000;
+                font-size: 0.9rem;
+                min-width: 150px;
+            `;
+            const mainUrl = getSpaUrl(type, name);
+            const aliasUrl = getSpaUrl(`${type}_alias`, name);
+            const linkStyle = "display: block; padding: 5px 15px; text-decoration: none; color: #333; white-space: nowrap; cursor: pointer;";
+            let aliasOption = '';
+            if (conf < 25) {
+                aliasOption = `<a href="${aliasUrl}" target="_blank" style="${linkStyle}">Create Alias</a>`;
+            }
+            else {
+                aliasOption = `<a href="${aliasUrl}" target="_blank" style="${linkStyle}">Edit Alias</a>`;
+            }
+            menu.innerHTML = `
+                <a href="${mainUrl}" target="_blank" style="${linkStyle}">Create/Edit ${type}</a>
+                ${aliasOption}
+                <div id="preview-menu-cancel" style="${linkStyle} border-top: 1px solid #eee;">Cancel</div>
+            `;
+            document.body.appendChild(menu);
+            menu.style.top = `${e.pageY}px`;
+            menu.style.left = `${e.pageX}px`;
+            const cancelBtn = menu.querySelector('#preview-menu-cancel');
+            if (cancelBtn) {
+                cancelBtn.addEventListener('click', (ev) => {
+                    ev.stopPropagation();
+                    removeContextMenu();
+                });
+            }
+        }
+    });
     // Render function
     const render = () => {
         // Filter
@@ -231,8 +300,7 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : '';
-            const flatPerformers = (item.performers || []).reduce((acc, val) => acc.concat(val), []);
-            const perfStr = flatPerformers.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
+            const perfStr = (item.performers || []).map(group => group.map(p => (p.pattern ? ` ${p.pattern} ` : '') + (p.confidence > 0 ? p.match : p.name)).join('')).join(', ');
             const venueName = (item.venue?.confidence && item.venue?.confidence > 0) ? (item.venue?.match || '') : (item.venue?.name || '');
             const promStr = (item.promoters || []).map(p => (p.confidence > 0 ? p.match : p.name)).join(', ');
             const consistentMatch = filters.consistent === '' || item.consistent.toString() === filters.consistent;
@@ -266,10 +334,9 @@ function createPreviewContent(result, isDebug) {
                 valB = (b.year || 0) * 10000 + (b.month || 0) * 100 + (b.day || 0);
             }
             else if (previewSort.column === 'performers') {
-                const flatA = (a.performers || []).reduce((acc, val) => acc.concat(val), []);
-                const flatB = (b.performers || []).reduce((acc, val) => acc.concat(val), []);
-                valA = flatA.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
-                valB = flatB.map(p => (p.confidence > 0 ? p.match : p.name)).join(', ').toLowerCase();
+                const getPerfStr = (arr) => (arr || []).map(group => group.map(p => (p.pattern ? ` ${p.pattern} ` : '') + (p.confidence > 0 ? p.match : p.name)).join('')).join(', ').toLowerCase();
+                valA = getPerfStr(a.performers);
+                valB = getPerfStr(b.performers);
             }
             else if (previewSort.column === 'venue') {
                 valA = ((a.venue?.confidence && a.venue?.confidence > 0) ? (a.venue?.match || '') : (a.venue?.name || '')).toLowerCase();
@@ -298,21 +365,24 @@ function createPreviewContent(result, isDebug) {
             const dateStr = (item.year && item.month && item.day)
                 ? `${item.year}-${String(item.month).padStart(2, '0')}-${String(item.day).padStart(2, '0')}`
                 : 'N/A';
-            const flatPerformers = (item.performers || []).reduce((acc, val) => acc.concat(val), []);
-            const perfStr = flatPerformers.map(p => {
-                const conf = p.confidence || 0;
-                const display = (conf > 0 ? p.match : p.name) || '';
-                let color = 'red';
-                if (conf === 100)
-                    color = 'green';
-                else if (conf === 75)
-                    color = 'blue';
-                else if (conf === 50)
-                    color = 'orange';
-                else if (conf === 25)
-                    color = 'gray';
-                const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
-                return `<span style="color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${tooltip}>${display}</span>`;
+            const perfStr = (item.performers || []).map(group => {
+                return group.map(p => {
+                    const conf = p.confidence || 0;
+                    const display = (conf > 0 ? p.match : p.name) || '';
+                    let color = 'red';
+                    if (conf === 100)
+                        color = 'green';
+                    else if (conf === 75)
+                        color = 'blue';
+                    else if (conf === 50)
+                        color = 'orange';
+                    else if (conf === 25)
+                        color = 'gray';
+                    const tooltip = (conf !== 100) ? `title="Original: ${p.name}"` : '';
+                    const patternHtml = p.pattern ? `<span> ${p.pattern} </span>` : '';
+                    // Wrap name in clickable span
+                    return `${patternHtml}<span class="entity-item" data-type="performer" data-name="${encodeURIComponent(p.name)}" data-confidence="${conf}" style="cursor: pointer; text-decoration: underline dotted; color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${tooltip}>${display}</span>`;
+                }).join('');
             }).join(', ');
             const promStr = (item.promoters || []).map(p => {
                 const conf = p.confidence || 0;
@@ -326,9 +396,9 @@ function createPreviewContent(result, isDebug) {
                     color = 'orange';
                 else if (conf === 25)
                     color = 'gray';
-                const tooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${p.name}"` : '';
+                const tooltip = (conf !== 100) ? `title="Original: ${p.name}"` : '';
                 const style = `color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};${p.festival ? ' text-decoration: underline;' : ''}`;
-                return `<span style="${style}" ${tooltip}>${display}</span>`;
+                return `<span class="entity-item" data-type="promoter" data-name="${encodeURIComponent(p.name)}" data-confidence="${conf}" style="cursor: pointer; text-decoration: underline dotted; ${style}" ${tooltip}>${display}</span>`;
             }).join(', ');
             const conf = item.venue?.confidence || 0;
             const displayVenue = (conf > 0 ? item.venue?.match : item.venue?.name) || '';
@@ -343,13 +413,13 @@ function createPreviewContent(result, isDebug) {
                 color = 'gray';
             const consistentIcon = item.consistent ? '✓' : '✗';
             const consistentColor = item.consistent ? 'green' : 'red';
-            const venueTooltip = (conf === 50 || conf === 25 || conf === 75) ? `title="Original: ${item.venue?.name}"` : '';
+            const venueTooltip = (conf !== 100 && item.venue?.name) ? `title="Original: ${item.venue?.name}"` : '';
             return `
                 <tr style="border-bottom: 1px solid #eee;">
                     <td style="padding: 6px;">${dateStr}</td>
                     <td style="padding: 6px;">${perfStr}</td>
                     <td style="padding: 6px; color: ${color}; font-weight: ${conf > 0 ? 'bold' : 'normal'};" ${venueTooltip}>
-                        ${displayVenue}
+                        <span class="entity-item" data-type="venue" data-name="${encodeURIComponent(item.venue?.name || '')}" data-confidence="${conf}" style="cursor: pointer; text-decoration: underline dotted;">${displayVenue}</span>
                     </td>
                     <td style="padding: 6px;">${promStr}</td>
                     <td style="padding: 6px; text-align: center; color: ${consistentColor}; font-weight: bold;">${consistentIcon}</td>
