@@ -3,6 +3,7 @@ package performers
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	"github.com/66james99/gig-calendar/internal/database"
 	// "github.com/66james99/gig-calendar/internal/dbcollection"
@@ -96,8 +97,53 @@ func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerfor
 	}
 
 	// Check if rawPerformers contains at least one of the patterns used to seperate multiple performers on stage
+	patterns := c.Patterns.Get()
+	for _, pattern := range patterns {
+		parts := splitCaseInsensitive(rawPerformers, pattern)
+		if len(parts) > 1 {
+			for _, part := range parts {
+				part = strings.TrimSpace(part)
+				if part == "" {
+					continue
+				}
+				match, err := PerformerMatch(ctx, c.Queries, part)
+				if err != nil {
+					return nil, err
+				}
+				if len(results) > 0 {
+					match.Pattern = pattern
+				}
+				results = append(results, match)
+			}
+			return results, nil
+		}
+	}
 
 	// If we've reached here we've not found any matches despite splitting the rawPerformers based on patterns that indicate multiple performers on stage
+	results = append(results, match)
 
 	return results, nil
+}
+
+func splitCaseInsensitive(s, sep string) []string {
+	if sep == "" {
+		return []string{s}
+	}
+	lowerS := strings.ToLower(s)
+	lowerSep := strings.ToLower(sep)
+	sepLen := len(sep)
+
+	var parts []string
+	start := 0
+	for {
+		idx := strings.Index(lowerS[start:], lowerSep)
+		if idx == -1 {
+			parts = append(parts, s[start:])
+			break
+		}
+		absIdx := start + idx
+		parts = append(parts, s[start:absIdx])
+		start = absIdx + sepLen
+	}
+	return parts
 }
