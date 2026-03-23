@@ -1,5 +1,6 @@
 import { fetchVenues } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { renderTable, updateSortIndicators } from './ui.js';
 import type { Filters, Venue, SortState } from './types.js';
 
@@ -71,6 +72,13 @@ export async function refreshVenues() {
     try {
         setVenuesCache(await fetchVenues());
         handleFilterChange();
+
+        handleUrlActions(venuesCache, {
+            nameField: 'Name',
+            onNew: (name) => handleNewClick({ Name: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     } catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         tableBody.innerHTML = '<tr><td colspan="6">Failed to load data. Is the backend server running?</td></tr>';
@@ -80,7 +88,7 @@ export async function refreshVenues() {
 function init() {
     tableBody.addEventListener('click', handleTableClick);
     tableHeader.addEventListener('click', handleSort);
-    newButton.addEventListener('click', handleNewClick);
+    newButton.addEventListener('click', () => handleNewClick());
     refreshButton.addEventListener('click', refreshVenues);
 
     filterIdInput.addEventListener('input', handleFilterChange);

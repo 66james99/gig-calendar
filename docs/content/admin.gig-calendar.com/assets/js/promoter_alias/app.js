@@ -1,5 +1,6 @@
 import { fetchPromoterAliases, fetchPromoters } from './api.js';
-import { handleTableClick, handleNewClick, handleSort, handleFilterChange } from './event.js';
+import { handleTableClick, handleNewClick, handleSort, handleFilterChange, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 // DOM Elements
 export const tableBody = document.getElementById('table-body');
 export const newBtn = document.getElementById('new-btn');
@@ -34,7 +35,7 @@ export function setCurrentFilters(filters) {
 export async function init() {
     // Bind Events
     if (newBtn)
-        newBtn.addEventListener('click', handleNewClick);
+        newBtn.addEventListener('click', () => handleNewClick());
     if (refreshBtn)
         refreshBtn.addEventListener('click', refreshAliases);
     if (tableBody)
@@ -57,6 +58,12 @@ async function loadData() {
         aliasesCache = aliases;
         promotersCache = promoters;
         handleFilterChange(); // Triggers render
+        handleUrlActions(aliasesCache, {
+            nameField: 'Alias',
+            onNew: (name) => handleNewClick({ Alias: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     }
     catch (error) {
         console.error("Failed to load data", error);

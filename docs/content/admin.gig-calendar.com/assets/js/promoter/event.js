@@ -70,7 +70,7 @@ export async function handleTableClick(event) {
         }
     }
 }
-export function handleNewClick() {
+export function handleNewClick(prefill) {
     const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
         alert('Please save or cancel the current new promoter before adding another.');
@@ -78,8 +78,19 @@ export function handleNewClick() {
         return;
     }
     const newRow = tableBody.insertRow(0);
-    const newPromoterData = {};
+    const newPromoterData = prefill || {};
     renderEditRow(tableBody, newPromoterData, true);
+}
+export function handleEditItem(item) {
+    const row = tableBody.querySelector(`tr[data-id="${item.ID}"]`);
+    if (row) {
+        renderEditRow(tableBody, item, false);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+export function handleNotFound(name) {
+    const row = tableBody.insertRow(0);
+    row.innerHTML = `<td colspan="10" style="color: red; font-weight: bold; text-align: center; padding: 10px; background-color: #fff0f0;">Not Found : ${name}</td>`;
 }
 export function handleSort(event) {
     const target = event.target;

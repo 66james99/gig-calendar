@@ -1,5 +1,6 @@
 import { fetchPerformers } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 // --- State ---
 export let performersCache = [];
 export let currentSort = {
@@ -43,6 +44,12 @@ export async function refreshPerformers() {
         setPerformersCache(await fetchPerformers());
         // Apply any existing filters and sorting, then render the table
         handleFilterChange();
+        handleUrlActions(performersCache, {
+            nameField: 'Name',
+            onNew: (name) => handleNewClick({ Name: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     }
     catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -57,7 +64,7 @@ function init() {
     if (tableHeader)
         tableHeader.addEventListener('click', handleSort);
     if (newButton)
-        newButton.addEventListener('click', handleNewClick);
+        newButton.addEventListener('click', () => handleNewClick());
     if (refreshButton)
         refreshButton.addEventListener('click', refreshPerformers);
     // Add event listeners for filters

@@ -1,5 +1,6 @@
 import { fetchPromoters } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { applySort } from '../shared/table-utils.js';
 import type { SortState } from '../shared/types.js';
 import type { Filters, Promoter, PromoterSortableColumn } from './types.js';
@@ -56,6 +57,13 @@ export async function refreshPromoters() {
         setPromotersCache(await fetchPromoters());
         // Apply any existing filters and sorting, then render the table
         handleFilterChange();
+
+        handleUrlActions(promotersCache, {
+            nameField: 'Name',
+            onNew: (name) => handleNewClick({ Name: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     } catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         if (tableBody) {
@@ -67,7 +75,7 @@ export async function refreshPromoters() {
 function init() {
     if (tableBody) tableBody.addEventListener('click', handleTableClick);
     if (tableHeader) tableHeader.addEventListener('click', handleSort);
-    if (newButton) newButton.addEventListener('click', handleNewClick);
+    if (newButton) newButton.addEventListener('click', () => handleNewClick());
     if (refreshButton) refreshButton.addEventListener('click', refreshPromoters);
 
     // Add event listeners for filters

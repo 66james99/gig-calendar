@@ -87,7 +87,7 @@ export async function handleTableClick(event: Event) {
     }
 }
 
-export function handleNewClick() {
+export function handleNewClick(prefill?: Partial<Promoter>) {
     const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
         alert('Please save or cancel the current new promoter before adding another.');
@@ -96,8 +96,21 @@ export function handleNewClick() {
     }
 
     const newRow = tableBody.insertRow(0);
-    const newPromoterData: Partial<Promoter> = {};
+    const newPromoterData: Partial<Promoter> = prefill || {};
     renderEditRow(tableBody, newPromoterData, true);
+}
+
+export function handleEditItem(item: Promoter) {
+    const row = tableBody.querySelector(`tr[data-id="${item.ID}"]`) as HTMLTableRowElement;
+    if (row) {
+        renderEditRow(tableBody, item, false);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+export function handleNotFound(name: string) {
+    const row = tableBody.insertRow(0);
+    row.innerHTML = `<td colspan="10" style="color: red; font-weight: bold; text-align: center; padding: 10px; background-color: #fff0f0;">Not Found : ${name}</td>`;
 }
 
 export function handleSort(event: Event) {

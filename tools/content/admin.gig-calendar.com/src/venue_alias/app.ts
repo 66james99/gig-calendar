@@ -1,5 +1,6 @@
 import { fetchVenueAliases, fetchVenues } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { applySort, type SorterMap } from '../shared/table-utils.js';
 import type { SortState } from '../shared/types.js';
 import type { Filters, VenueAlias, VenueAliasSortableColumn, Venue } from './types.js';
@@ -78,6 +79,13 @@ export async function refreshAliases() {
         setAliasesCache(await fetchVenueAliases());
         // Apply any existing filters and sorting, then render the table
         handleFilterChange();
+
+        handleUrlActions(aliasesCache, {
+            nameField: 'Alias',
+            onNew: (name) => handleNewClick({ Alias: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     } catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         tableBody.innerHTML = '<tr><td colspan="7">Failed to load data. Is the backend server running?</td></tr>';
@@ -87,7 +95,7 @@ export async function refreshAliases() {
 function init() {
     tableBody.addEventListener('click', handleTableClick);
     tableHeader.addEventListener('click', handleSort);
-    newButton.addEventListener('click', handleNewClick);
+    newButton.addEventListener('click', () => handleNewClick());
     refreshButton.addEventListener('click', refreshAliases);
 
     // Add event listeners for filters

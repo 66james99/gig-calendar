@@ -1,5 +1,6 @@
 import { fetchPerformerAliases, fetchPerformers } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { applySort } from '../shared/table-utils.js';
 // --- State ---
 export let aliasesCache = [];
@@ -65,6 +66,12 @@ export async function refreshAliases() {
         setAliasesCache(await fetchPerformerAliases());
         // Apply any existing filters and sorting, then render the table
         handleFilterChange();
+        handleUrlActions(aliasesCache, {
+            nameField: 'Alias',
+            onNew: (name) => handleNewClick({ Alias: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     }
     catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -79,7 +86,7 @@ function init() {
     if (tableHeader)
         tableHeader.addEventListener('click', handleSort);
     if (newButton)
-        newButton.addEventListener('click', handleNewClick);
+        newButton.addEventListener('click', () => handleNewClick());
     if (refreshButton)
         refreshButton.addEventListener('click', refreshAliases);
     // Add event listeners for filters

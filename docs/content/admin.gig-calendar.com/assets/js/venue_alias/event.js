@@ -72,7 +72,7 @@ export async function handleTableClick(event) {
         }
     }
 }
-export function handleNewClick() {
+export function handleNewClick(prefill) {
     // Check if a row is already in 'add' mode to prevent multiple new rows.
     const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
@@ -81,8 +81,19 @@ export function handleNewClick() {
         return;
     }
     const newRow = tableBody.insertRow(0); // Insert a new row at the top of the table.
-    const newAliasData = {};
+    const newAliasData = prefill || {};
     renderEditRow(tableBody, newAliasData, true, venuesCache); // Render the row in edit mode.
+}
+export function handleEditItem(item) {
+    const row = tableBody.querySelector(`tr[data-id="${item.ID}"]`);
+    if (row) {
+        renderEditRow(tableBody, item, false, venuesCache);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+export function handleNotFound(name) {
+    const row = tableBody.insertRow(0);
+    row.innerHTML = `<td colspan="10" style="color: red; font-weight: bold; text-align: center; padding: 10px; background-color: #fff0f0;">Not Found : ${name}</td>`;
 }
 export function handleSort(event) {
     const target = event.target;

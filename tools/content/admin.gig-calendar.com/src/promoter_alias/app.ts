@@ -1,5 +1,6 @@
 import { fetchPromoterAliases, fetchPromoters } from './api.js';
-import { handleTableClick, handleNewClick, handleSort, handleFilterChange } from './event.js';
+import { handleTableClick, handleNewClick, handleSort, handleFilterChange, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { renderTable } from './ui.js';
 import type { PromoterAlias, Promoter, PromoterAliasSortableColumn, SortDirection } from './types.js';
 import { updateSortIndicators } from '../shared/ui.js';
@@ -42,7 +43,7 @@ export function setCurrentFilters(filters: typeof currentFilters) {
 
 export async function init() {
     // Bind Events
-    if (newBtn) newBtn.addEventListener('click', handleNewClick);
+    if (newBtn) newBtn.addEventListener('click', () => handleNewClick());
     if (refreshBtn) refreshBtn.addEventListener('click', refreshAliases);
     if (tableBody) tableBody.addEventListener('click', handleTableClick);
     if (tableHeader) tableHeader.addEventListener('click', handleSort);
@@ -64,6 +65,13 @@ async function loadData() {
         aliasesCache = aliases;
         promotersCache = promoters;
         handleFilterChange(); // Triggers render
+
+        handleUrlActions(aliasesCache, {
+            nameField: 'Alias',
+            onNew: (name) => handleNewClick({ Alias: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     } catch (error) {
         console.error("Failed to load data", error);
         alert("Failed to load data. See console for details.");

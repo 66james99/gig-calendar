@@ -94,7 +94,7 @@ export async function handleTableClick(event: Event) {
     }
 }
 
-export function handleNewClick() {
+export function handleNewClick(prefill?: Partial<VenueAlias>) {
     // Check if a row is already in 'add' mode to prevent multiple new rows.
     const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
@@ -104,8 +104,21 @@ export function handleNewClick() {
     }
 
     const newRow = tableBody.insertRow(0); // Insert a new row at the top of the table.
-    const newAliasData: Partial<VenueAlias> = {};
+    const newAliasData: Partial<VenueAlias> = prefill || {};
     renderEditRow(tableBody, newAliasData, true, venuesCache); // Render the row in edit mode.
+}
+
+export function handleEditItem(item: VenueAlias) {
+    const row = tableBody.querySelector(`tr[data-id="${item.ID}"]`) as HTMLTableRowElement;
+    if (row) {
+        renderEditRow(tableBody, item, false, venuesCache);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+export function handleNotFound(name: string) {
+    const row = tableBody.insertRow(0);
+    row.innerHTML = `<td colspan="10" style="color: red; font-weight: bold; text-align: center; padding: 10px; background-color: #fff0f0;">Not Found : ${name}</td>`;
 }
 
 export function handleSort(event: Event) {

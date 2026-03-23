@@ -1,5 +1,6 @@
 import { fetchImageLocations } from './api.js';
-import { handleFilterChange, handleNewClick, handleSort, handleTableClick } from './event.js';
+import { handleFilterChange, handleNewClick, handleSort, handleTableClick, handleEditItem, handleNotFound } from './event.js';
+import { handleUrlActions } from '../shared/url-params.js';
 import { renderTable } from './ui.js';
 import { applySort } from '../shared/table-utils.js';
 import type { SortState } from '../shared/types.js';
@@ -73,6 +74,13 @@ export async function refreshLocations() {
         setLocationsCache(await fetchImageLocations());
         // Apply any existing filters and sorting, then render the table
         handleFilterChange();
+
+        handleUrlActions(locationsCache, {
+            nameField: 'Root',
+            onNew: (name) => handleNewClick({ Root: name }),
+            onEdit: (item) => handleEditItem(item),
+            onNotFound: (name) => handleNotFound(name)
+        });
     } catch (error) {
         alert(`Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`);
         tableBody.innerHTML = '<tr><td colspan="10">Failed to load data. Is the backend server running?</td></tr>';
@@ -82,7 +90,7 @@ export async function refreshLocations() {
 function init() {
 	tableBody.addEventListener('click', handleTableClick);
 	tableHeader.addEventListener('click', handleSort);
-	newButton.addEventListener('click', handleNewClick);
+	newButton.addEventListener('click', () => handleNewClick());
 	refreshButton.addEventListener('click', refreshLocations);
 
 	// Add event listeners for filters

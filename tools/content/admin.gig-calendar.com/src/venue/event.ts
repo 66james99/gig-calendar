@@ -86,7 +86,7 @@ export async function handleTableClick(event: Event) {
     }
 }
 
-export function handleNewClick() {
+export function handleNewClick(prefill?: Partial<Venue>) {
     const existingAddRow = tableBody.querySelector('.add-btn');
     if (existingAddRow) {
         alert('Please save or cancel the current new row before adding another.');
@@ -95,8 +95,21 @@ export function handleNewClick() {
     }
 
     const newRow = tableBody.insertRow(0);
-    const newVenueData: Partial<Venue> = {};
+    const newVenueData: Partial<Venue> = prefill || {};
     renderEditRow(newRow, newVenueData, true);
+}
+
+export function handleEditItem(item: Venue) {
+    const row = tableBody.querySelector(`tr[data-id="${item.ID}"]`) as HTMLTableRowElement;
+    if (row) {
+        renderEditRow(row, item);
+        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+export function handleNotFound(name: string) {
+    const row = tableBody.insertRow(0);
+    row.innerHTML = `<td colspan="10" style="color: red; font-weight: bold; text-align: center; padding: 10px; background-color: #fff0f0;">Not Found : ${name}</td>`;
 }
 
 export function handleSort(event: Event) {
