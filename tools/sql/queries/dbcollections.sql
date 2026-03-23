@@ -4,4 +4,5 @@ ORDER BY pattern;
 
 -- name: LastModifiedPatternConsts :one
 SELECT last_modified FROM dbcollections_meta 
-WHERE table_name = 'stage_role';
+WHERE table_name = 'stage_role'
+LIMIT 1;
