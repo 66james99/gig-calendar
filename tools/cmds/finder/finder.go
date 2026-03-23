@@ -73,7 +73,7 @@ func parseFlags(source string, args []string) (interface{}, error) {
 			ignoreList = strings.Split(*ignoreDirs, ",")
 		}
 
-		return images.ImagesConfig{
+		return metadata.ImagesConfig{
 			BaseConfig:    base,
 			DateFromExif:  *dateFromExif,
 			RootDir:       *rootDir,
@@ -128,7 +128,7 @@ func main() {
 	}
 
 	switch cfg := config.(type) {
-	case images.ImagesConfig:
+	case metadata.ImagesConfig:
 		if err := godotenv.Load(); err != nil && cfg.Debug {
 			fmt.Println("Notice: No .env file found")
 		}

@@ -147,7 +147,7 @@ func (a *API) PreviewImageLocationScan(c *echo.Context) error {
 	}
 
 	// 3. Adapt the database model to the config struct used by the finder's logic.
-	config := images.ImagesConfig{
+	config := metadata.ImagesConfig {
 		RootDir:       	location.Root,
 		Pattern:       	location.Pattern,
 		IncludeParent: 	location.IncludeParent,

@@ -8,7 +8,6 @@ import (
 	// "github.com/66james99/gig-calendar/internal/dbcollection"
 	"github.com/66james99/gig-calendar/internal/metadata"
 	// "github.com/66james99/gig-calendar/internal/metadata/images"
-	"golang.org/x/tools/go/cfg"
 )
 
 // PerformerMatchResult holds the result of a performer matching operation.
@@ -18,7 +17,6 @@ type PerformerMatchResult struct {
 	Confidence int    `json:"confidence"`
 	Pattern    string `json:"pattern,omitempty"`
 }
-
 
 // PerformerMatch checks for the existence of a performer in the database.
 // It returns a confidence score:
@@ -84,14 +82,14 @@ func PerformerMatch(ctx context.Context, q *database.Queries, rawPerformer strin
 	return PerformerMatchResult{Name: rawPerformer, Match: "", Confidence: 0}, nil
 }
 
-func MultiPerformerMatch(ctx context.Context, c cfg.ImagesConfig, rawPerformers string) ([]PerformerMatchResult, error) {
+func MultiPerformerMatch(ctx context.Context, c metadata.ImagesConfig, rawPerformers string) ([]PerformerMatchResult, error) {
 	var results []PerformerMatchResult
 
 	match, err := PerformerMatch(ctx, c.Queries, rawPerformers)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if match.Confidence > 0 { // we found a match on the full rawPerformers - so no need to futher divide
 		results = append(results, match)
 		return results, nil
@@ -100,7 +98,6 @@ func MultiPerformerMatch(ctx context.Context, c cfg.ImagesConfig, rawPerformers 
 	// Check if rawPerformers contains at least one of the patterns used to seperate multiple performers on stage
 
 	// If we've reached here we've not found any matches despite splitting the rawPerformers based on patterns that indicate multiple performers on stage
-	
+
 	return results, nil
 }
-

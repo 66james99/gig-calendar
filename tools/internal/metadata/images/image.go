@@ -8,24 +8,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/66james99/gig-calendar/internal/database"
 	"github.com/66james99/gig-calendar/internal/metadata"
 	"github.com/66james99/gig-calendar/internal/metadata/performers"
 	"github.com/66james99/gig-calendar/internal/metadata/promoters"
 	"github.com/66james99/gig-calendar/internal/metadata/venues"
-	"github.com/66james99/gig-calendar/internal/dbcollection"
 )
-
-type ImagesConfig struct {
-	metadata.BaseConfig
-	DateFromExif  bool
-	RootDir       string
-	Pattern       string	// The pattern of tokens to be matching in the directory path
-	IncludeParent bool
-	IgnoreDirs    []string
-	Queries       *database.Queries
-	Patterns      *dbcollection.DBArray[string]		// An array of patterns to be used to seperate performers when there are more than one in a single slot
-}
 
 type Performer struct {
 	Name       string `json:"name"`
@@ -66,19 +53,19 @@ type ScanResult struct {
 
 // MatchedResult holds the outcome of matching Performers, Venue and Promoter against those existing in the DB
 type MatchedResult struct {
-	Directory  string                            	`json:"directory"`
-	Year       int                               	`json:"year,omitempty"`
-	Month      int                               	`json:"month,omitempty"`
-	Day        int                               	`json:"day,omitempty"`
-	Performers [][]performers.PerformerMatchResult 	`json:"performers,omitempty"`
-	Venue      venues.VenueMatchResult           	`json:"venue,omitempty"`
-	Promoters  []promoters.PromoterMatchResult   	`json:"promoters,omitempty"`
-	Consistent bool                              	`json:"consistent"`
+	Directory  string                              `json:"directory"`
+	Year       int                                 `json:"year,omitempty"`
+	Month      int                                 `json:"month,omitempty"`
+	Day        int                                 `json:"day,omitempty"`
+	Performers [][]performers.PerformerMatchResult `json:"performers,omitempty"`
+	Venue      venues.VenueMatchResult             `json:"venue,omitempty"`
+	Promoters  []promoters.PromoterMatchResult     `json:"promoters,omitempty"`
+	Consistent bool                                `json:"consistent"`
 }
 
 // ExecuteScan performs the directory scanning and parsing based on the provided config.
 // It returns a structured result and does not print to standard output.
-func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
+func ExecuteScan(cfg metadata.ImagesConfig) (ScanResult, error) {
 	var result ScanResult
 
 	if cfg.Pattern == "" {
@@ -173,11 +160,11 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 								if eventDate.Before(foundFestival.StartDate) || eventDate.After(foundFestival.EndDate) {
 									// If it is already inconsistent then don't need to flag and increment counter. Avoid double counting,
 									if matched.Consistent {
-									matched.Consistent = false
-									result.InconsistentCount++
+										matched.Consistent = false
+										result.InconsistentCount++
 									}
 								}
-								
+
 							}
 						}
 
@@ -192,7 +179,7 @@ func ExecuteScan(cfg ImagesConfig) (ScanResult, error) {
 	return result, nil
 }
 
-func PrintCfg(cfg ImagesConfig) {
+func PrintCfg(cfg metadata.ImagesConfig) {
 	fmt.Printf("Source: %s\nDryrun: %v\nVerbose: %v\nDebug: %v\n", cfg.Source, cfg.DryRun, cfg.Verbose, cfg.Debug)
 	fmt.Printf("DateFromExif: %v\nRootDir: %s\nPattern: %s\nInclude Parent: %v\nIgnoreDirs: %v\n", cfg.DateFromExif, cfg.RootDir, cfg.Pattern, cfg.IncludeParent, cfg.IgnoreDirs)
 
@@ -214,7 +201,7 @@ func PrintCfg(cfg ImagesConfig) {
 
 // GetDirsAtDepth walks the directory tree from cfg.RootDir and returns a list of
 // directory paths at a specific depth `n`. It also returns the count of ignored directories.
-func GetDirsAtDepth(cfg ImagesConfig, n int) ([]string, int, error) {
+func GetDirsAtDepth(cfg metadata.ImagesConfig, n int) ([]string, int, error) {
 	var dirs []string
 	ignoredCount := 0
 
