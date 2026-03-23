@@ -3,10 +3,13 @@ package main
 import (
 	"flag"
 	"log"
+	"fmt"
+	"context"
 	"net/http"
 
 	"github.com/66james99/gig-calendar/internal/apiHandler"
 	"github.com/66james99/gig-calendar/internal/database"
+	"github.com/66james99/gig-calendar/internal/dbcollection"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
@@ -32,9 +35,17 @@ func main() {
 	}
 	defer db.Close()
 
-	// Create the api handler with our database queries.
+	// Create our database queries.
 	queries := database.New(db)
-	handler := apiHandler.New(queries)
+
+	patternsArray, err := dbcollection.NewDBArray(context.Background(), queries.LastModifiedPatternConsts, queries.GetPatternConsts)
+	if err != nil {
+		fmt.Printf("Error creating PatternsArray: %v\n", err)
+		return
+	}
+	
+	// Create the api handler
+	handler := apiHandler.New(queries,patternsArray)
 
 	// Create a new Echo instance.
 	e := echo.New()

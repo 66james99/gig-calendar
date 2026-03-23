@@ -153,6 +153,7 @@ func (a *API) PreviewImageLocationScan(c *echo.Context) error {
 		IncludeParent: 	location.IncludeParent,
 		IgnoreDirs:    	location.IgnoreDirs,
 		Queries:       	a.queries,
+		Patterns:      	a.patternsArray,
 		BaseConfig: 	metadata.BaseConfig{
 			// Set debug to true to get detailed error messages from the scan
 			Debug: c.QueryParam("debug") == "true",
