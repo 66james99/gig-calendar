@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type DBArray[T any] struct {
+type DBArray[T Value] struct {
 	mu               sync.RWMutex
 	consts           []T
 	lastModified     time.Time
@@ -20,7 +20,7 @@ type DBArray[T any] struct {
 // func (q *Queries) LastModifiedArrays(ctx context.Context, tableName string) (time.Time, error)
 
 // NewDBArray creates a new DBArray instance with the specified column and table.
-func NewDBArray[T any](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) ([]T, error)) (*DBArray[T], error) {
+func NewDBArray[T Value](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) ([]T, error)) (*DBArray[T], error) {
 	if lastModifiedFunc == nil {
 		return nil, errors.New("lastModifiedFunc cannot be nil")
 	}

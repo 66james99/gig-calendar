@@ -10,7 +10,7 @@ import (
 // DBMap is a thread-safe, auto-refreshing map that fetches its data from a database.
 // It uses a timestamp to check if the underlying data has been updated, and only
 // refetches the data if necessary.
-type DBMap[K comparable, V any] struct {
+type DBMap[K Key, V Value] struct {
 	mu               sync.RWMutex
 	dataMap          map[K]V
 	lastModified     time.Time
@@ -22,7 +22,7 @@ type DBMap[K comparable, V any] struct {
 
 // NewDBMap creates a new DBMap instance.
 // It requires a function to get the last modified timestamp and a function to fetch the data map.
-func NewDBMap[K comparable, V any](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) (map[K]V, error)) (*DBMap[K, V], error) {
+func NewDBMap[K Key, V Value](ctx context.Context, lastModifiedFunc func(context.Context) (time.Time, error), dataFunc func(context.Context) (map[K]V, error)) (*DBMap[K, V], error) {
 	if lastModifiedFunc == nil {
 		return nil, errors.New("lastModifiedFunc cannot be nil")
 	}
