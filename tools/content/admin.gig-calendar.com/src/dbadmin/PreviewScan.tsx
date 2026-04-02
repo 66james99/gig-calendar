@@ -161,10 +161,34 @@ export const PreviewScan: React.FC<{
                                     }}>
                                         <div 
                                             onClick={header.column.getToggleSortingHandler()}
-                                            style={{ cursor: 'pointer', marginBottom: '4px' }}
+                                            style={{ cursor: 'pointer', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
                                         >
-                                            {flexRender(header.column.columnDef.header, header.getContext())}
-                                            {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] ?? null}
+                                            <span>
+                                                {flexRender(header.column.columnDef.header, header.getContext())}
+                                                {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] ?? null}
+                                            </span>
+                                            {header.column.getIsFiltered() && (
+                                                <span style={{ fontSize: '0.7rem', color: '#666', marginLeft: '8px', fontWeight: 'normal', whiteSpace: 'nowrap' }}>
+                                                    {(() => {
+                                                        const allMatches = table.getFilteredRowModel().rows.length;
+                                                        const totalRows = table.getCoreRowModel().rows.length;
+                                                        const otherFiltersActive = columnFilters.length > 1;
+
+                                                        if (!otherFiltersActive) {
+                                                            return `[${allMatches} / ${totalRows}]`;
+                                                        }
+
+                                                        const filterValue = header.column.getFilterValue();
+                                                        const thisColMatches = table.getCoreRowModel().rows.filter(row => {
+                                                            const val = row.getValue(header.column.id);
+                                                            if (typeof val === 'boolean') return val === filterValue;
+                                                            return String(val ?? '').toLowerCase().includes(String(filterValue).toLowerCase());
+                                                        }).length;
+
+                                                        return `[${allMatches} / ${thisColMatches} / ${totalRows}]`;
+                                                    })()}
+                                                </span>
+                                            )}
                                         </div>
                                         {header.column.getCanFilter() && (
                                             header.column.id === 'consistent' ? (
