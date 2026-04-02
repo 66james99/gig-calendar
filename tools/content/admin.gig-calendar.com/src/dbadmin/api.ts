@@ -23,5 +23,14 @@ export const api = {
         const url = data.id ? `${BASE_URL}/${tableName}/${data.id}` : `${BASE_URL}/${tableName}`;
         const response = await fetch(url, { method, body: JSON.stringify(data) });
         return response.json();
-    }
+    },
+
+    previewScan: async (id: number, debug: boolean) => {
+        const response = await fetch(`${BASE_URL}/image_locations/${id}/preview_scan?debug=${debug}`);
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to run preview scan');
+        }
+        return response.json();
+    },
 };

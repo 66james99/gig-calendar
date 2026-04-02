@@ -8,17 +8,21 @@ import {
     SortingState,
     getFilteredRowModel,
 } from '@tanstack/react-table';
-import { TableName } from './types';
+import { TableName, ScanResult } from './types';
+import { api } from './api';
 
 interface DataTableProps {
     data: any[];
     tableName: TableName;
     onRefresh: () => void;
+    onPreview?: (id: number, data: ScanResult) => void;
+    debugMode?: boolean;
 }
 
-export const DataTable: React.FC<DataTableProps> = ({ data, tableName, onRefresh }) => {
+export const DataTable: React.FC<DataTableProps> = ({ data, tableName, onRefresh, onPreview, debugMode }) => {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [globalFilter, setGlobalFilter] = React.useState('');
+    const [scanningId, setScanningId] = React.useState<number | null>(null);
 
     const columnHelper = createColumnHelper<any>();
 
@@ -31,6 +35,19 @@ export const DataTable: React.FC<DataTableProps> = ({ data, tableName, onRefresh
                 cell: info => info.getValue(),
             })
         );
+
+        const handlePreview = async (id: number) => {
+            if (!onPreview) return;
+            setScanningId(id);
+            try {
+                const result = await api.previewScan(id, !!debugMode);
+                onPreview(id, result);
+            } catch (err) {
+                alert(err instanceof Error ? err.message : 'Scan failed');
+            } finally {
+                setScanningId(null);
+            }
+        };
 
         // Add the required Action buttons as per README
         return [
@@ -47,6 +64,15 @@ export const DataTable: React.FC<DataTableProps> = ({ data, tableName, onRefresh
                                 console.log('Delete', props.row.original);
                             }
                         }}>🗑️</button>
+                        {tableName === 'image_locations' && (
+                            <button 
+                                title="Preview Scan" 
+                                onClick={() => handlePreview(props.row.original.ID)}
+                                disabled={scanningId === props.row.original.ID}
+                            >
+                                {scanningId === props.row.original.ID ? '⌛' : '🔬'}
+                            </button>
+                        )}
                     </div>
                 )
             })
