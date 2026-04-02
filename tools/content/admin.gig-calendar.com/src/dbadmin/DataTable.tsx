@@ -150,7 +150,8 @@ export const DataTable: React.FC<DataTableProps> = ({
         const handleSaveEdit = async () => {
             try {
                 const payload = preparePayload(editRowData);
-                await api.saveRow(tableName, { ...payload, id: editingId });
+                const dbId = editRowData.id ?? editRowData.ID;
+                await api.saveRow(tableName, { ...payload, id: dbId });
                 setEditingId(null);
                 setEditRowData(null);
                 onRefresh();
