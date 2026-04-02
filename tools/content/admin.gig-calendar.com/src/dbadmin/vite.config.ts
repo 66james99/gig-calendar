@@ -10,7 +10,7 @@ export default defineConfig({
   plugins: [react()],
   base: './', // Ensures relative paths in index.html
   build: {
-    outDir: '/home/james/projects/gig-calendar/docs/content/admin.gig-calendar.com/dbadmin/dist/',
+    outDir: '/home/james/projects/gig-calendar/docs/content/admin.gig-calendar.com/dbadmin/',
     emptyOutDir: true,
     rollupOptions: {
       input: resolve(__dirname, 'index.html'),

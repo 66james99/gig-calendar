@@ -1,7 +1,7 @@
 export type TableName = 
     | 'image_locations' | 'venues' | 'venue_aliases' | 'promoters' |'promoter_aliases'
     | 'performers' | 'performer_aliases' | 'festivals' | 'festival_aliases' | 'event_types'
-    | 'stage_roles'
+    | 'stage_roles';
 
 export interface ColumnConfig {
     header: string;

@@ -19,9 +19,19 @@ export const api = {
 
     // Placeholder for other CRUD actions (Create, Update, Duplicate)
     saveRow: async (tableName: TableName, data: any) => {
-        const method = data.id ? 'PUT' : 'POST';
-        const url = data.id ? `${BASE_URL}/${tableName}/${data.id}` : `${BASE_URL}/${tableName}`;
-        const response = await fetch(url, { method, body: JSON.stringify(data) });
+        // Support both lowercase 'id' and uppercase 'ID' from backend schema
+        const rowId = data.id ?? data.ID;
+        const method = rowId ? 'PUT' : 'POST';
+        const url = rowId ? `${BASE_URL}/${tableName}/${rowId}` : `${BASE_URL}/${tableName}`;
+
+        // Strip ID from the body as it's provided in the URL for PUT, and not needed for POST
+        const { id, ID, ...bodyData } = data;
+
+        const response = await fetch(url, { 
+            method, 
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyData) 
+        });
         return response.json();
     },
 
