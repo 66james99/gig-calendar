@@ -9,7 +9,8 @@ import {
     ColumnFiltersState,
     getFilteredRowModel,
 } from '@tanstack/react-table';
-import { TableName, ScanResult } from './types';
+import { TableName, ScanResult, getRowName, getFkTable, preparePayload } from './types';
+import { SortableHeader } from './TableElements';
 import { api } from './api';
 
 interface DataTableProps {
@@ -23,22 +24,6 @@ interface DataTableProps {
     lookupRegistry?: Record<TableName, Map<number | string, any>>;
     showAll?: boolean;
 }
-// These are the names of the REST endpoints rather than the tables - the endpoints are plural while the underlying table names are singluar
-const TABLES_LIST: TableName[] = [
-    'image_locations', 'venues', 'venue_aliases', 'promoters', 'promoter_aliases', 
-    'performers', 'performer_aliases', 'festivals', 'festival_aliases', 'event_types',
-    'stage_roles'
-];
-
-const getRowName = (row: any, includeId = false): string => {
-    if (!row) return '';
-    const name = String(
-        row.name || row.Name || row.alias || row.Alias || 
-        (row.root ? `${row.root}${row.pattern || ''}` : '') || 
-        row.id || row.ID || ''
-    );
-    return includeId ? `${name} [ID: ${row.id ?? row.ID}]` : name;
-};
 
 export const DataTable: React.FC<DataTableProps> = ({ 
     data, 
@@ -60,62 +45,6 @@ export const DataTable: React.FC<DataTableProps> = ({
     const [editRowData, setEditRowData] = React.useState<any>(null);
 
     const columnHelper = createColumnHelper<any>();
-
-    const getFkTable = (columnId: string): TableName | null => {
-        const lower = columnId.toLowerCase();
-        
-        // Explicit schema mappings for columns that don't match table names directly
-        const schemaMap: Record<string, TableName> = {
-            'location': 'image_locations',
-            'source': 'image_locations',
-            'event_type': 'event_types',
-            'venue': 'venues',
-            'promoter': 'promoters',
-            'performer': 'performers',
-            'festival': 'festivals'
-        };
-
-        if (schemaMap[lower]) return schemaMap[lower];
-
-        let entityName = '';
-        
-        if (lower.endsWith('_id')) {
-            entityName = lower.replace('_id', '');
-        } else if (lower.endsWith('id') && lower !== 'id') {
-            entityName = lower.replace('id', '');
-        } else {
-            entityName = lower;
-        }
-
-        if (entityName === 'id') return null;
-
-        const plural = entityName.endsWith('s') ? entityName : entityName + 's';
-        return TABLES_LIST.find(t => {
-            const tLower = t.toLowerCase();
-            return tLower === entityName || tLower === plural || tLower.replace('_', '') === entityName;
-        }) || null;
-    };
-
-    const preparePayload = (rowData: any) => {
-        const payload: any = {};
-        Object.keys(rowData).forEach(key => {
-            const lowerKey = key.toLowerCase();
-            // Strip DB-managed fields
-            if (['id', 'uuid', 'created', 'updated'].includes(lowerKey)) return;
-
-            const fkTable = getFkTable(key);
-            // Convert key to snake_case for the Go API
-            let apiKey = key.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).replace(/^_/, '');
-            
-            // Ensure foreign keys have the _id suffix expected by the API payloads
-            if (fkTable && !apiKey.endsWith('_id')) {
-                apiKey = `${apiKey}_id`;
-            }
-
-            payload[apiKey] = rowData[key];
-        });
-        return payload;
-    };
 
     // Dynamic columns based on the first data object
     const columns = React.useMemo(() => {
@@ -383,37 +312,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                                         verticalAlign: 'top',
                                         width: header.id.toLowerCase() === 'id' ? '80px' : undefined
                                     }}>
-                                        <div 
-                                            onClick={header.column.getToggleSortingHandler()}
-                                            style={{ cursor: 'pointer', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                                        >
-                                            <span>
-                                                {flexRender(header.column.columnDef.header, header.getContext())}
-                                                {{ asc: ' 🔼', desc: ' 🔽' }[header.column.getIsSorted() as string] ?? null}
-                                            </span>
-                                            {header.column.getIsFiltered() && (
-                                                <span style={{ fontSize: '0.7rem', color: '#666', marginLeft: '8px', fontWeight: 'normal', whiteSpace: 'nowrap' }}>
-                                                    {(() => {
-                                                        const allMatches = table.getFilteredRowModel().rows.length;
-                                                        const totalRows = table.getCoreRowModel().rows.length;
-                                                        const otherFiltersActive = columnFilters.length > 1;
-
-                                                        if (!otherFiltersActive) {
-                                                            return `[${allMatches} / ${totalRows}]`;
-                                                        }
-
-                                                        const filterValue = header.column.getFilterValue();
-                                                        const thisColMatches = table.getCoreRowModel().rows.filter(row => {
-                                                            const val = row.getValue(header.column.id);
-                                                            if (typeof val === 'boolean') return val === filterValue;
-                                                            return String(val ?? '').toLowerCase().includes(String(filterValue).toLowerCase());
-                                                        }).length;
-
-                                                        return `[${allMatches} / ${thisColMatches} / ${totalRows}]`;
-                                                    })()}
-                                                </span>
-                                            )}
-                                        </div>
+                                        <SortableHeader header={header} table={table} />
                                         {header.column.getCanFilter() && (() => {
                                             const firstValue = data[0]?.[header.column.id];
                                             if (typeof firstValue === 'boolean') {

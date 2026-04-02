@@ -1,17 +1,9 @@
 import React from 'react';
 import { useQuery, useQueries } from '@tanstack/react-query';
 import { api } from './api';
-import { TableName, ScanResult } from './types';
+import { TableName, ScanResult, TABLES } from './types';
 import { DataTable } from './DataTable';
 import { PreviewScan } from './PreviewScan';
-
-
-// These are the names of the REST endpoints rather than the tables - the endpoints are plural while the underlying table names are singluar
-const TABLES: TableName[] = [
-    'image_locations', 'venues', 'venue_aliases', 'promoters', 'promoter_aliases', 
-    'performers', 'performer_aliases', 'festivals', 'festival_aliases', 'event_types',
-    'stage_roles'
-];
 
 export const App = () => {
     // Parse initial state from URL query parameters
