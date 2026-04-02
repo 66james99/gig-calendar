@@ -14,11 +14,21 @@ const TABLES: TableName[] = [
 ];
 
 export const App = () => {
-    const [activeTable, setActiveTable] = React.useState<TableName>(TABLES[0]);
-    const [debugMode, setDebugMode] = React.useState(false);
+    // Parse initial state from URL query parameters
+    const searchParams = new URLSearchParams(window.location.search);
+    
+    const urlTable = searchParams.get('table') as TableName;
+    const initialTable = TABLES.includes(urlTable) ? urlTable : TABLES[0];
+    
+    const initialDebug = searchParams.get('debug') === 'true';
+    const initialShowAll = searchParams.get('all') === 'true';
+
+    const [activeTable, setActiveTable] = React.useState<TableName>(initialTable);
+    const [debugMode, setDebugMode] = React.useState(initialDebug);
     const [preview, setPreview] = React.useState<{ id: number; data: ScanResult } | null>(null);
     const [isScanning, setIsScanning] = React.useState(false);
     const [prefillName, setPrefillName] = React.useState<string | null>(null);
+    const [showAll, setShowAll] = React.useState(initialShowAll);
 
     const handleTableChange = (name: TableName) => {
         setActiveTable(name);
@@ -57,29 +67,40 @@ export const App = () => {
 
     return (
         <div className="admin-app">
-            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <h1 style={{ margin: 0 }}>Gig Calendar Admin</h1>
-                <div className="selector-container" style={{ display: 'flex', alignItems: 'center' }}>
-                    <label htmlFor="table-select">Select Table: </label>
-                    <select 
-                        id="table-select" 
-                        value={activeTable} 
-                        onChange={(e) => handleTableChange(e.target.value as TableName)}
-                    >
-                        {TABLES.map(t => (
-                            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1).replace('_', ' ')}</option>
-                        ))}
-                    </select>
-                    {activeTable === 'image_locations' && (
-                        <label style={{ marginLeft: '20px' }}>
-                            <input 
-                                type="checkbox" 
-                                checked={debugMode} 
-                                onChange={e => { setDebugMode(e.target.checked); setPreview(null); setIsScanning(false); }} 
-                            />
-                            Debug Mode
-                        </label>
-                    )}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+                    <div className="selector-container" style={{ display: 'flex', alignItems: 'center' }}>
+                        {activeTable === 'image_locations' && (
+                            <label style={{ marginRight: '20px' }}>
+                                <input 
+                                    type="checkbox" 
+                                    checked={debugMode} 
+                                    onChange={e => { setDebugMode(e.target.checked); setPreview(null); setIsScanning(false); }} 
+                                />
+                                Debug Mode
+                            </label>
+                        )}
+                        <label htmlFor="table-select">Select Table: </label>
+                        <select 
+                            id="table-select" 
+                            value={activeTable} 
+                            onChange={(e) => handleTableChange(e.target.value as TableName)}
+                            style={{ marginLeft: '5px' }}
+                        >
+                            {TABLES.map(t => (
+                                <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1).replace('_', ' ')}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <label style={{ fontSize: '0.9rem' }}>
+                        <input 
+                            type="checkbox" 
+                            checked={showAll} 
+                            onChange={e => setShowAll(e.target.checked)} 
+                        />
+                        Show All
+                    </label>
                 </div>
             </header>
 
@@ -97,6 +118,7 @@ export const App = () => {
                         onScanStateChange={setIsScanning}
                         prefillName={prefillName}
                         lookupRegistry={lookupRegistry}
+                        showAll={showAll}
                     />
                 )}
                 

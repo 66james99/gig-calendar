@@ -21,6 +21,7 @@ interface DataTableProps {
     onScanStateChange?: (scanning: boolean) => void;
     prefillName?: string | null;
     lookupRegistry?: Record<TableName, Map<number | string, any>>;
+    showAll?: boolean;
 }
 // These are the names of the REST endpoints rather than the tables - the endpoints are plural while the underlying table names are singluar
 const TABLES_LIST: TableName[] = [
@@ -47,7 +48,8 @@ export const DataTable: React.FC<DataTableProps> = ({
     debugMode, 
     onScanStateChange, 
     prefillName,
-    lookupRegistry 
+    lookupRegistry,
+    showAll
 }) => {
     const [sorting, setSorting] = React.useState<SortingState>([]);
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -119,7 +121,15 @@ export const DataTable: React.FC<DataTableProps> = ({
     const columns = React.useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        const keys = Object.keys(data[0]);
+        let keys = Object.keys(data[0]);
+
+        if (!showAll) {
+            keys = keys.filter(key => {
+                const lower = key.toLowerCase();
+                return !['id', 'created', 'updated', 'update'].includes(lower);
+            });
+        }
+
         const nameKeyIndex = keys.findIndex(k => k.toLowerCase() === 'name');
         if (nameKeyIndex > -1) {
             keys.unshift(keys.splice(nameKeyIndex, 1)[0]);
@@ -227,7 +237,7 @@ export const DataTable: React.FC<DataTableProps> = ({
                 )
             })
         ];
-    }, [data, tableName, debugMode, onPreview, onScanStateChange, scanningId, lookupRegistry, editingId, editRowData, preparePayload]);
+    }, [data, tableName, debugMode, onPreview, onScanStateChange, scanningId, lookupRegistry, editingId, editRowData, preparePayload, showAll]);
 
     const handleNewRow = (prefill?: string) => {
         setIsAdding(true);
