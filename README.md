@@ -11,3 +11,11 @@ I have an extensive library of photographs captured at live music event, stored 
 ## Coding
 
 Significant parts of the coding has been done with the assistance of GitHub Co-Pilot or Gemini
+
+## Design
+
+* Server side components of the application are coded in Go
+
+* There is a PostgreSQL database
+
+* Admin application vibe coded in React with TanStack Table & Query
