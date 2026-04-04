@@ -15,7 +15,5 @@ Significant parts of the coding has been done with the assistance of GitHub Co-P
 ## Design
 
 * Server side components of the application are coded in Go
-
 * There is a PostgreSQL database
-
 * Admin application vibe coded in React with TanStack Table & Query
