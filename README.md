@@ -8,6 +8,13 @@ Image Library
 
 I have an extensive library of photographs captured at live music event, stored in various directory structure capturing different meta data about the events.
 
+Email Ingestion
+
+Use a local LLM to extract gig information from:
+
+* Ticket Emails
+* Email lists of upcoming events from promoters, venues and bands
+
 ## Coding
 
 Significant parts of the coding has been done with the assistance of GitHub Co-Pilot or Gemini
