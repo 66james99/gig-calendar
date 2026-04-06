@@ -4,11 +4,11 @@ Application for tracking Gigs that you have a ticket for or are interested in
 
 ## Sources of Information
 
-Image Library
+### Image Library
 
 I have an extensive library of photographs captured at live music event, stored in various directory structure capturing different meta data about the events.
 
-Email Ingestion
+### Email Ingestion
 
 Use a local LLM to extract gig information from:
 
