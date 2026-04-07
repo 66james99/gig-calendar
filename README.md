@@ -19,6 +19,12 @@ Use a local LLM to extract gig information from:
 
 Significant parts of the coding has been done with the assistance of GitHub Co-Pilot or Gemini
 
+Client side componets developed using Typescript and the React, TanStack Table and Query frameworks
+
+Server side components developed using Go
+
+
+
 ## Design
 
 * Server side components of the application are coded in Go
