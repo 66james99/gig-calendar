@@ -30,3 +30,16 @@ Server side components developed using Go
 * Server side components of the application are coded in Go
 * There is a PostgreSQL database
 * Admin application vibe coded in React with TanStack Table & Query
+
+## Technologies
+
+* Go
+* PostgreSQL
+* Typescript
+* React
+* TanStack
+
+## Platforms
+
+* Raspberry Pi - running the Go web server
+* Orico CF1000 - running the PostgreSQL database
