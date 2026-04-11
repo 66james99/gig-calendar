@@ -5,6 +5,7 @@ An application for tracking live music events, managing tickets, and ingesting g
 ## Sources of Information
 
 ### Image Library
+
 I have an extensive library of photographs captured at live music events, stored in various directory structures capturing different metadata about the events.
 
 ### Email Ingestion
@@ -50,4 +51,4 @@ The project is designed to run across a distributed home lab environment:
 * goose (for database migrations)
 * sqlc (for generation of type-safe queries)
 * Google Credential Vault
-* VScode
+* VScod
