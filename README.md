@@ -51,4 +51,4 @@ The project is designed to run across a distributed home lab environment:
 * goose (for database migrations)
 * sqlc (for generation of type-safe queries)
 * Google Credential Vault
-* VScod
+* VScode
