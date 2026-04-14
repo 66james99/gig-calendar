@@ -38,7 +38,7 @@ The project is designed to run across a distributed home lab environment:
 * **Raspberry Pi:** Hosts the Go web server.
 * **Orico CF1000:** Hosts the PostgreSQL database.
 * **Mac Mini Pro:** Used to host local LLMs for ingestion tasks.
-* **Synology NAS:** Stores the primary image library
+* **Synology NAS:** Stores the primary image library.
 * **Windows 11:** Primary development environment using VS Code.
 
 ## Development
