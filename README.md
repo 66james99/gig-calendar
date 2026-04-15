@@ -6,7 +6,7 @@ An application for tracking live music events, managing tickets, and ingesting g
 
 ### Image Library
 
-I have an extensive library of photographs captured at live music events, stored in various directory structures capturing different metadata about the events. 
+I have an extensive library of photographs captured at live music events, stored in various directory structures capturing different metadata about the events.
 
 The tool uses directory names to extract information about the gigs the imaages where captured at to create event entries within the database.
 
