@@ -1,10 +1,10 @@
 package main
 
 import (
-	"flag"
-	"log"
-	"fmt"
 	"context"
+	"flag"
+	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/66james99/gig-calendar/internal/apiHandler"
@@ -43,9 +43,9 @@ func main() {
 		fmt.Printf("Error creating PatternsArray: %v\n", err)
 		return
 	}
-	
+
 	// Create the api handler
-	handler := apiHandler.New(queries,patternsArray)
+	handler := apiHandler.New(queries, patternsArray)
 
 	// Create a new Echo instance.
 	e := echo.New()
@@ -75,83 +75,29 @@ func main() {
 
 	apiGroup := e.Group(apiPrefix)
 
-	// --- Image Locations Routes ---
-	apiGroup.POST("/image_locations", handler.CreateImageLocation)
-	apiGroup.GET("/image_locations", handler.ListImageLocations)
-	apiGroup.GET("/image_locations/:id", handler.GetImageLocation)
-	apiGroup.PUT("/image_locations/:id", handler.UpdateImageLocation)
-	apiGroup.DELETE("/image_locations/:id", handler.DeleteImageLocation)
+	// Helper function to register standard CRUD routes for a resource
+	reg := func(path string, create, list, get, update, delete echo.HandlerFunc) {
+		apiGroup.POST(path, create)
+		apiGroup.GET(path, list)
+		apiGroup.GET(path+"/:id", get)
+		apiGroup.PUT(path+"/:id", update)
+		apiGroup.DELETE(path+"/:id", delete)
+	}
+
+	// Register Routes
+	reg("/image_locations", handler.CreateImageLocation, handler.ListImageLocations, handler.GetImageLocation, handler.UpdateImageLocation, handler.DeleteImageLocation)
 	apiGroup.GET("/image_locations/:id/preview_scan", handler.PreviewImageLocationScan)
 
-	// --- Venues Routes ---
-	apiGroup.POST("/venues", handler.CreateVenue)
-	apiGroup.GET("/venues", handler.ListVenues)
-	apiGroup.GET("/venues/:id", handler.GetVenue)
-	apiGroup.PUT("/venues/:id", handler.UpdateVenue)
-	apiGroup.DELETE("/venues/:id", handler.DeleteVenue)
-
-	// --- Venue Aliases Routes ---
-	apiGroup.POST("/venue_aliases", handler.CreateVenueAlias)
-	apiGroup.GET("/venue_aliases", handler.ListVenueAliases)
-	apiGroup.GET("/venue_aliases/:id", handler.GetVenueAlias)
-	apiGroup.PUT("/venue_aliases/:id", handler.UpdateVenueAlias)
-	apiGroup.DELETE("/venue_aliases/:id", handler.DeleteVenueAlias)
-
-	// --- Promoters Routes ---
-	apiGroup.POST("/promoters", handler.CreatePromoter)
-	apiGroup.GET("/promoters", handler.ListPromoters)
-	apiGroup.GET("/promoters/:id", handler.GetPromoter)
-	apiGroup.PUT("/promoters/:id", handler.UpdatePromoter)
-	apiGroup.DELETE("/promoters/:id", handler.DeletePromoter)
-
-	// --- Promoter Aliases Routes ---
-	apiGroup.POST("/promoter_aliases", handler.CreatePromoterAlias)
-	apiGroup.GET("/promoter_aliases", handler.ListPromoterAliases)
-	apiGroup.GET("/promoter_aliases/:id", handler.GetPromoterAlias)
-	apiGroup.PUT("/promoter_aliases/:id", handler.UpdatePromoterAlias)
-	apiGroup.DELETE("/promoter_aliases/:id", handler.DeletePromoterAlias)
-
-	// --- Performers Routes ---
-	apiGroup.POST("/performers", handler.CreatePerformer)
-	apiGroup.GET("/performers", handler.ListPerformers)
-	apiGroup.GET("/performers/:id", handler.GetPerformer)
-	apiGroup.PUT("/performers/:id", handler.UpdatePerformer)
-	apiGroup.DELETE("/performers/:id", handler.DeletePerformer)
-
-	// --- Performer Aliases Routes ---
-	apiGroup.POST("/performer_aliases", handler.CreatePerformerAlias)
-	apiGroup.GET("/performer_aliases", handler.ListPerformerAliases)
-	apiGroup.GET("/performer_aliases/:id", handler.GetPerformerAlias)
-	apiGroup.PUT("/performer_aliases/:id", handler.UpdatePerformerAlias)
-	apiGroup.DELETE("/performer_aliases/:id", handler.DeletePerformerAlias)
-
-	// --- Festivals Routes ---
-	apiGroup.POST("/festivals", handler.CreateFestival)
-	apiGroup.GET("/festivals", handler.ListFestivals)
-	apiGroup.GET("/festivals/:id", handler.GetFestival)
-	apiGroup.PUT("/festivals/:id", handler.UpdateFestival)
-	apiGroup.DELETE("/festivals/:id", handler.DeleteFestival)
-
-	// --- Festival Aliases Routes ---
-	apiGroup.POST("/festival_aliases", handler.CreateFestivalAlias)
-	apiGroup.GET("/festival_aliases", handler.ListFestivalAliases)
-	apiGroup.GET("/festival_aliases/:id", handler.GetFestivalAlias)
-	apiGroup.PUT("/festival_aliases/:id", handler.UpdateFestivalAlias)
-	apiGroup.DELETE("/festival_aliases/:id", handler.DeleteFestivalAlias)
-
-	// --- Event Types Routes ---
-	apiGroup.POST("/event_types", handler.CreateEventType)
-	apiGroup.GET("/event_types", handler.ListEventTypes)
-	apiGroup.GET("/event_types/:id", handler.GetEventType)
-	apiGroup.PUT("/event_types/:id", handler.UpdateEventType)
-	apiGroup.DELETE("/event_types/:id", handler.DeleteEventType)
-
-	// --- Stage Roles Routes ---
-	apiGroup.POST("/stage_roles", handler.CreateStageRole)
-	apiGroup.GET("/stage_roles", handler.ListStageRoles)
-	apiGroup.GET("/stage_roles/:id", handler.GetStageRole)
-	apiGroup.PUT("/stage_roles/:id", handler.UpdateStageRole)
-	apiGroup.DELETE("/stage_roles/:id", handler.DeleteStageRole)
+	reg("/venues", handler.CreateVenue, handler.ListVenues, handler.GetVenue, handler.UpdateVenue, handler.DeleteVenue)
+	reg("/venue_aliases", handler.CreateVenueAlias, handler.ListVenueAliases, handler.GetVenueAlias, handler.UpdateVenueAlias, handler.DeleteVenueAlias)
+	reg("/promoters", handler.CreatePromoter, handler.ListPromoters, handler.GetPromoter, handler.UpdatePromoter, handler.DeletePromoter)
+	reg("/promoter_aliases", handler.CreatePromoterAlias, handler.ListPromoterAliases, handler.GetPromoterAlias, handler.UpdatePromoterAlias, handler.DeletePromoterAlias)
+	reg("/performers", handler.CreatePerformer, handler.ListPerformers, handler.GetPerformer, handler.UpdatePerformer, handler.DeletePerformer)
+	reg("/performer_aliases", handler.CreatePerformerAlias, handler.ListPerformerAliases, handler.GetPerformerAlias, handler.UpdatePerformerAlias, handler.DeletePerformerAlias)
+	reg("/festivals", handler.CreateFestival, handler.ListFestivals, handler.GetFestival, handler.UpdateFestival, handler.DeleteFestival)
+	reg("/festival_aliases", handler.CreateFestivalAlias, handler.ListFestivalAliases, handler.GetFestivalAlias, handler.UpdateFestivalAlias, handler.DeleteFestivalAlias)
+	reg("/event_types", handler.CreateEventType, handler.ListEventTypes, handler.GetEventType, handler.UpdateEventType, handler.DeleteEventType)
+	reg("/stage_roles", handler.CreateStageRole, handler.ListStageRoles, handler.GetStageRole, handler.UpdateStageRole, handler.DeleteStageRole)
 
 	// Serve static frontend files.
 	e.Static("/", "../docs/content/admin.gig-calendar.com")

@@ -38,7 +38,9 @@ The application is built using a modern decoupled architecture:
 The project is designed to run across a distributed home lab environment:
 
 * **Raspberry Pi:** Hosts the Go web server.
-* **Orico CF1000:** Hosts the PostgreSQL database.
+* **Orico CF1000:** Running **TrueNAS** and the following applications:
+  * PostgreSQL
+  * Open WebUI
 * **Mac Mini Pro:** Used to host local LLMs for ingestion tasks.
 * **Synology NAS:** Stores the primary image library.
 * **Windows 11:** Primary development environment using VS Code.
